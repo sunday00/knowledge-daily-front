@@ -182,7 +182,7 @@ input AttachSearchInput {
   pinn: Boolean
   sortKey: RangeInt
   src: JsonType
-  status: StandardStatus
+  status: RangeStandardStatus
   storedExt: RangeString
   storedName: RangeString
   type: RangeString
@@ -501,6 +501,19 @@ input RangeInt {
 }
 
 "\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+input RangeStandardStatus {
+  complex: JsonType
+  contains: StandardStatus
+  eq: StandardStatus
+  gt: StandardStatus
+  gte: StandardStatus
+  lt: StandardStatus
+  lte: StandardStatus
+  mul: [StandardStatus!]
+  not: StandardStatus
+}
+
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
 input RangeString {
   complex: JsonType
   contains: String
@@ -634,7 +647,7 @@ input SenseSearchInput {
   """참조, 출처, 연관"""
   refs: [RefInput!]
   sortKey: RangeInt
-  status: StandardStatus
+  status: RangeStandardStatus
   title: RangeString
   version: RangeString
 }

@@ -1,9 +1,12 @@
 import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { SYSTEM_HEALTH_QUERY } from '../graphql/queries/health'
+import { SenseStandardList } from '../components/SenseStandardList'
+import { ClockIcon } from '../components/ClockIcon'
 
 export default function HomePage() {
-  const { data, loading, error } = useQuery(SYSTEM_HEALTH_QUERY, {
+  const { data } = useQuery(SYSTEM_HEALTH_QUERY, {
     variables: { input: { d: 1 } },
   })
 
@@ -14,19 +17,20 @@ export default function HomePage() {
   }, [data])
 
   return (
-    <section className="space-y-4">
-      <p className="text-neutral-600 dark:text-neutral-400">
-        React + React Router + Apollo GraphQL + UnoCSS 세팅이 완료되었습니다.
-      </p>
-
-      <h2 className="text-xl font-semibold mt-6">Health check</h2>
-      {loading && <p className="text-neutral-500">확인 중...</p>}
-      {error && <p className="text-red-600 dark:text-red-400">에러: {error.message}</p>}
-      {data && (
-        <pre className="rounded-md bg-neutral-100 dark:bg-neutral-900 p-4 text-sm overflow-x-auto">
-          {JSON.stringify(data.SystemQuery.health, null, 2)}
-        </pre>
-      )}
+    <section className="space-y-4 rounded-lg border-2 border-brand-500/40 dark:border-indigo-400/40 p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
+          <ClockIcon size={20} className="text-neutral-500 dark:text-neutral-400" />
+          Recent Knowledge
+        </h2>
+        <Link
+          to="/sense/my-sense"
+          className="text-sm text-brand-600 hover:text-brand-700 dark:text-indigo-300 dark:hover:text-indigo-200 no-underline"
+        >
+          more →
+        </Link>
+      </div>
+      <SenseStandardList size={5} />
     </section>
   )
 }
