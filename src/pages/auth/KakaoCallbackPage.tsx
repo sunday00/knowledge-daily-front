@@ -7,7 +7,7 @@ export default function KakaoCallbackPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-3xl font-bold">Kakao Callback</h1>
+      <h2 className="text-xl font-semibold">Kakao Callback</h2>
 
       {status.kind === 'pending' && <p className="text-neutral-500">토큰 교환 중...</p>}
 

@@ -20,7 +20,7 @@ export default function UserSettingsEditPage() {
 
   return (
     <section className="space-y-4 max-w-xl">
-      <h1 className="text-3xl font-bold">개인설정 수정</h1>
+      <h2 className="text-xl font-semibold">개인설정 수정</h2>
 
       {loading && <p className="text-neutral-500">불러오는 중...</p>}
 

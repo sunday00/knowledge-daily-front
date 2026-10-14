@@ -15,7 +15,6 @@ export default function HomePage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-3xl font-bold">Knowledge Daily</h1>
       <p className="text-neutral-600 dark:text-neutral-400">
         React + React Router + Apollo GraphQL + UnoCSS 세팅이 완료되었습니다.
       </p>

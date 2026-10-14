@@ -7,11 +7,15 @@ import UserSettingsPage from './pages/user/UserSettingsPage'
 import UserSettingsEditPage from './pages/user/UserSettingsEditPage'
 import KakaoCallbackPage from './pages/auth/KakaoCallbackPage'
 import { Navigator } from './components/Navigator'
+import { SiteTitle } from './components/SiteTitle'
 
 export default function App() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-6">
-      <Navigator />
+      <header className="space-y-4">
+        <Navigator />
+        <SiteTitle />
+      </header>
       <main className="pt-6">
         <Routes>
           <Route path="/" element={<HomePage />} />
