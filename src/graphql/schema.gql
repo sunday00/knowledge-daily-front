@@ -263,11 +263,34 @@ type AttachUploadedResItemResponse {
   success: Int!
 }
 
+type AuthMutNamespace {
+  authKakaoLogin(input: KakaoLoginInput!): AuthTokenResponseResponse!
+  authSupersimpleRegister(input: UserCreateInput!): SimpleJsonRes!
+}
+
 enum AuthProvider {
   APPLE
   GOOGLE
   KAKAO
   NAVER
+}
+
+type AuthTokenResponse {
+  """자체 JWT (프론트가 Authorization 헤더에 사용)"""
+  accessToken: String!
+
+  """seconds"""
+  expiresIn: Int!
+
+  """가입 처리된 신규 유저인지"""
+  isNewUser: Boolean!
+  user: String!
+}
+
+type AuthTokenResponseResponse {
+  item: AuthTokenResponse!
+  message: String
+  success: Int!
 }
 
 """
@@ -306,6 +329,11 @@ type IdResult {
 """As flexible object"""
 scalar JsonType
 
+input KakaoLoginInput {
+  """Authorization code from Kakao OAuth redirect"""
+  code: String!
+}
+
 type Link {
   href: String!
   label: String
@@ -318,6 +346,7 @@ input LinkInput {
 
 type Mutation {
   AttachMutation: AttachMutNamespace!
+  AuthMutation: AuthMutNamespace!
   NotifyMutation: NotifyMutNamespace!
   SenseMutation: SenseMutNamespace!
   UserMutation: UserMutNamespace!
@@ -686,7 +715,7 @@ enum StandardStatus {
 
 input SystemHealthQry {
   """not meaning. To check data can be passed safely"""
-  d: Int!
+  d: Int
 }
 
 type SystemQryNamespace {

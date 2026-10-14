@@ -2,6 +2,8 @@ import { Link, Route, Routes } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import NotFoundPage from './pages/NotFoundPage'
+import LoginPage from './pages/LoginPage'
+import KakaoCallbackPage from './pages/auth/KakaoCallbackPage'
 import { ThemeToggle } from './theme/ThemeToggle'
 
 export default function App() {
@@ -15,6 +17,9 @@ export default function App() {
           <Link to="/about" className="nav-link">
             About
           </Link>
+          <Link to="/login" className="nav-link">
+            Login
+          </Link>
         </div>
         <ThemeToggle />
       </nav>
@@ -22,6 +27,8 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
