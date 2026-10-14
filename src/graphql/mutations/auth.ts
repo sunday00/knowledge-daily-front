@@ -10,7 +10,8 @@ export const KAKAO_LOGIN_MUTATION = graphql(`
           accessToken
           expiresIn
           isNewUser
-          user
+          userId
+          nickname
         }
       }
     }

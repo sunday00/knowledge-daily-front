@@ -1,22 +1,13 @@
-import { ApolloClient, HttpLink, InMemoryCache, from } from '@apollo/client'
-import { setContext } from '@apollo/client/link/context'
-import { getAccessToken } from './authStorage'
+import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client'
 
 const uri = import.meta.env.VITE_GRAPHQL_ENDPOINT ?? 'http://localhost:4000/graphql'
 
-const httpLink = new HttpLink({ uri })
-
-const authLink = setContext((_, { headers }) => {
-  const token = getAccessToken()
-  return {
-    headers: {
-      ...headers,
-      ...(token ? { authorization: `Bearer ${token}` } : {}),
-    },
-  }
-})
-
 export const apolloClient = new ApolloClient({
-  link: from([authLink, httpLink]),
+  link: new HttpLink({
+    uri,
+    // HttpOnly 쿠키 전송을 위해 필수.
+    // 서버 CORS 는 credentials:true + 명시된 origin 이어야 합니다.
+    credentials: 'include',
+  }),
   cache: new InMemoryCache(),
 })

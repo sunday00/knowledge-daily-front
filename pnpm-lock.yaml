@@ -51,6 +51,9 @@ importers:
       prettier:
         specifier: ^3.9.10
         version: 3.9.10
+      simple-icons:
+        specifier: ^16.35.0
+        version: 16.35.0
       typescript:
         specifier: ^5.6.2
         version: 5.9.3
@@ -1920,6 +1923,10 @@ packages:
   signal-exit@4.1.0:
     resolution: {integrity: sha512-bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==}
     engines: {node: '>=14'}
+
+  simple-icons@16.35.0:
+    resolution: {integrity: sha512-TCfl/2+GTrx0nCo4pEWGvxhOb8c6NsqOU1OpwjtF4lwJAthB8IYVD0fuIMjLMg6JFuG1YBO0t1iETQqJLqkoJA==}
+    engines: {node: '>=0.12.18'}
 
   slash@3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
@@ -4057,6 +4064,8 @@ snapshots:
   shell-quote@1.12.0: {}
 
   signal-exit@4.1.0: {}
+
+  simple-icons@16.35.0: {}
 
   slash@3.0.0: {}
 
