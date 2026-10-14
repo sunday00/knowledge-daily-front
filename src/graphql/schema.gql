@@ -1,0 +1,795 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Attach implements ICreatedAt & StandardEntity {
+  _id: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  elements: [AttachElement!]!
+  flags: [String!]!
+  folder: String!
+
+  """url address to move other pages"""
+  links: [Link!]!
+  originalExt: String!
+  originalName: String!
+  pinn: Boolean!
+  sortKey: Int!
+  src: JsonType
+  status: StandardStatus!
+  storedExt: String!
+  storedName: String!
+  type: String
+  user: String
+  version: String!
+}
+
+type AttachElement {
+  name: String!
+  size: [Int!]!
+}
+
+input AttachElementInput {
+  name: String!
+  size: [Int!]!
+}
+
+input AttachInput {
+  _id: String!
+  deletedAt: DateTime
+  elements: [AttachElementInput!]!
+  flags: [String!]!
+  folder: String!
+
+  """url address to move other pages"""
+  links: [LinkInput!]!
+  originalExt: String!
+  originalName: String!
+  pinn: Boolean! = false
+  sortKey: Int! = 1000
+  src: JsonType
+  status: StandardStatus!
+  storedExt: String!
+  storedName: String!
+  type: String = "IMAGE"
+  user: String
+  version: String!
+}
+
+input AttachInputItem {
+  attach: String!
+  flag: String
+  link: AttachLinkInput
+  sortKey: Float!
+}
+
+"""첨부된 이미지 또는 동영상 미디어."""
+type AttachItem {
+  attach: Attach!
+  flag: String
+  link: AttachLink
+  sortKey: Float!
+}
+
+input AttachItemInput {
+  attach: AttachInput!
+  flag: String
+  link: AttachLinkInput
+  sortKey: Float!
+}
+
+type AttachLink {
+  href: String!
+  label: String
+}
+
+input AttachLinkInput {
+  href: String!
+  label: String
+}
+
+input AttachListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: AttachSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: AttachSearchInputSortType
+}
+
+type AttachListResponse {
+  hasNext: Boolean
+  items: [Attach!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type AttachMutNamespace {
+  """"""
+  attachPresign(input: AttachPresignInput!): AttachPresignedResItemResponse!
+
+  """"""
+  attachUploaded(input: AttachUploadedInput!): AttachUploadedResItemResponse!
+}
+
+input AttachPresignInput {
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [LinkInput!]!
+  originalExt: String!
+  originalName: String!
+  sortKey: Int! = 1000
+  storedExt: String
+  storedName: String
+  type: String = "IMAGE"
+  version: String!
+}
+
+type AttachPresignedResItem {
+  alias: String!
+  id: String!
+  sig: String!
+  sortKey: Float!
+  upload: String!
+}
+
+type AttachPresignedResItemResponse {
+  item: AttachPresignedResItem!
+  message: String
+  success: Int!
+}
+
+type AttachQryNamespace {
+  attachStandardList(input: AttachListByQry): AttachListResponse!
+}
+
+input AttachSearchInput {
+  _id: RangeString
+  createdAt: RangeDate
+  deletedAt: RangeDate
+  elements: [AttachElementInput!]
+  flags: [String!]
+  folder: RangeString
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+  originalExt: RangeString
+  originalName: RangeString
+  pinn: Boolean
+  sortKey: RangeInt
+  src: JsonType
+  status: StandardStatus
+  storedExt: RangeString
+  storedName: RangeString
+  type: RangeString
+  user: RangeString
+  version: RangeString
+}
+
+input AttachSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  elements: Int
+
+  """1: asc, -1: desc"""
+  flags: Int
+
+  """1: asc, -1: desc"""
+  folder: Int
+
+  """1: asc, -1: desc"""
+  links: Int
+
+  """1: asc, -1: desc"""
+  originalExt: Int
+
+  """1: asc, -1: desc"""
+  originalName: Int
+
+  """1: asc, -1: desc"""
+  pinn: Int
+
+  """1: asc, -1: desc"""
+  sortKey: Int
+
+  """1: asc, -1: desc"""
+  src: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  storedExt: Int
+
+  """1: asc, -1: desc"""
+  storedName: Int
+
+  """1: asc, -1: desc"""
+  type: Int
+
+  """1: asc, -1: desc"""
+  user: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+input AttachUploadedInput {
+  _id: String!
+  elements: [AttachElementInput!]!
+}
+
+type AttachUploadedResItem {
+  _id: String!
+  alias: String!
+  src: [String!]!
+}
+
+type AttachUploadedResItemResponse {
+  item: AttachUploadedResItem!
+  message: String
+  success: Int!
+}
+
+enum AuthProvider {
+  APPLE
+  GOOGLE
+  KAKAO
+  NAVER
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+"""
+formatted date string, 
+not DateType, without time, just Date only. 
+
+YYYY-MM-DD 
+
+ex) 1992-03-25
+"""
+scalar FullDate
+
+interface IAttach {
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+}
+
+interface ICreatedAt {
+  createdAt: DateTime!
+}
+
+interface ITag {
+  """tags"""
+  tags: [Tag!]!
+}
+
+type IdResult {
+  id: String!
+}
+
+"""As flexible object"""
+scalar JsonType
+
+type Link {
+  href: String!
+  label: String
+}
+
+input LinkInput {
+  href: String!
+  label: String
+}
+
+type Mutation {
+  AttachMutation: AttachMutNamespace!
+  NotifyMutation: NotifyMutNamespace!
+  SenseMutation: SenseMutNamespace!
+  UserMutation: UserMutNamespace!
+}
+
+type NotifyMutNamespace {
+  _notifySettingMutNotImplementedThing: SimpleJsonRes!
+  notifySettingUpdate(input: NotifySettingUpdateInput!): SimpleJsonRes!
+}
+
+type NotifyQryNamespace {
+  notifySettingByUser: NotifySettingResponse!
+}
+
+type NotifySenseSetting {
+  """1회 발송 당 받을 서비스 수"""
+  cntEach: Int
+
+  """관심 태그 id 목록"""
+  focusOn: [String!]!
+
+  """서비스 수준 [최저/최고]. default: [1, 5]"""
+  lvs: [Int!]
+
+  """
+  발송 시간대. 1H interval. eg) ["09:00", "15:00"] , not "15:09"
+  """
+  notiTimes: [String!]!
+}
+
+input NotifySenseSettingInput {
+  """1회 발송 당 받을 서비스 수"""
+  cntEach: Int = 1
+
+  """관심 태그 id 목록"""
+  focusOn: [String!]!
+
+  """서비스 수준 [최저/최고]. default: [1, 5]"""
+  lvs: [Int!] = [1, 5]
+
+  """
+  발송 시간대. 1H interval. eg) ["09:00", "15:00"] , not "15:09"
+  """
+  notiTimes: [String!]!
+}
+
+type NotifySetting implements ICreatedAt {
+  _id: String!
+  createdAt: DateTime!
+
+  """
+  UTC 시간 차이. eg. "+09:00" | "-03:30"
+  """
+  fromUtcH: String!
+
+  """
+  update 시 nullish는 삭제 update로 인식하므로, 해당필드 없애는 update 아니면 기존 필드 채워 req 바람
+  """
+  senseSetting: NotifySenseSetting!
+  user: String
+  version: String!
+}
+
+input NotifySettingInput {
+  _id: String!
+  createdAt: DateTime!
+
+  """
+  UTC 시간 차이. eg. "+09:00" | "-03:30"
+  """
+  fromUtcH: String! = "+09:00"
+
+  """
+  update 시 nullish는 삭제 update로 인식하므로, 해당필드 없애는 update 아니면 기존 필드 채워 req 바람
+  """
+  senseSetting: NotifySenseSettingInput!
+  user: String
+  version: String!
+}
+
+type NotifySettingResponse {
+  item: NotifySetting!
+  message: String
+  success: Int!
+}
+
+input NotifySettingUpdateInput {
+  """
+  UTC 시간 차이. eg. "+09:00" | "-03:30"
+  """
+  fromUtcH: String = "+09:00"
+
+  """
+  update 시 nullish는 삭제 update로 인식하므로, 해당필드 없애는 update 아니면 기존 필드 채워 req 바람
+  """
+  senseSetting: NotifySenseSettingInput
+  version: String
+}
+
+type Query {
+  AttachQuery: AttachQryNamespace!
+  NotifyQuery: NotifyQryNamespace!
+  SenseQuery: SenseQryNamespace!
+  SystemQuery: SystemQryNamespace!
+  TagQuery: TagQryNamespace!
+}
+
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+input RangeDate {
+  complex: JsonType
+  contains: DateTime
+  eq: DateTime
+  gt: DateTime
+  gte: DateTime
+  lt: DateTime
+  lte: DateTime
+  mul: [DateTime!]
+  not: DateTime
+}
+
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+input RangeInt {
+  complex: JsonType
+  contains: Int
+  eq: Int
+  gt: Int
+  gte: Int
+  lt: Int
+  lte: Int
+  mul: [Int!]
+  not: Int
+}
+
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+input RangeString {
+  complex: JsonType
+  contains: String
+  eq: String
+  gt: String
+  gte: String
+  lt: String
+  lte: String
+  mul: [String!]
+  not: String
+}
+
+type Ref {
+  href: String!
+  label: String!
+}
+
+input RefInput {
+  href: String!
+  label: String!
+}
+
+type Sense implements IAttach & ICreatedAt & ITag & StandardEntity {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  description: String!
+  detail: String!
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+  lv: Int!
+
+  """원어"""
+  nativeLang: String
+  pinn: Boolean!
+
+  """참조, 출처, 연관"""
+  refs: [Ref!]!
+  sortKey: Int!
+  status: StandardStatus!
+
+  """tags"""
+  tags: [Tag!]!
+  title: String!
+  version: String!
+}
+
+input SenseInput {
+  description: String!
+  detail: String! = ""
+  lv: Int!
+
+  """원어"""
+  nativeLang: String
+
+  """참조, 출처, 연관"""
+  refs: [RefInput!]!
+  title: String!
+}
+
+input SenseListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: SenseSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: SenseSearchInputSortType
+}
+
+type SenseListResponse {
+  hasNext: Boolean
+  items: [Sense!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type SenseMutNamespace {
+  _senseMutNotImplementedThing(input: SenseListByQry): SimpleJsonRes!
+}
+
+type SenseQryNamespace {
+  senseStandardList(input: SenseListByQry): SenseListResponse!
+}
+
+input SenseSearchInput {
+  _id: RangeString
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+  createdAt: RangeDate
+  deletedAt: RangeDate
+  description: RangeString
+  detail: RangeString
+  flags: [String!]
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+  lv: RangeInt
+
+  """원어"""
+  nativeLang: RangeString
+  pinn: Boolean
+
+  """참조, 출처, 연관"""
+  refs: [RefInput!]
+  sortKey: RangeInt
+  status: StandardStatus
+  title: RangeString
+  version: RangeString
+}
+
+input SenseSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  attaches: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  description: Int
+
+  """1: asc, -1: desc"""
+  detail: Int
+
+  """1: asc, -1: desc"""
+  flags: Int
+
+  """1: asc, -1: desc"""
+  links: Int
+
+  """1: asc, -1: desc"""
+  lv: Int
+
+  """1: asc, -1: desc"""
+  nativeLang: Int
+
+  """1: asc, -1: desc"""
+  pinn: Int
+
+  """1: asc, -1: desc"""
+  refs: Int
+
+  """1: asc, -1: desc"""
+  sortKey: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  title: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+type SignProvider {
+  provider: AuthProvider!
+  providerId: String!
+}
+
+input SignProviderInput {
+  provider: AuthProvider!
+  providerId: String!
+}
+
+type SimpleJsonRes {
+  item: JsonType!
+  message: String
+  success: Int!
+}
+
+interface StandardEntity implements ICreatedAt {
+  _id: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+  pinn: Boolean!
+  sortKey: Int!
+  status: StandardStatus!
+  version: String!
+}
+
+enum StandardStatus {
+  """활성 ✅ 😳"""
+  ACTIVE
+
+  """동작은 중단되고 노출만 됨. 기간 지난 이벤트 따위 🚫 😳"""
+  CLOSE
+
+  """노출되면 동작하지만, 노출은 가림. 최종 승인이 필요한 임시생성이나 숨겨진 페이지 ✅ 😎"""
+  DRAFT
+
+  """동작도 중단되고 사용자에 가림 🚫 😎"""
+  INACTIVE
+}
+
+input SystemHealthQry {
+  """not meaning. To check data can be passed safely"""
+  d: Int!
+}
+
+type SystemQryNamespace {
+  health(input: SystemHealthQry!): SimpleJsonRes!
+}
+
+type Tag {
+  _id: String!
+  createdAt: DateTime!
+  mamo: String
+  name: String!
+  version: String!
+}
+
+input TagInput {
+  _id: String!
+  createdAt: DateTime!
+  mamo: String
+  name: String!
+  version: String!
+}
+
+input TagListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: TagSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: TagSearchInputSortType
+}
+
+type TagListResponse {
+  hasNext: Boolean
+  items: [Tag!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type TagQryNamespace {
+  tagStandardList(input: TagListByQry): TagListResponse!
+}
+
+input TagSearchInput {
+  _id: RangeString
+  createdAt: RangeDate
+  mamo: RangeString
+  name: RangeString
+  version: RangeString
+}
+
+input TagSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  mamo: Int
+
+  """1: asc, -1: desc"""
+  name: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+input UserCreateInput {
+  fcm: String
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [LinkInput!]!
+  lv: Int!
+  nickname: String!
+  pinn: Boolean! = false
+  sign: [SignProviderInput!]!
+  sortKey: Int! = 1000
+  version: String!
+}
+
+type UserMutNamespace {
+  userSupersimpleRegister(input: UserCreateInput!): SimpleJsonRes!
+}

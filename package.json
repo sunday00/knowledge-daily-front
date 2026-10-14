@@ -13,16 +13,22 @@
     "preview": "vite preview",
     "lint": "tsc -b --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "codegen:pre": "bash scripts/codegen-pre.sh",
+    "codegen": "pnpm codegen:pre && graphql-codegen",
+    "codegen:watch": "pnpm codegen:pre && graphql-codegen --watch"
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
+    "@graphql-typed-document-node/core": "^3.2.0",
     "graphql": "^16.9.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^7.4.6",
+    "@graphql-codegen/client-preset": "^6.2.3",
     "@types/node": "^26.6.5",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
