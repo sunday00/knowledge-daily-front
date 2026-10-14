@@ -14,14 +14,20 @@ export default function HomePage() {
   }, [data])
 
   return (
-    <section>
-      <h1>Knowledge Daily</h1>
-      <p>React + React Router + Apollo GraphQL 세팅이 완료되었습니다.</p>
+    <section className="space-y-4">
+      <h1 className="text-3xl font-bold">Knowledge Daily</h1>
+      <p className="text-neutral-600 dark:text-neutral-400">
+        React + React Router + Apollo GraphQL + UnoCSS 세팅이 완료되었습니다.
+      </p>
 
-      <h2>Health check</h2>
-      {loading && <p>확인 중...</p>}
-      {error && <p style={{ color: 'tomato' }}>에러: {error.message}</p>}
-      {data && <pre>{JSON.stringify(data.SystemQuery.health, null, 2)}</pre>}
+      <h2 className="text-xl font-semibold mt-6">Health check</h2>
+      {loading && <p className="text-neutral-500">확인 중...</p>}
+      {error && <p className="text-red-600 dark:text-red-400">에러: {error.message}</p>}
+      {data && (
+        <pre className="rounded-md bg-neutral-100 dark:bg-neutral-900 p-4 text-sm overflow-x-auto">
+          {JSON.stringify(data.SystemQuery.health, null, 2)}
+        </pre>
+      )}
     </section>
   )
 }

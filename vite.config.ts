@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import unocss from 'unocss/vite'
 import path from 'node:path'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [unocss(), react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
