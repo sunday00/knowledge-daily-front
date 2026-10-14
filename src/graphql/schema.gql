@@ -263,11 +263,39 @@ type AttachUploadedResItemResponse {
   success: Int!
 }
 
+type AuthMutNamespace {
+  authKakaoLogin(input: KakaoLoginInput!): AuthTokenResponseResponse!
+  authSupersimpleRegister(input: UserCreateInput!): AuthTokenResponseResponse!
+}
+
 enum AuthProvider {
   APPLE
   GOOGLE
   KAKAO
   NAVER
+}
+
+type AuthQryNamespace {
+  me: MeResponseItemResponse!
+}
+
+type AuthTokenResponse {
+  """자체 JWT (프론트가 Authorization 헤더에 사용)"""
+  accessToken: String!
+
+  """seconds"""
+  expiresIn: Int!
+
+  """가입 처리된 신규 유저인지"""
+  isNewUser: Boolean!
+  nickname: String!
+  userId: String!
+}
+
+type AuthTokenResponseResponse {
+  item: AuthTokenResponse!
+  message: String
+  success: Int!
 }
 
 """
@@ -306,6 +334,11 @@ type IdResult {
 """As flexible object"""
 scalar JsonType
 
+input KakaoLoginInput {
+  """Authorization code from Kakao OAuth redirect"""
+  code: String!
+}
+
 type Link {
   href: String!
   label: String
@@ -316,8 +349,22 @@ input LinkInput {
   label: String
 }
 
+type MeResponseItem {
+  nickname: String!
+  roles: [UserRole!]!
+  sid: Int!
+  userId: String!
+}
+
+type MeResponseItemResponse {
+  item: MeResponseItem!
+  message: String
+  success: Int!
+}
+
 type Mutation {
   AttachMutation: AttachMutNamespace!
+  AuthMutation: AuthMutNamespace!
   NotifyMutation: NotifyMutNamespace!
   SenseMutation: SenseMutNamespace!
   UserMutation: UserMutNamespace!
@@ -419,10 +466,12 @@ input NotifySettingUpdateInput {
 
 type Query {
   AttachQuery: AttachQryNamespace!
+  AuthQuery: AuthQryNamespace!
   NotifyQuery: NotifyQryNamespace!
   SenseQuery: SenseQryNamespace!
   SystemQuery: SystemQryNamespace!
   TagQuery: TagQryNamespace!
+  UserQuery: UserQryNamespace!
 }
 
 "\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
@@ -686,7 +735,7 @@ enum StandardStatus {
 
 input SystemHealthQry {
   """not meaning. To check data can be passed safely"""
-  d: Int!
+  d: Int
 }
 
 type SystemQryNamespace {
@@ -790,6 +839,50 @@ input UserCreateInput {
   version: String!
 }
 
+type UserInfoResponseItem {
+  _id: String!
+  createdAt: DateTime!
+
+  """url address to move other pages"""
+  links: [Link!]!
+  lv: Int!
+  nickname: String!
+  roles: [UserRole!]!
+  sid: Int!
+  status: StandardStatus!
+}
+
+type UserInfoResponseItemResponse {
+  item: UserInfoResponseItem!
+  message: String
+  success: Int!
+}
+
 type UserMutNamespace {
   userSupersimpleRegister(input: UserCreateInput!): SimpleJsonRes!
+  userUpdate(input: UserUpdateInput!): SimpleJsonRes!
+}
+
+type UserQryNamespace {
+  info: UserInfoResponseItemResponse!
+}
+
+enum UserRole {
+  ADMIN
+  GUEST
+  HQ
+  MEMBER
+}
+
+input UserUpdateInput {
+  fcm: String
+  flags: [String!]
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+  nickname: String
+  pinn: Boolean = false
+  sign: [SignProviderInput!]
+  sortKey: Int = 1000
+  version: String
 }
