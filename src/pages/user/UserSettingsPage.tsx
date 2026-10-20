@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { USER_INFO_QUERY } from '@/graphql/queries/userInfo.ts'
 import { useAuth } from '../../auth/AuthProvider'
 import { LinkItem } from '../../components/LinkItem'
+import { NotificationToggle } from '../../components/NotificationToggle'
 
 export default function UserSettingsPage() {
   const { user, updateUser } = useAuth()
@@ -27,7 +28,7 @@ export default function UserSettingsPage() {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">개인설정</h1>
+        <h2 className="text-xl font-semibold">개인설정</h2>
         <Link to="/user/settings/edit" className="btn">
           수정
         </Link>
@@ -63,6 +64,8 @@ export default function UserSettingsPage() {
           )}
         </dl>
       )}
+
+      <NotificationToggle />
     </section>
   )
 }

@@ -14,7 +14,7 @@ export default function LoginPage() {
 
   return (
     <section className="space-y-4">
-      <h1 className="text-3xl font-bold">로그인</h1>
+      <h2 className="text-xl font-semibold">로그인</h2>
       <p className="text-neutral-600 dark:text-neutral-400">소셜 로그인으로 시작하세요.</p>
 
       <button

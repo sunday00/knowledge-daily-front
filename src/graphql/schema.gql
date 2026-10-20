@@ -37,6 +37,7 @@ input AttachElementInput {
 
 input AttachInput {
   _id: String!
+  createdAt: DateTime!
   deletedAt: DateTime
   elements: [AttachElementInput!]!
   flags: [String!]!
@@ -46,8 +47,8 @@ input AttachInput {
   links: [LinkInput!]!
   originalExt: String!
   originalName: String!
-  pinn: Boolean! = false
-  sortKey: Int! = 1000
+  pinn: Boolean!
+  sortKey: Int!
   src: JsonType
   status: StandardStatus!
   storedExt: String!
@@ -142,7 +143,7 @@ input AttachPresignInput {
   links: [LinkInput!]!
   originalExt: String!
   originalName: String!
-  sortKey: Int! = 1000
+  sortKey: Int!
   storedExt: String
   storedName: String
   type: String = "IMAGE"
@@ -182,7 +183,7 @@ input AttachSearchInput {
   pinn: Boolean
   sortKey: RangeInt
   src: JsonType
-  status: StandardStatus
+  status: RangeStandardStatus
   storedExt: RangeString
   storedName: RangeString
   type: RangeString
@@ -298,6 +299,13 @@ type AuthTokenResponseResponse {
   success: Int!
 }
 
+interface CompactEntity implements ICreatedAt {
+  _id: String!
+  createdAt: DateTime!
+  status: StandardStatus!
+  version: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
@@ -325,6 +333,11 @@ interface ICreatedAt {
 interface ITag {
   """tags"""
   tags: [Tag!]!
+}
+
+interface IUser {
+  """user"""
+  user: User
 }
 
 type IdResult {
@@ -411,9 +424,10 @@ input NotifySenseSettingInput {
   notiTimes: [String!]!
 }
 
-type NotifySetting implements ICreatedAt {
+type NotifySetting implements CompactEntity & ICreatedAt & IUser {
   _id: String!
   createdAt: DateTime!
+  fcm: String
 
   """
   UTC 시간 차이. eg. "+09:00" | "-03:30"
@@ -424,13 +438,15 @@ type NotifySetting implements ICreatedAt {
   update 시 nullish는 삭제 update로 인식하므로, 해당필드 없애는 update 아니면 기존 필드 채워 req 바람
   """
   senseSetting: NotifySenseSetting!
-  user: String
+  status: StandardStatus!
+
+  """user"""
+  user: User
   version: String!
 }
 
 input NotifySettingInput {
-  _id: String!
-  createdAt: DateTime!
+  fcm: String
 
   """
   UTC 시간 차이. eg. "+09:00" | "-03:30"
@@ -441,8 +457,6 @@ input NotifySettingInput {
   update 시 nullish는 삭제 update로 인식하므로, 해당필드 없애는 update 아니면 기존 필드 채워 req 바람
   """
   senseSetting: NotifySenseSettingInput!
-  user: String
-  version: String!
 }
 
 type NotifySettingResponse {
@@ -452,6 +466,8 @@ type NotifySettingResponse {
 }
 
 input NotifySettingUpdateInput {
+  fcm: String
+
   """
   UTC 시간 차이. eg. "+09:00" | "-03:30"
   """
@@ -461,6 +477,7 @@ input NotifySettingUpdateInput {
   update 시 nullish는 삭제 update로 인식하므로, 해당필드 없애는 update 아니면 기존 필드 채워 req 바람
   """
   senseSetting: NotifySenseSettingInput
+  status: StandardStatus
   version: String
 }
 
@@ -498,6 +515,19 @@ input RangeInt {
   lte: Int
   mul: [Int!]
   not: Int
+}
+
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+input RangeStandardStatus {
+  complex: JsonType
+  contains: StandardStatus
+  eq: StandardStatus
+  gt: StandardStatus
+  gte: StandardStatus
+  lt: StandardStatus
+  lte: StandardStatus
+  mul: [StandardStatus!]
+  not: StandardStatus
 }
 
 "\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
@@ -555,7 +585,7 @@ type Sense implements IAttach & ICreatedAt & ITag & StandardEntity {
 
 input SenseInput {
   description: String!
-  detail: String! = ""
+  detail: String!
   lv: Int!
 
   """원어"""
@@ -608,8 +638,45 @@ type SenseMutNamespace {
   _senseMutNotImplementedThing(input: SenseListByQry): SimpleJsonRes!
 }
 
+input SenseOneByQry {
+  _id: String
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+  createdAt: DateTime
+  deletedAt: DateTime
+  description: String
+  detail: String
+  flags: [String!]
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+  lv: Int
+
+  """원어"""
+  nativeLang: String
+  pinn: Boolean
+
+  """참조, 출처, 연관"""
+  refs: [RefInput!]
+  sortKey: Int
+  status: StandardStatus
+
+  """tags"""
+  tags: [TagInput!]
+  title: String
+  version: String
+}
+
 type SenseQryNamespace {
+  senseOne(input: SenseOneByQry): SenseResponse!
   senseStandardList(input: SenseListByQry): SenseListResponse!
+}
+
+type SenseResponse {
+  item: Sense!
+  message: String
+  success: Int!
 }
 
 input SenseSearchInput {
@@ -634,7 +701,10 @@ input SenseSearchInput {
   """참조, 출처, 연관"""
   refs: [RefInput!]
   sortKey: RangeInt
-  status: StandardStatus
+  status: RangeStandardStatus
+
+  """tags"""
+  tags: [TagInput!]
   title: RangeString
   version: RangeString
 }
@@ -681,6 +751,9 @@ input SenseSearchInputSortType {
 
   """1: asc, -1: desc"""
   status: Int
+
+  """1: asc, -1: desc"""
+  tags: Int
 
   """1: asc, -1: desc"""
   title: Int
@@ -825,17 +898,35 @@ input TagSearchInputSortType {
   version: Int
 }
 
+type User implements ICreatedAt & StandardEntity {
+  _id: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+  lv: Int!
+  nickname: String!
+  pinn: Boolean!
+  roles: [UserRole!]!
+  sid: Int!
+  sign: [SignProvider!]!
+  sortKey: Int!
+  status: StandardStatus!
+  version: String!
+}
+
 input UserCreateInput {
-  fcm: String
   flags: [String!]!
 
   """url address to move other pages"""
   links: [LinkInput!]!
   lv: Int!
   nickname: String!
-  pinn: Boolean! = false
+  pinn: Boolean!
   sign: [SignProviderInput!]!
-  sortKey: Int! = 1000
+  sortKey: Int!
   version: String!
 }
 
@@ -858,6 +949,25 @@ type UserInfoResponseItemResponse {
   success: Int!
 }
 
+input UserInput {
+  _id: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [LinkInput!]!
+  lv: Int!
+  nickname: String!
+  pinn: Boolean!
+  roles: [UserRole!]!
+  sid: Int!
+  sign: [SignProviderInput!]!
+  sortKey: Int!
+  status: StandardStatus!
+  version: String!
+}
+
 type UserMutNamespace {
   userSupersimpleRegister(input: UserCreateInput!): SimpleJsonRes!
   userUpdate(input: UserUpdateInput!): SimpleJsonRes!
@@ -875,14 +985,16 @@ enum UserRole {
 }
 
 input UserUpdateInput {
-  fcm: String
   flags: [String!]
 
   """url address to move other pages"""
   links: [LinkInput!]
   nickname: String
-  pinn: Boolean = false
+
+  """update fcm token. not to be used by user directly."""
+  notify__fcm: String
+  pinn: Boolean
   sign: [SignProviderInput!]
-  sortKey: Int = 1000
+  sortKey: Int
   version: String
 }

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMutation } from '@apollo/client'
+import { ApolloError, useMutation } from '@apollo/client'
 import { KAKAO_LOGIN_MUTATION } from '@/graphql/mutations/auth.ts'
 import { consumeKakaoState } from '@/lib/kakao.ts'
 import { useAuth } from '@/auth/AuthProvider.tsx'
+import { reportError } from '@/lib/errorReporter.ts'
 
 export type KakaoSignInStatus =
   | { kind: 'pending' }
@@ -21,36 +22,43 @@ export function useKakaoSignIn(params: URLSearchParams) {
     if (handledRef.current) return
     handledRef.current = true
 
+    // 실패 시 상단 ErrorBanner 로 상세 로그를 띄운다.
+    // API 에러(ApolloError)는 apollo errorLink 에서 이미 보고되므로 중복 보고하지 않는다.
+    const fail = (message: string, detail?: unknown) => {
+      if (!(detail instanceof ApolloError)) reportError(`[로그인 실패] ${message}`, detail)
+      setStatus({ kind: 'error', message })
+    }
+
     const code = params.get('code')
     const state = params.get('state')
     const err = params.get('error')
     const errDesc = params.get('error_description')
 
     if (err) {
-      setStatus({ kind: 'error', message: `${err}: ${errDesc ?? ''}` })
+      fail(`${err}: ${errDesc ?? ''}`)
       return
     }
 
     const expectedState = consumeKakaoState()
     if (!state || !expectedState || state !== expectedState) {
-      setStatus({ kind: 'error', message: 'state 불일치 — CSRF 위험으로 중단합니다.' })
+      fail('state 불일치 — CSRF 위험으로 중단합니다.', { state, expectedState })
       return
     }
 
     if (!code) {
-      setStatus({ kind: 'error', message: 'code 파라미터가 없습니다.' })
+      fail('code 파라미터가 없습니다.')
       return
     }
 
     kakaoLogin({ variables: { input: { code } } })
       .then(({ data, errors }) => {
         if (errors?.length) {
-          setStatus({ kind: 'error', message: errors.map((e) => e.message).join(', ') })
+          fail(errors.map((e) => e.message).join(', '), errors)
           return
         }
         const res = data?.AuthMutation.authKakaoLogin
         if (!res || !res.success) {
-          setStatus({ kind: 'error', message: res?.message ?? '서버가 실패를 반환했습니다.' })
+          fail(res?.message ?? '서버가 실패를 반환했습니다.', res)
           return
         }
 
@@ -64,7 +72,7 @@ export function useKakaoSignIn(params: URLSearchParams) {
         setTimeout(() => navigate('/', { replace: true }), 600)
       })
       .catch((e: unknown) => {
-        setStatus({ kind: 'error', message: e instanceof Error ? e.message : String(e) })
+        fail(e instanceof Error ? e.message : String(e), e)
       })
   }, [params, kakaoLogin, navigate, signIn])
 
