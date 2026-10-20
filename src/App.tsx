@@ -10,10 +10,15 @@ import MySensePage from './pages/sense/MySensePage'
 import TagSensePage from './pages/sense/TagSensePage'
 import { Navigator } from './components/Navigator'
 import { SiteTitle } from './components/SiteTitle'
+import { useFcmTokenSync } from './hooks/useFcmTokenSync'
+import { ErrorBanner } from './components/ErrorBanner'
 
 export default function App() {
+  useFcmTokenSync()
+
   return (
     <div className="mx-auto max-w-5xl px-6 py-6">
+      <ErrorBanner />
       <header className="space-y-4">
         <Navigator />
         <SiteTitle />

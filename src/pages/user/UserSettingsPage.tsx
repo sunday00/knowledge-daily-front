@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { USER_INFO_QUERY } from '@/graphql/queries/userInfo.ts'
 import { useAuth } from '../../auth/AuthProvider'
 import { LinkItem } from '../../components/LinkItem'
+import { NotificationToggle } from '../../components/NotificationToggle'
 
 export default function UserSettingsPage() {
   const { user, updateUser } = useAuth()
@@ -63,6 +64,8 @@ export default function UserSettingsPage() {
           )}
         </dl>
       )}
+
+      <NotificationToggle />
     </section>
   )
 }

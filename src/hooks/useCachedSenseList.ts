@@ -44,11 +44,11 @@ export function useCachedSenseList(size: number) {
     variables: { input: { size, search: { status: { eq: 'ACTIVE' } } } },
     skip: cached !== null,
     fetchPolicy: 'network-only',
-    onCompleted: (fresh) => {
-      writeToStorage(size, fresh)
-      setCached(fresh)
-    },
   })
+
+  useEffect(() => {
+    if (data) writeToStorage(size, data)
+  }, [size, data])
 
   return {
     data: cached ?? data,
