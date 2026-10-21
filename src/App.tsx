@@ -5,6 +5,7 @@ import NotFoundPage from './pages/NotFoundPage'
 import LoginPage from './pages/LoginPage'
 import UserSettingsPage from './pages/user/UserSettingsPage'
 import UserSettingsEditPage from './pages/user/UserSettingsEditPage'
+import NotifyInterestEditPage from './pages/user/NotifyInterestEditPage'
 import KakaoCallbackPage from './pages/auth/KakaoCallbackPage'
 import MySensePage from './pages/sense/MySensePage'
 import TagSensePage from './pages/sense/TagSensePage'
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/user/settings" element={<UserSettingsPage />} />
           <Route path="/user/settings/edit" element={<UserSettingsEditPage />} />
+          <Route path="/user/settings/interest/edit" element={<NotifyInterestEditPage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
           <Route path="/sense/my-sense" element={<MySensePage />} />
           <Route path="/sense/tag/:tag" element={<TagSensePage />} />
