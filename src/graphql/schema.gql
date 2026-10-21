@@ -170,6 +170,9 @@ type AttachQryNamespace {
 
 input AttachSearchInput {
   _id: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
   createdAt: RangeDate
   deletedAt: RangeDate
   elements: [AttachElementInput!]
@@ -491,9 +494,8 @@ type Query {
   UserQuery: UserQryNamespace!
 }
 
-"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
 input RangeDate {
-  complex: JsonType
   contains: DateTime
   eq: DateTime
   gt: DateTime
@@ -504,9 +506,8 @@ input RangeDate {
   not: DateTime
 }
 
-"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
 input RangeInt {
-  complex: JsonType
   contains: Int
   eq: Int
   gt: Int
@@ -517,9 +518,8 @@ input RangeInt {
   not: Int
 }
 
-"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
 input RangeStandardStatus {
-  complex: JsonType
   contains: StandardStatus
   eq: StandardStatus
   gt: StandardStatus
@@ -530,9 +530,8 @@ input RangeStandardStatus {
   not: StandardStatus
 }
 
-"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/complex/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
 input RangeString {
-  complex: JsonType
   contains: String
   eq: String
   gt: String
@@ -613,6 +612,23 @@ input SenseListByQry {
   sort: SenseSearchInputSortType
 }
 
+input SenseListMyQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: SenseSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: SenseSearchInputSortType
+}
+
 type SenseListResponse {
   hasNext: Boolean
   items: [Sense!]!
@@ -669,6 +685,7 @@ input SenseOneByQry {
 }
 
 type SenseQryNamespace {
+  senseMyList(input: SenseListMyQry): SenseListResponse!
   senseOne(input: SenseOneByQry): SenseResponse!
   senseStandardList(input: SenseListByQry): SenseListResponse!
 }
@@ -684,6 +701,9 @@ input SenseSearchInput {
 
   """첨부 미디어 목록"""
   attaches: [AttachItemInput!]
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
   createdAt: RangeDate
   deletedAt: RangeDate
   description: RangeString
@@ -875,6 +895,9 @@ type TagQryNamespace {
 
 input TagSearchInput {
   _id: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
   createdAt: RangeDate
   mamo: RangeString
   name: RangeString
@@ -969,7 +992,7 @@ input UserInput {
 }
 
 type UserMutNamespace {
-  userSupersimpleRegister(input: UserCreateInput!): SimpleJsonRes!
+  userSupersimpleRegister(input: UserCreateInput!): AuthTokenResponseResponse!
   userUpdate(input: UserUpdateInput!): SimpleJsonRes!
 }
 

@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { useMutation } from '@apollo/client'
+import { useApolloClient, useMutation } from '@apollo/client'
 import { useNavigate } from 'react-router-dom'
 import { NOTIFY_SETTING_BY_USER_QUERY } from '@/graphql/queries/notify.ts'
 import { NOTIFY_SETTING_UPDATE_MUTATION } from '@/graphql/mutations/notify.ts'
 import type { NotifySettingByUserQuery } from '@/graphql/__generated__/graphql.ts'
 import type { TagOption } from '@/components/TagPicker.tsx'
+import { clearMyListCache } from '@/lib/senseMyListCache.ts'
 import { LV_MAX, LV_MIN, type LevelRange } from '@/components/LevelRangeField.tsx'
 
 export type NotifyInterestDraft = {
@@ -20,6 +21,7 @@ const HH = /^([01]\d|2[0-3])$/
 
 export function useUpdateNotifyInterest() {
   const navigate = useNavigate()
+  const client = useApolloClient()
   const [error, setError] = useState<string | null>(null)
   const [mutate, { loading: saving }] = useMutation(NOTIFY_SETTING_UPDATE_MUTATION, {
     refetchQueries: [NOTIFY_SETTING_BY_USER_QUERY],
@@ -71,6 +73,11 @@ export function useUpdateNotifyInterest() {
         setError(result?.message ?? '서버가 실패를 반환했습니다.')
         return
       }
+
+      // 관심 태그/수준이 바뀌면 내 Knowledge 목록도 달라지므로 저장/메모리 캐시를 비운다.
+      clearMyListCache()
+      client.cache.evict({ id: 'ROOT_QUERY', fieldName: 'SenseQuery' })
+      client.cache.gc()
 
       navigate('/user/settings?tab=interest', { replace: true })
     } catch (e: unknown) {
