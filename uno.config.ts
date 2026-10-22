@@ -1,7 +1,8 @@
 import { defineConfig, presetUno } from 'unocss'
+import presetTypography from '@unocss/preset-typography'
 
 export default defineConfig({
-  presets: [presetUno({ dark: 'class' })],
+  presets: [presetUno({ dark: 'class' }), presetTypography()],
   theme: {
     colors: {
       brand: {

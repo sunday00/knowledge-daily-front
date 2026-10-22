@@ -10,7 +10,7 @@ type Cached = {
   savedAt: number
 }
 
-const storageKey = (size: number) => `knowledge-daily:senseList:v1:size=${size}`
+const storageKey = (size: number) => `knowledge-daily:senseList:v2:size=${size}`
 
 function readFromStorage(size: number): SenseStandardListQuery | null {
   try {

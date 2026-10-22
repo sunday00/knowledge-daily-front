@@ -2,6 +2,17 @@ import { ApolloClient, ApolloError, from, HttpLink, InMemoryCache } from '@apoll
 import { onError } from '@apollo/client/link/error'
 import { reportError } from './errorReporter'
 
+const QUERY_NAMESPACES = [
+  'AttachQryNamespace',
+  'AuthQryNamespace',
+  'NotifyQryNamespace',
+  'OpinionQryNamespace',
+  'SenseQryNamespace',
+  'SystemQryNamespace',
+  'TagQryNamespace',
+  'UserQryNamespace',
+]
+
 const uri = import.meta.env.VITE_GRAPHQL_ENDPOINT ?? 'http://localhost:4000/graphql'
 
 // 모든 API 에러를 화면 상단 ErrorBanner 로 보고.
@@ -20,5 +31,9 @@ export const apolloClient = new ApolloClient({
       credentials: 'include',
     }),
   ]),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    // XxxQuery 네임스페이스는 id 없는 단일 객체라, 기본 동작이면 쿼리마다 통째로 덮어써서
+    // 같은 네임스페이스의 다른 쿼리 결과(예: senseOne ↔ senseStandardList)가 사라진다. 합치도록 한다.
+    typePolicies: Object.fromEntries(QUERY_NAMESPACES.map((t) => [t, { merge: true }])),
+  }),
 })

@@ -333,6 +333,11 @@ interface ICreatedAt {
   createdAt: DateTime!
 }
 
+interface IOpinion {
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+}
+
 interface ITag {
   """tags"""
   tags: [Tag!]!
@@ -345,6 +350,12 @@ interface IUser {
 
 type IdResult {
   id: String!
+}
+
+type IdResultResponse {
+  item: IdResult!
+  message: String
+  success: Int!
 }
 
 """As flexible object"""
@@ -382,6 +393,7 @@ type Mutation {
   AttachMutation: AttachMutNamespace!
   AuthMutation: AuthMutNamespace!
   NotifyMutation: NotifyMutNamespace!
+  OpinionMutation: OpinionMutNamespace!
   SenseMutation: SenseMutNamespace!
   UserMutation: UserMutNamespace!
 }
@@ -484,10 +496,223 @@ input NotifySettingUpdateInput {
   version: String
 }
 
+type Opinion implements IAttach & ICreatedAt & IUser & StandardEntity {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+  content: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+
+  """sid 를 통한 댓글성 호출. 언급하고자 하는 의견의 sid"""
+  mentionTo: Int
+
+  """부모 Thread의 아이디"""
+  parent: String!
+  pinn: Boolean!
+  sid: Int!
+  sortKey: Int!
+  status: StandardStatus!
+
+  """조상 원컨텐츠의 아이디"""
+  targetId: String!
+
+  """의견유형"""
+  type: String
+
+  """user"""
+  user: User
+  version: String!
+}
+
+input OpinionCreateInput {
+  """첨부 미디어 목록"""
+  attaches: [AttachInputItem!]!
+  content: String!
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [LinkInput!]!
+
+  """sid 를 통한 댓글성 호출. 언급하고자 하는 의견의 sid"""
+  mentionTo: Int
+
+  """Thread id"""
+  parent: String
+  targetEntity: VCommentTargetEntity!
+
+  """조상 원컨텐츠의 아이디"""
+  targetId: String!
+
+  """의견유형"""
+  type: String
+  version: String!
+}
+
+input OpinionInput {
+  content: String!
+
+  """sid 를 통한 댓글성 호출. 언급하고자 하는 의견의 sid"""
+  mentionTo: Int
+
+  """부모 Thread의 아이디"""
+  parent: String!
+  sid: Int!
+
+  """조상 원컨텐츠의 아이디"""
+  targetId: String!
+
+  """의견유형"""
+  type: String
+}
+
+input OpinionListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: OpinionSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: OpinionSearchInputSortType
+}
+
+type OpinionListResponse {
+  hasNext: Boolean
+  items: [Opinion!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type OpinionMutNamespace {
+  opinionCreate(input: OpinionCreateInput): IdResultResponse!
+}
+
+type OpinionQryNamespace {
+  opinionStandardList(input: OpinionListByQry): OpinionListResponse!
+  threadStandardList(input: ThreadListByQry): ThreadResItemListResponse!
+}
+
+input OpinionSearchInput {
+  _id: RangeString
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  content: RangeString
+  createdAt: RangeDate
+  deletedAt: RangeDate
+  flags: [String!]
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+
+  """sid 를 통한 댓글성 호출. 언급하고자 하는 의견의 sid"""
+  mentionTo: RangeInt
+
+  """부모 Thread의 아이디"""
+  parent: RangeString
+  pinn: Boolean
+  sid: RangeInt
+  sortKey: RangeInt
+  status: RangeStandardStatus
+
+  """조상 원컨텐츠의 아이디"""
+  targetId: RangeString
+
+  """의견유형"""
+  type: RangeString
+
+  """user"""
+  user: UserInput
+  version: RangeString
+}
+
+input OpinionSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  attaches: Int
+
+  """1: asc, -1: desc"""
+  content: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  flags: Int
+
+  """1: asc, -1: desc"""
+  links: Int
+
+  """1: asc, -1: desc"""
+  mentionTo: Int
+
+  """1: asc, -1: desc"""
+  parent: Int
+
+  """1: asc, -1: desc"""
+  pinn: Int
+
+  """1: asc, -1: desc"""
+  sid: Int
+
+  """1: asc, -1: desc"""
+  sortKey: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  targetId: Int
+
+  """1: asc, -1: desc"""
+  type: Int
+
+  """1: asc, -1: desc"""
+  user: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
 type Query {
   AttachQuery: AttachQryNamespace!
   AuthQuery: AuthQryNamespace!
   NotifyQuery: NotifyQryNamespace!
+  OpinionQuery: OpinionQryNamespace!
   SenseQuery: SenseQryNamespace!
   SystemQuery: SystemQryNamespace!
   TagQuery: TagQryNamespace!
@@ -552,7 +777,7 @@ input RefInput {
   label: String!
 }
 
-type Sense implements IAttach & ICreatedAt & ITag & StandardEntity {
+type Sense implements IAttach & ICreatedAt & IOpinion & ITag & StandardEntity {
   _id: String!
 
   """첨부 미디어 목록"""
@@ -569,6 +794,9 @@ type Sense implements IAttach & ICreatedAt & ITag & StandardEntity {
 
   """원어"""
   nativeLang: String
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
   pinn: Boolean!
 
   """참조, 출처, 연관"""
@@ -671,6 +899,9 @@ input SenseOneByQry {
 
   """원어"""
   nativeLang: String
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
   pinn: Boolean
 
   """참조, 출처, 연관"""
@@ -716,6 +947,9 @@ input SenseSearchInput {
 
   """원어"""
   nativeLang: RangeString
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
   pinn: Boolean
 
   """참조, 출처, 연관"""
@@ -759,6 +993,9 @@ input SenseSearchInputSortType {
 
   """1: asc, -1: desc"""
   nativeLang: Int
+
+  """1: asc, -1: desc"""
+  opinionsCnt: Int
 
   """1: asc, -1: desc"""
   pinn: Int
@@ -921,6 +1158,87 @@ input TagSearchInputSortType {
   version: Int
 }
 
+input ThreadListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: ThreadSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: ThreadSearchInputSortType
+}
+
+type ThreadResItem implements CompactEntity & ICreatedAt {
+  _id: String!
+  createdAt: DateTime!
+  opinion: Opinion!
+  opinionsCnt: Int!
+  status: StandardStatus!
+  targetEntity: VCommentTargetEntity!
+  targetId: String!
+  version: String!
+}
+
+type ThreadResItemListResponse {
+  hasNext: Boolean
+  items: [ThreadResItem!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+input ThreadSearchInput {
+  _id: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  createdAt: RangeDate
+  status: RangeStandardStatus
+  targetEntity: VCommentTargetEntity
+  targetId: RangeString
+  version: RangeString
+}
+
+input ThreadSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  targetEntity: Int
+
+  """1: asc, -1: desc"""
+  targetId: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
 type User implements ICreatedAt & StandardEntity {
   _id: String!
   createdAt: DateTime!
@@ -1020,4 +1338,9 @@ input UserUpdateInput {
   sign: [SignProviderInput!]
   sortKey: Int
   version: String
+}
+
+"""댓글이 붙을 수 있는 엔티티 종류"""
+enum VCommentTargetEntity {
+  Sense
 }
