@@ -72,3 +72,21 @@ export const OPINION_ITEM_FRAGMENT = graphql(`
     }
   }
 `)
+
+// @sid 링크로 이동할 때: 그 의견이 어느 대화(parent) / 어느 상식(targetId) 것인지 알아낸다
+export const OPINION_BY_SID_QUERY = graphql(`
+  query OpinionBySid($input: OpinionListByQry) {
+    OpinionQuery {
+      opinionStandardList(input: $input) {
+        success
+        message
+        items {
+          _id
+          sid
+          parent
+          targetId
+        }
+      }
+    }
+  }
+`)

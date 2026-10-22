@@ -555,6 +555,9 @@ type OpinionCreateResult {
   """부모 Thread의 아이디"""
   parent: String!
   sid: Int!
+
+  """조상 원컨텐츠의 아이디"""
+  targetId: String!
 }
 
 type OpinionCreateResultResponse {

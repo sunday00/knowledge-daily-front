@@ -1,7 +1,7 @@
-import { useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { OPINION_STANDARD_LIST_QUERY } from '@/graphql/queries/opinion.ts'
 import type { CreatedResult } from '@/actions/createOpinion.ts'
+import { useOncePerCursor, usePendingCards } from '@/hooks/usePendingCards.ts'
 
 export const OPINION_PAGE_SIZE = 20
 
@@ -16,7 +16,7 @@ const variablesOf = (threadId: string) => ({
 
 /** 한 대화(thread)에 달린 의견 목록. 커서 기반으로 이어 받는다. */
 export function useOpinionList(threadId: string) {
-  const { data, loading, error, fetchMore, updateQuery, networkStatus } = useQuery(
+  const { data, loading, error, fetchMore, refetch, updateQuery, networkStatus } = useQuery(
     OPINION_STANDARD_LIST_QUERY,
     {
       variables: variablesOf(threadId),
@@ -25,17 +25,12 @@ export function useOpinionList(threadId: string) {
       notifyOnNetworkStatusChange: true,
     },
   )
-
-  /**
-   * 화면에만 붙여 둔 임시 의견 _id (캐시 목록엔 없음).
-   * 아직 받지 않은 페이지가 있어 캐시 목록 끝에 넣을 수 없는 경우에 쓴다.
-   */
-  const [pendingIds, setPendingIds] = useState<string[]>([])
+  const cards = usePendingCards<CreatedResult>()
 
   const res = data?.OpinionQuery.opinionStandardList
   const loadingMore = networkStatus === 3 // NetworkStatus.fetchMore
 
-  const fetchPage = async (after: string) => {
+  const fetchPage = useOncePerCursor(async (after: string) => {
     const { data: more } = await fetchMore({
       variables: { input: { ...variablesOf(threadId).input, after } },
       updateQuery: (prev, { fetchMoreResult }) => {
@@ -52,10 +47,11 @@ export function useOpinionList(threadId: string) {
         }
       },
     })
-    // 제자리에 실제로 받아졌으면 임시로 붙여 둔 카드는 뺀다
-    const fetched = new Set(more.OpinionQuery.opinionStandardList.items.map((i) => i._id))
-    setPendingIds((ids) => ids.filter((id) => !fetched.has(id)))
-  }
+    const page = more.OpinionQuery.opinionStandardList
+    // 제자리에 실제로 받아졌으면 임시로 끼워 둔 카드는 뺀다
+    cards.drop(new Set(page.items.map((i) => i._id)))
+    return page
+  })
 
   const loadMore = () => {
     if (!res?.hasNext || !res.nextCursor || loadingMore) return
@@ -63,15 +59,14 @@ export function useOpinionList(threadId: string) {
   }
 
   /**
-   * 방금 단 의견을 화면 목록 끝에 붙인다. (목록을 다시 요청하지 않음)
-   * - 캐시가 마지막 페이지까지 받아져 있으면 캐시 목록의 맨 뒤에 넣는다. (실제 순서와 같음)
-   * - 아직 남은 페이지가 있으면 캐시 목록엔 넣지 않고 화면에만 임시로 붙인다.
+   * 방금 단 의견을 지금 보고 있는 목록 끝에 붙인다. (목록을 다시 요청하지 않음)
+   * - 마지막 페이지까지 받아져 있으면 캐시 목록의 맨 뒤에 넣는다. (실제 순서와 같음)
+   * - 남은 페이지가 있으면 화면에만 끼워 두고, 바로 다음 페이지를 받아 그 뒤에 잇는다.
    */
-  const appendLocal = ({ opinion }: CreatedResult) => {
+  const appendLocal = async (created: CreatedResult) => {
     if (!res) return // 목록을 아직 못 받았으면 받을 때 서버에서 함께 온다
-    if (res.hasNext) {
-      setPendingIds((ids) => [...ids, opinion._id])
-    }
+    const { opinion } = created
+    if (res.hasNext) cards.add(created, opinion._id, res.items.length)
     updateQuery((prev) => {
       const list = prev?.OpinionQuery?.opinionStandardList
       if (!list) return prev
@@ -87,7 +82,34 @@ export function useOpinionList(threadId: string) {
         },
       }
     })
+    if (res.hasNext && res.nextCursor) await fetchPage(res.nextCursor)
   }
 
-  return { res, pendingIds, loading: loading && !res, loadingMore, error, loadMore, appendLocal }
+  /**
+   * 목록을 비우고 첫 페이지부터 다시 받아, 해당 의견이 나올 때까지 페이지를 잇는다.
+   * (@sid 링크로 아직 화면에 없는 의견으로 이동할 때)
+   * @returns 찾았으면 true
+   */
+  const loadUntil = async (opinionId: string): Promise<boolean> => {
+    cards.clear()
+    const { data: first } = await refetch()
+    let page = first.OpinionQuery.opinionStandardList
+    let found = page.items.some((i) => i._id === opinionId)
+    while (!found && page.hasNext && page.nextCursor) {
+      page = await fetchPage(page.nextCursor)
+      found = page.items.some((i) => i._id === opinionId)
+    }
+    return found
+  }
+
+  return {
+    res,
+    loadUntil,
+    rows: cards.rowsOf(res?.items ?? []),
+    loading: loading && !res,
+    loadingMore,
+    error,
+    loadMore,
+    appendLocal,
+  }
 }

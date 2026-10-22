@@ -1,7 +1,7 @@
-import { useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { THREAD_STANDARD_LIST_QUERY } from '@/graphql/queries/opinion.ts'
 import type { CreatedResult } from '@/actions/createOpinion.ts'
+import { useOncePerCursor, usePendingCards } from '@/hooks/usePendingCards.ts'
 
 export const THREAD_PAGE_SIZE = 20
 
@@ -26,17 +26,12 @@ export function useThreadList(targetId: string) {
       notifyOnNetworkStatusChange: true,
     },
   )
-
-  /**
-   * 화면에만 붙여 둔 새 대화 (캐시 목록엔 없음).
-   * 아직 받지 않은 페이지가 있어 캐시 목록 끝에 넣을 수 없는 경우에 쓴다.
-   */
-  const [pending, setPending] = useState<CreatedResult[]>([])
+  const cards = usePendingCards<CreatedResult>()
 
   const res = data?.OpinionQuery.threadStandardList
   const loadingMore = networkStatus === 3 // NetworkStatus.fetchMore
 
-  const fetchPage = async (after: string) => {
+  const fetchPage = useOncePerCursor(async (after: string) => {
     const { data: more } = await fetchMore({
       variables: { input: { ...variablesOf(targetId).input, after } },
       updateQuery: (prev, { fetchMoreResult }) => {
@@ -53,10 +48,9 @@ export function useThreadList(targetId: string) {
         }
       },
     })
-    // 제자리에 실제로 받아졌으면 임시로 붙여 둔 카드는 뺀다
-    const fetched = new Set(more.OpinionQuery.threadStandardList.items.map((t) => t._id))
-    setPending((list) => list.filter((p) => !fetched.has(p.threadId)))
-  }
+    // 제자리에 실제로 받아졌으면 임시로 끼워 둔 카드는 뺀다
+    cards.drop(new Set(more.OpinionQuery.threadStandardList.items.map((t) => t._id)))
+  })
 
   const loadMore = () => {
     if (!res?.hasNext || !res.nextCursor || loadingMore) return
@@ -64,15 +58,13 @@ export function useThreadList(targetId: string) {
   }
 
   /**
-   * 방금 시작한 대화를 화면 목록 끝에 붙인다. (목록을 다시 요청하지 않음)
-   * - 캐시가 마지막 페이지까지 받아져 있으면 캐시 목록의 맨 뒤에 넣는다. (실제 순서와 같음)
-   * - 아직 남은 페이지가 있으면 캐시 목록엔 넣지 않고 화면에만 임시로 붙인다.
+   * 방금 시작한 대화를 지금 보고 있는 목록 끝에 붙인다. (목록을 다시 요청하지 않음)
+   * - 마지막 페이지까지 받아져 있으면 캐시 목록의 맨 뒤에 넣는다. (실제 순서와 같음)
+   * - 남은 페이지가 있으면 화면에만 끼워 두고, 바로 다음 페이지를 받아 그 뒤에 잇는다.
    */
-  const appendLocal = (created: CreatedResult) => {
+  const appendLocal = async (created: CreatedResult) => {
     if (!res) return // 목록을 아직 못 받았으면 받을 때 서버에서 함께 온다
-    if (res.hasNext) {
-      setPending((list) => [...list, created])
-    }
+    if (res.hasNext) cards.add(created, created.threadId, res.items.length)
     const thread = {
       __typename: 'ThreadResItem' as const,
       _id: created.threadId,
@@ -95,7 +87,16 @@ export function useThreadList(targetId: string) {
         },
       }
     })
+    if (res.hasNext && res.nextCursor) await fetchPage(res.nextCursor)
   }
 
-  return { res, pending, loading: loading && !res, loadingMore, error, loadMore, appendLocal }
+  return {
+    res,
+    rows: cards.rowsOf(res?.items ?? []),
+    loading: loading && !res,
+    loadingMore,
+    error,
+    loadMore,
+    appendLocal,
+  }
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useApolloClient, useMutation } from '@apollo/client'
 import type { OpinionType } from '@/lib/opinionTypes.ts'
+import { OPINION_MAX_LENGTH } from '@/lib/opinionLimits.ts'
 import { OPINION_CREATE_MUTATION } from '@/graphql/mutations/opinion.ts'
 import { OPINION_ITEM_FRAGMENT } from '@/graphql/queries/opinion.ts'
 import type { OpinionItemFieldsFragment } from '@/graphql/__generated__/graphql.ts'
@@ -49,6 +50,10 @@ export function useCreateOpinion(senseId: string, parent?: string) {
   const submit = async (raw: string, type: OpinionType = ''): Promise<CreatedResult | null> => {
     setError(null)
     const content = raw.trim()
+    if (content.length > OPINION_MAX_LENGTH) {
+      setError(`${OPINION_MAX_LENGTH}자 이내로 입력하세요.`)
+      return null
+    }
     if (!content) {
       setError('내용을 입력하세요.')
       return null

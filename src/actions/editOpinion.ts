@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useApolloClient, useMutation, type ApolloCache } from '@apollo/client'
 import { OPINION_DELETE_MUTATION, OPINION_UPDATE_MUTATION } from '@/graphql/mutations/opinion.ts'
 import type { OpinionType } from '@/lib/opinionTypes.ts'
+import { OPINION_MAX_LENGTH } from '@/lib/opinionLimits.ts'
 import { DELETED_CONTENT } from '@/lib/opinionStatus.ts'
 import { reportError } from '@/lib/errorReporter.ts'
 
@@ -71,6 +72,10 @@ export function useUpdateOpinion() {
   const submit = (_id: string, raw: string, type: OpinionType): boolean => {
     setError(null)
     const content = raw.trim()
+    if (content.length > OPINION_MAX_LENGTH) {
+      setError(`${OPINION_MAX_LENGTH}자 이내로 입력하세요.`)
+      return false
+    }
     if (!content) {
       setError('내용을 입력하세요.')
       return false

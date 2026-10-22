@@ -26,10 +26,11 @@ function Conversation({ senseId }: { senseId: string }) {
       <OpinionComposer
         senseId={senseId}
         placeholder="새 대화를 시작해 보세요"
-        // 지금 받아 둔 목록 끝에 붙이고(재요청 없음) 그 카드를 화면 가운데로
-        onCreated={(created) => {
-          list.appendLocal(created)
+        // 보고 있던 목록 끝에 새 카드 → (남은 페이지가 있으면) 바로 다음 페이지를 잇고,
+        // 그다음 새 카드를 화면 가운데로. 테두리 강조는 바로 표시
+        onCreated={async (created) => {
           markOpinionAdded(created.opinion._id)
+          await list.appendLocal(created)
           scrollToOpinion(created.opinion._id)
         }}
       />
@@ -77,27 +78,28 @@ function ThreadSection({
       )}
 
       {res?.success ? (
-        res.items.length === 0 && list.pending.length === 0 ? (
+        list.rows.length === 0 ? (
           <p className="text-neutral-500">아직 대화가 없습니다.</p>
         ) : (
           <ul className="space-y-3">
-            {res.items.map((thread) => (
-              <ThreadItem
-                key={thread._id}
-                thread={thread}
-                senseId={senseId}
-                isNew={addedIds.has(thread.opinion._id)}
-              />
-            ))}
-            {/* 방금 시작한 대화: 그 페이지가 오면 사라지고 제자리에 보인다 */}
-            {list.pending.map((p) => (
-              <PendingThreadItem
-                key={`pending:${p.threadId}`}
-                threadId={p.threadId}
-                opinionId={p.opinion._id}
-                senseId={senseId}
-              />
-            ))}
+            {list.rows.map((row) =>
+              row.kind === 'item' ? (
+                <ThreadItem
+                  key={row.item._id}
+                  thread={row.item}
+                  senseId={senseId}
+                  isNew={addedIds.has(row.item.opinion._id)}
+                />
+              ) : (
+                // 화면에만 끼워 둔 새 대화. 그 대화가 실제 페이지로 오면 사라지고 제자리에 보인다
+                <PendingThreadItem
+                  key={`pending:${row.pending.key}`}
+                  threadId={row.pending.threadId}
+                  opinionId={row.pending.opinion._id}
+                  senseId={senseId}
+                />
+              ),
+            )}
           </ul>
         )
       ) : null}

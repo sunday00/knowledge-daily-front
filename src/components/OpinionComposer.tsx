@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import { useCreateOpinion, type CreatedResult } from '@/actions/createOpinion.ts'
@@ -6,7 +6,11 @@ import type { OpinionType } from '@/lib/opinionTypes.ts'
 import { OpinionTypeSelect } from '@/components/OpinionTypeSelect.tsx'
 import { useAutoResizeTextarea } from '@/hooks/useAutoResizeTextarea.ts'
 import { useMention } from '@/components/MentionContext.tsx'
+import { MentionPreview } from '@/components/MentionPreview.tsx'
 import { SUBMIT_SHORTCUT_LABEL, useSubmitShortcut } from '@/hooks/useSubmitShortcut.ts'
+import { OPINION_MAX_LENGTH } from '@/lib/opinionLimits.ts'
+import { CharCount } from '@/components/CharCount.tsx'
+import { textareaCaretCoords } from '@/lib/textareaCaret.ts'
 
 /**
  * 화면 하단에 떠 있는 의견 입력창. 페이지 본문이 가려지지 않도록
@@ -19,6 +23,8 @@ type Props = {
   placeholder?: string
   /** 등록 성공 후 새 의견으로 호출 (화면 목록에 붙이고 그 의견으로 스크롤 등) */
   onCreated?: (created: CreatedResult) => void
+  /** 있으면 입력창 대신 이 안내를 보여준다 (예: 대화의 의견 수 한도 도달) */
+  blocked?: ReactNode
 }
 
 export function OpinionComposer(props: Props) {
@@ -31,7 +37,11 @@ export function OpinionComposer(props: Props) {
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="mx-auto max-w-5xl px-6 py-3">
-        {user ? (
+        {props.blocked ? (
+          <p role="status" className="text-sm text-neutral-600 dark:text-neutral-300">
+            {props.blocked}
+          </p>
+        ) : user ? (
           <ComposerForm {...props} />
         ) : (
           <p className="text-sm text-neutral-500">
@@ -90,6 +100,21 @@ function ComposerForm({ senseId, parent, placeholder = '의견을 남겨 보세�
     return () => registerRef.current?.(null)
   }, [textareaRef])
 
+  // 커서가 @숫자 위(또는 바로 뒤)에 있으면 그 @숫자 바로 위에 말풍선으로 의견을 보여준다
+  const [anchor, setAnchor] = useState<MentionAnchor | null>(null)
+  const trackCaret = (el: HTMLTextAreaElement) => {
+    const hit =
+      mention && el.selectionStart === el.selectionEnd
+        ? mentionAtCaret(el.value, el.selectionStart)
+        : null
+    if (!hit) return setAnchor(null)
+    const { top, left } = textareaCaretCoords(el, hit.start)
+    // 말풍선이 입력창 오른쪽 밖으로 나가지 않게 당기고, 꼬리는 @숫자를 가리키게
+    const bubbleWidth = Math.min(288, window.innerWidth * 0.8)
+    const bubbleLeft = Math.max(0, Math.min(left, el.clientWidth - bubbleWidth))
+    setAnchor({ sid: hit.sid, top, left: bubbleLeft, tailLeft: left - bubbleLeft + 8 })
+  }
+
   const send = async () => {
     if (sending) return
     const created = await submit(content, type)
@@ -113,17 +138,34 @@ function ComposerForm({ senseId, parent, placeholder = '의견을 남겨 보세�
     <form onSubmit={onSubmit} className="space-y-1">
       <div className="flex items-end gap-2">
         <OpinionTypeSelect ref={selectRef} value={type} onChange={setType} disabled={sending} />
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          {...shortcut}
-          rows={1}
-          placeholder={`${placeholder} (${SUBMIT_SHORTCUT_LABEL} 등록)`}
-          aria-label="의견 입력"
-          disabled={sending}
-          className="min-w-0 flex-1 resize-none rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 outline-none focus:border-brand-500"
-        />
+        <div className="relative min-w-0 flex-1">
+          {anchor && (
+            <MentionPreview
+              sid={anchor.sid}
+              tailLeft={anchor.tailLeft}
+              // @숫자 줄의 위쪽에 말풍선 아래 끝(꼬리)을 맞춘다
+              style={{ left: anchor.left, top: anchor.top - 8, transform: 'translateY(-100%)' }}
+            />
+          )}
+          <textarea
+            ref={textareaRef}
+            value={content}
+            onChange={(e) => {
+              setContent(e.target.value)
+              trackCaret(e.target)
+            }}
+            onSelect={(e) => trackCaret(e.currentTarget)}
+            onScroll={(e) => trackCaret(e.currentTarget)}
+            onBlur={() => setAnchor(null)}
+            {...shortcut}
+            rows={1}
+            placeholder={`${placeholder} (${SUBMIT_SHORTCUT_LABEL} 등록)`}
+            aria-label="의견 입력"
+            maxLength={OPINION_MAX_LENGTH}
+            disabled={sending}
+            className="block w-full resize-none rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 outline-none focus:border-brand-500"
+          />
+        </div>
         <button
           type="submit"
           title={SUBMIT_SHORTCUT_LABEL}
@@ -133,7 +175,21 @@ function ComposerForm({ senseId, parent, placeholder = '의견을 남겨 보세�
           {sending ? '등록 중...' : '등록'}
         </button>
       </div>
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      <div className="flex items-start gap-2 text-sm">
+        {error && <p className="text-red-600 dark:text-red-400">{error}</p>}
+        <CharCount length={content.length} />
+      </div>
     </form>
   )
+}
+
+type MentionAnchor = { sid: number; top: number; left: number; tailLeft: number }
+
+/** value 에서 caret 이 걸친 '@숫자' 의 숫자와 시작 위치. 없으면 null */
+function mentionAtCaret(value: string, caret: number): { sid: number; start: number } | null {
+  for (const m of value.matchAll(/@(\d+)/g)) {
+    const start = m.index ?? 0
+    if (caret >= start && caret <= start + m[0].length) return { sid: Number(m[1]), start }
+  }
+  return null
 }

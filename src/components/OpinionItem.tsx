@@ -10,6 +10,9 @@ import { OpinionTypeBadge } from '@/components/OpinionTypeBadge.tsx'
 import { OpinionTypeSelect } from '@/components/OpinionTypeSelect.tsx'
 import { useAutoResizeTextarea } from '@/hooks/useAutoResizeTextarea.ts'
 import { useMention } from '@/components/MentionContext.tsx'
+import { CharCount } from '@/components/CharCount.tsx'
+import { OPINION_MAX_LENGTH } from '@/lib/opinionLimits.ts'
+import { MentionText } from '@/components/MentionText.tsx'
 import { SUBMIT_SHORTCUT_LABEL, useSubmitShortcut } from '@/hooks/useSubmitShortcut.ts'
 
 export type OpinionListItem =
@@ -69,7 +72,7 @@ export function OpinionItem({
         <>
           <p className="mt-2 whitespace-pre-wrap break-words">
             <OpinionTypeBadge type={opinion.type} />
-            {opinion.content}
+            <MentionText text={opinion.content} />
           </p>
           {mode === 'confirmDelete' && (
             <DeleteConfirm opinionId={opinion._id} onDone={() => setMode('view')} />
@@ -129,12 +132,14 @@ function EditForm({ opinion, onDone }: { opinion: OpinionListItem; onDone: () =>
           {...shortcut}
           rows={2}
           aria-label="의견 수정"
+          maxLength={OPINION_MAX_LENGTH}
           autoFocus
           className="min-w-0 flex-1 resize-none rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 outline-none focus:border-brand-500"
         />
       </div>
       <div className="flex items-center justify-end gap-2">
         {error && <p className="mr-auto text-sm text-red-600 dark:text-red-400">{error}</p>}
+        <CharCount length={content.length} />
         <button type="button" className="btn text-sm" onClick={onDone}>
           취소
         </button>
