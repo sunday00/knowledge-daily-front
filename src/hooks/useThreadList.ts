@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { THREAD_STANDARD_LIST_QUERY } from '@/graphql/queries/opinion.ts'
+import type { CreatedResult } from '@/actions/createOpinion.ts'
 
 export const THREAD_PAGE_SIZE = 20
 
@@ -13,22 +15,30 @@ const variablesOf = (targetId: string) => ({
 })
 
 /** 대상(sense 등)의 대화록 목록. 커서 기반으로 이어 받는다. */
-export function useThreadList(targetId: string | undefined) {
-  const { data, loading, error, fetchMore, networkStatus } = useQuery(THREAD_STANDARD_LIST_QUERY, {
-    variables: variablesOf(targetId ?? ''),
-    skip: !targetId,
-    fetchPolicy: 'cache-and-network',
-    nextFetchPolicy: 'cache-first',
-    notifyOnNetworkStatusChange: true,
-  })
+export function useThreadList(targetId: string) {
+  const { data, loading, error, fetchMore, updateQuery, networkStatus } = useQuery(
+    THREAD_STANDARD_LIST_QUERY,
+    {
+      variables: variablesOf(targetId),
+      skip: !targetId,
+      // 페이지에 들어올 때마다 새로 그리되, 캐시에 있으면 재요청하지 않는다 (새로고침 시에만 서버)
+      fetchPolicy: 'cache-first',
+      notifyOnNetworkStatusChange: true,
+    },
+  )
+
+  /**
+   * 화면에만 붙여 둔 새 대화 (캐시 목록엔 없음).
+   * 아직 받지 않은 페이지가 있어 캐시 목록 끝에 넣을 수 없는 경우에 쓴다.
+   */
+  const [pending, setPending] = useState<CreatedResult[]>([])
 
   const res = data?.OpinionQuery.threadStandardList
   const loadingMore = networkStatus === 3 // NetworkStatus.fetchMore
 
-  const loadMore = () => {
-    if (!targetId || !res?.hasNext || !res.nextCursor || loadingMore) return
-    void fetchMore({
-      variables: { input: { ...variablesOf(targetId).input, after: res.nextCursor } },
+  const fetchPage = async (after: string) => {
+    const { data: more } = await fetchMore({
+      variables: { input: { ...variablesOf(targetId).input, after } },
       updateQuery: (prev, { fetchMoreResult }) => {
         const next = fetchMoreResult.OpinionQuery.threadStandardList
         return {
@@ -43,7 +53,49 @@ export function useThreadList(targetId: string | undefined) {
         }
       },
     })
+    // 제자리에 실제로 받아졌으면 임시로 붙여 둔 카드는 뺀다
+    const fetched = new Set(more.OpinionQuery.threadStandardList.items.map((t) => t._id))
+    setPending((list) => list.filter((p) => !fetched.has(p.threadId)))
   }
 
-  return { res, loading: loading && !res, loadingMore, error, loadMore }
+  const loadMore = () => {
+    if (!res?.hasNext || !res.nextCursor || loadingMore) return
+    void fetchPage(res.nextCursor)
+  }
+
+  /**
+   * 방금 시작한 대화를 화면 목록 끝에 붙인다. (목록을 다시 요청하지 않음)
+   * - 캐시가 마지막 페이지까지 받아져 있으면 캐시 목록의 맨 뒤에 넣는다. (실제 순서와 같음)
+   * - 아직 남은 페이지가 있으면 캐시 목록엔 넣지 않고 화면에만 임시로 붙인다.
+   */
+  const appendLocal = (created: CreatedResult) => {
+    if (!res) return // 목록을 아직 못 받았으면 받을 때 서버에서 함께 온다
+    if (res.hasNext) {
+      setPending((list) => [...list, created])
+    }
+    const thread = {
+      __typename: 'ThreadResItem' as const,
+      _id: created.threadId,
+      opinionsCnt: 1,
+      createdAt: created.opinion.createdAt,
+      opinion: created.opinion,
+    }
+    updateQuery((prev) => {
+      const list = prev?.OpinionQuery?.threadStandardList
+      if (!list) return prev
+      return {
+        ...prev,
+        OpinionQuery: {
+          ...prev.OpinionQuery,
+          threadStandardList: {
+            ...list,
+            total: (list.total ?? list.items.length) + 1,
+            items: list.hasNext ? list.items : [...list.items, thread],
+          },
+        },
+      }
+    })
+  }
+
+  return { res, pending, loading: loading && !res, loadingMore, error, loadMore, appendLocal }
 }

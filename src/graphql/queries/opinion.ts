@@ -15,8 +15,10 @@ export const THREAD_STANDARD_LIST_QUERY = graphql(`
           createdAt
           opinion {
             _id
+            sid
             content
             type
+            status
             createdAt
             user {
               _id
@@ -43,14 +45,30 @@ export const OPINION_STANDARD_LIST_QUERY = graphql(`
           sid
           content
           type
+          status
           createdAt
-          mentionTo
           user {
             _id
             nickname
           }
         }
       }
+    }
+  }
+`)
+
+// 의견 카드 한 장. 화면에만 붙여 둔(임시) 의견을 캐시에서 읽을 때 쓴다.
+export const OPINION_ITEM_FRAGMENT = graphql(`
+  fragment OpinionItemFields on Opinion {
+    _id
+    sid
+    content
+    type
+    status
+    createdAt
+    user {
+      _id
+      nickname
     }
   }
 `)

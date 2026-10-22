@@ -171,7 +171,7 @@ type AttachQryNamespace {
 input AttachSearchInput {
   _id: RangeString
 
-  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
   complex: JsonType
   createdAt: RangeDate
   deletedAt: RangeDate
@@ -302,6 +302,12 @@ type AuthTokenResponseResponse {
   success: Int!
 }
 
+type BooleanResponse {
+  item: Boolean!
+  message: String
+  success: Int!
+}
+
 interface CompactEntity implements ICreatedAt {
   _id: String!
   createdAt: DateTime!
@@ -350,12 +356,6 @@ interface IUser {
 
 type IdResult {
   id: String!
-}
-
-type IdResultResponse {
-  item: IdResult!
-  message: String
-  success: Int!
 }
 
 """As flexible object"""
@@ -509,9 +509,6 @@ type Opinion implements IAttach & ICreatedAt & IUser & StandardEntity {
   """url address to move other pages"""
   links: [Link!]!
 
-  """sid 를 통한 댓글성 호출. 언급하고자 하는 의견의 sid"""
-  mentionTo: Int
-
   """부모 Thread의 아이디"""
   parent: String!
   pinn: Boolean!
@@ -539,9 +536,6 @@ input OpinionCreateInput {
   """url address to move other pages"""
   links: [LinkInput!]!
 
-  """sid 를 통한 댓글성 호출. 언급하고자 하는 의견의 sid"""
-  mentionTo: Int
-
   """Thread id"""
   parent: String
   targetEntity: VCommentTargetEntity!
@@ -554,11 +548,23 @@ input OpinionCreateInput {
   version: String!
 }
 
+type OpinionCreateResult {
+  _id: String!
+  createdAt: DateTime!
+
+  """부모 Thread의 아이디"""
+  parent: String!
+  sid: Int!
+}
+
+type OpinionCreateResultResponse {
+  item: OpinionCreateResult!
+  message: String
+  success: Int!
+}
+
 input OpinionInput {
   content: String!
-
-  """sid 를 통한 댓글성 호출. 언급하고자 하는 의견의 sid"""
-  mentionTo: Int
 
   """부모 Thread의 아이디"""
   parent: String!
@@ -610,7 +616,9 @@ type OpinionListResponse {
 }
 
 type OpinionMutNamespace {
-  opinionCreate(input: OpinionCreateInput): IdResultResponse!
+  opinionCreate(input: OpinionCreateInput): OpinionCreateResultResponse!
+  opinionDelete(input: SingleIdGraphReq): BooleanResponse!
+  opinionUpdate(input: OpinionUpdateInput): BooleanResponse!
 }
 
 type OpinionQryNamespace {
@@ -624,7 +632,7 @@ input OpinionSearchInput {
   """첨부 미디어 목록"""
   attaches: [AttachItemInput!]
 
-  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
   complex: JsonType
   content: RangeString
   createdAt: RangeDate
@@ -633,9 +641,6 @@ input OpinionSearchInput {
 
   """url address to move other pages"""
   links: [LinkInput!]
-
-  """sid 를 통한 댓글성 호출. 언급하고자 하는 의견의 sid"""
-  mentionTo: RangeInt
 
   """부모 Thread의 아이디"""
   parent: RangeString
@@ -678,9 +683,6 @@ input OpinionSearchInputSortType {
   links: Int
 
   """1: asc, -1: desc"""
-  mentionTo: Int
-
-  """1: asc, -1: desc"""
   parent: Int
 
   """1: asc, -1: desc"""
@@ -708,11 +710,36 @@ input OpinionSearchInputSortType {
   version: Int
 }
 
+input OpinionUpdateInput {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+  content: String
+  flags: [String!]
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+
+  """부모 Thread의 아이디"""
+  parent: String
+  pinn: Boolean
+  sortKey: Int
+
+  """조상 원컨텐츠의 아이디"""
+  targetId: String
+
+  """의견유형"""
+  type: String
+  version: String
+}
+
 type Query {
   AttachQuery: AttachQryNamespace!
   AuthQuery: AuthQryNamespace!
   NotifyQuery: NotifyQryNamespace!
   OpinionQuery: OpinionQryNamespace!
+  ReactionQuery: ReactionQryNamespace!
   SenseQuery: SenseQryNamespace!
   SystemQuery: SystemQryNamespace!
   TagQuery: TagQryNamespace!
@@ -765,6 +792,109 @@ input RangeString {
   lte: String
   mul: [String!]
   not: String
+}
+
+type Reaction implements CompactEntity & ICreatedAt & IUser {
+  _id: String!
+  createdAt: DateTime!
+  name: String!
+  status: StandardStatus!
+  targetEntity: VCommentTargetEntity!
+  targetId: String!
+
+  """user"""
+  user: User
+  version: String!
+}
+
+input ReactionInput {
+  name: String!
+  targetEntity: VCommentTargetEntity!
+  targetId: String!
+}
+
+input ReactionListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: ReactionSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: ReactionSearchInputSortType
+}
+
+type ReactionListResponse {
+  hasNext: Boolean
+  items: [Reaction!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type ReactionQryNamespace {
+  reactionStandardList(input: ReactionListByQry): ReactionListResponse!
+}
+
+input ReactionSearchInput {
+  _id: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  createdAt: RangeDate
+  name: RangeString
+  status: RangeStandardStatus
+  targetEntity: VCommentTargetEntity
+  targetId: RangeString
+
+  """user"""
+  user: UserInput
+  version: RangeString
+}
+
+input ReactionSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  name: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  targetEntity: Int
+
+  """1: asc, -1: desc"""
+  targetId: Int
+
+  """1: asc, -1: desc"""
+  user: Int
+
+  """1: asc, -1: desc"""
+  version: Int
 }
 
 type Ref {
@@ -933,7 +1063,7 @@ input SenseSearchInput {
   """첨부 미디어 목록"""
   attaches: [AttachItemInput!]
 
-  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
   complex: JsonType
   createdAt: RangeDate
   deletedAt: RangeDate
@@ -1035,6 +1165,10 @@ type SimpleJsonRes {
   success: Int!
 }
 
+input SingleIdGraphReq {
+  _id: String!
+}
+
 interface StandardEntity implements ICreatedAt {
   _id: String!
   createdAt: DateTime!
@@ -1133,7 +1267,7 @@ type TagQryNamespace {
 input TagSearchInput {
   _id: RangeString
 
-  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
   complex: JsonType
   createdAt: RangeDate
   mamo: RangeString
@@ -1210,7 +1344,7 @@ type ThreadResItemListResponse {
 input ThreadSearchInput {
   _id: RangeString
 
-  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
   complex: JsonType
   createdAt: RangeDate
   status: RangeStandardStatus
