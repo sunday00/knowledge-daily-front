@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
@@ -13,6 +14,13 @@ import { Navigator } from './components/Navigator'
 import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
 import { ErrorBanner } from './components/ErrorBanner'
+
+// 마크다운 라이브러리가 커서 상세 페이지를 열 때만 따로 불러온다.
+const SenseDetailPage = lazy(() => import('./pages/sense/SenseDetailPage'))
+// 대화록 상세(의견 목록)도 들어갈 때만 불러온다.
+const ThreadOpinionsPage = lazy(() => import('./pages/sense/ThreadOpinionsPage'))
+
+const pageFallback = <p className="text-neutral-500">불러오는 중...</p>
 
 export default function App() {
   useFcmTokenSync()
@@ -35,6 +43,22 @@ export default function App() {
           <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
           <Route path="/sense/my-sense" element={<MySensePage />} />
           <Route path="/sense/tag/:tag" element={<TagSensePage />} />
+          <Route
+            path="/sense/:id"
+            element={
+              <Suspense fallback={pageFallback}>
+                <SenseDetailPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/sense/:id/threads/:threadId"
+            element={
+              <Suspense fallback={pageFallback}>
+                <ThreadOpinionsPage />
+              </Suspense>
+            }
+          />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>

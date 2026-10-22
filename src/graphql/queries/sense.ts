@@ -15,6 +15,7 @@ export const SENSE_STANDARD_LIST_QUERY = graphql(`
           description
           lv
           createdAt
+          opinionsCnt
           tags {
             _id
             name
@@ -42,9 +43,43 @@ export const SENSE_MY_LIST_QUERY = graphql(`
           description
           lv
           createdAt
+          opinionsCnt
           tags {
             _id
             name
+          }
+        }
+      }
+    }
+  }
+`)
+
+export const SENSE_ONE_QUERY = graphql(`
+  query SenseOne($input: SenseOneByQry) {
+    SenseQuery {
+      senseOne(input: $input) {
+        success
+        message
+        item {
+          _id
+          title
+          nativeLang
+          description
+          detail
+          lv
+          createdAt
+          opinionsCnt
+          tags {
+            _id
+            name
+          }
+          attaches {
+            sortKey
+            attach {
+              _id
+              originalName
+              src
+            }
           }
         }
       }

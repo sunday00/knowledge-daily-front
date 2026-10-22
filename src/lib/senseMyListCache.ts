@@ -11,7 +11,7 @@ type Cached = {
   savedAt: number
 }
 
-const KEY_PREFIX = 'knowledge-daily:senseMyList:v1:'
+const KEY_PREFIX = 'knowledge-daily:senseMyList:v2:'
 const storageKey = (userId: string) => `${KEY_PREFIX}user=${userId}`
 
 function read(userId: string): Cached | null {
