@@ -8,18 +8,10 @@ import {
 } from '@/actions/villain.ts'
 import { CharCount } from '@/components/CharCount.tsx'
 import { ReportStatus } from '@/components/ReportStatus.tsx'
+import { REPORT_REASONS, type ReportReasonCode } from '@/lib/reportReasons.ts'
 
 type Opinion = Pick<OpinionItemFieldsFragment, '_id' | 'villainStatus' | 'user'>
 type OpinionUser = NonNullable<OpinionItemFieldsFragment['user']>
-
-const REPORT_REASONS = [
-  '스팸·광고',
-  '욕설·비하',
-  '허위 정보',
-  '음란·불쾌한 내용',
-  '개인정보 노출',
-  '기타',
-] as const
 
 const textButton =
   'rounded px-1.5 py-0.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors disabled:opacity-50 disabled:hover:bg-transparent'
@@ -153,15 +145,14 @@ export function UserVillainMenu({ user }: { user: OpinionUser }) {
 }
 
 function ReportForm({ target, onDone }: { target: BlockTarget; onDone: () => void }) {
-  const [reason, setReason] = useState('')
+  const [reason, setReason] = useState<ReportReasonCode | null>(null)
   const [detail, setDetail] = useState('')
   const { report, sending, error } = useReport()
   const name = useId()
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    const quest = detail.trim() ? `[${reason}] ${detail.trim()}` : reason
-    if (await report(target, reason && quest)) onDone()
+    if (await report(target, reason, detail)) onDone()
   }
 
   return (
@@ -171,20 +162,20 @@ function ReportForm({ target, onDone }: { target: BlockTarget; onDone: () => voi
           신고 사유
         </legend>
         <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-          {REPORT_REASONS.map((r) => (
+          {REPORT_REASONS.map(({ code, label }) => (
             <label
-              key={r}
+              key={code}
               className="flex items-center gap-1.5 text-sm text-neutral-700 dark:text-neutral-300"
             >
               <input
                 type="radio"
                 name={name}
-                value={r}
-                checked={reason === r}
-                onChange={() => setReason(r)}
+                value={code}
+                checked={reason === code}
+                onChange={() => setReason(code)}
                 className="accent-brand-600"
               />
-              {r}
+              {label}
             </label>
           ))}
         </div>

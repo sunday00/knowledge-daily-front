@@ -6,6 +6,7 @@ import {
 } from '@/graphql/mutations/villain.ts'
 import type { VBlockTargetEntity } from '@/graphql/__generated__/graphql.ts'
 import { reportError } from '@/lib/errorReporter.ts'
+import { toReportQuest, type ReportReasonCode } from '@/lib/reportReasons.ts'
 
 // 신고 데이터 스키마 버전
 const SUSPECT_VERSION = '1.0'
@@ -90,14 +91,22 @@ export function useReport() {
     // 막 접수된 신고: 접수(DRAFT) 단계, 결과 미정(IDLE)
     patchVillainStatus(client.cache, target, { isSuspected: true, status: 'DRAFT', result: 'IDLE' })
 
-  /** 접수되면 true */
-  const report = async (target: BlockTarget, raw: string): Promise<boolean> => {
+  /** 사유 코드 + 상세 내용(선택)을 'code|상세내용' 으로 보낸다. 접수되면 true */
+  const report = async (
+    target: BlockTarget,
+    code: ReportReasonCode | null,
+    detail: string,
+  ): Promise<boolean> => {
     setError(null)
-    const quest = raw.trim()
-    if (!quest) {
+    if (!code) {
       setError('신고 사유를 고르세요.')
       return false
     }
+    if (detail.trim().length > REPORT_MAX_LENGTH) {
+      setError(`${REPORT_MAX_LENGTH}자 이내로 입력하세요.`)
+      return false
+    }
+    const quest = toReportQuest(code, detail)
 
     try {
       const { data } = await mutate({
