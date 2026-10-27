@@ -21,3 +21,16 @@ const byCode = new Map<string, (typeof REACTIONS)[number]>(REACTIONS.map((r) => 
 /** 서버의 name 으로 표시할 emoji / 설명. 모르는 name 이면 name 그대로 */
 export const reactionOf = (name: string) =>
   byCode.get(name) ?? { code: name, emoji: name, label: name }
+
+/** 인기 상식 집계에 넣는 긍정 리액션 (별로예요 / 의문 / 이의 있어요는 뺀다) */
+export const POPULAR_REACTION_CODES: ReactionCode[] = [
+  'good',
+  'aha',
+  'convinced',
+  'surprised',
+  'helpful',
+  'clap',
+  'love',
+  'funny',
+  'hot',
+]

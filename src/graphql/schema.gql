@@ -377,6 +377,9 @@ type BooleanResponse {
   success: Int!
 }
 
+"""targetEntity 에 따라 Opinion | Thread | Sense"""
+union CommentableTarget = Opinion | Sense | Thread
+
 interface CompactEntity implements ICreatedAt {
   _id: String!
   createdAt: DateTime!
@@ -764,6 +767,11 @@ type OpinionMutNamespace {
 
 type OpinionQryNamespace {
   opinionStandardList(input: OpinionListByQry): OpinionListResponse!
+
+  """
+  opinion 수 * 1.5 + 최신 가중치(1일 내 1, 하루마다 -0.3, 4일째부터 0) 점수 상위 thread / 원컨텐츠
+  """
+  opinionTopList(input: OpinionTopByQry!): OpinionTopTargetListResponse!
   threadStandardList(input: ThreadListByQry): ThreadResItemListResponse!
 }
 
@@ -849,6 +857,49 @@ input OpinionSearchInputSortType {
 
   """1: asc, -1: desc"""
   version: Int
+}
+
+input OpinionTopByQry {
+  """가져올 갯수. default 10"""
+  size: Int
+
+  """Thread 면 thread 별, 그 외(ex. Sense) 면 원컨텐츠 별 순위"""
+  targetEntity: VCommentTargetEntity!
+}
+
+"""opinion 가중치 점수 순위 대상"""
+type OpinionTopTarget {
+  """해당 opinion 수"""
+  cnt: Int!
+
+  """opinion 수 * 1.5 + 최신 가중치 합"""
+  score: Float!
+
+  """대상 entity. 삭제된 경우 null"""
+  target: CommentableTarget
+  targetEntity: VCommentTargetEntity!
+  targetId: String!
+}
+
+type OpinionTopTargetListResponse {
+  hasNext: Boolean
+  items: [OpinionTopTarget!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
 }
 
 input OpinionUpdateInput {
@@ -1011,6 +1062,9 @@ type ReactionMutNamespace {
 
 type ReactionQryNamespace {
   reactionStandardList(input: ReactionListByQry): ReactionListResponse!
+
+  """인기 items 목록"""
+  reactionTopList(input: ReactionTopByQry!): ReactionTopTargetListResponse!
 }
 
 input ReactionSearchInput {
@@ -1053,6 +1107,50 @@ input ReactionSearchInputSortType {
 
   """1: asc, -1: desc"""
   version: Int
+}
+
+input ReactionTopByQry {
+  """집계할 리액션 이름 목록"""
+  names: [String!]!
+
+  """가져올 갯수. default 10"""
+  size: Int
+  targetEntity: VCommentTargetEntity!
+}
+
+"""reaction 가중치 점수 순위 대상"""
+type ReactionTopTarget {
+  """해당 리액션 수"""
+  cnt: Int!
+
+  """리액션 수 * 1.5 + 최신 가중치 합"""
+  score: Float!
+
+  """대상 entity. 삭제된 경우 null"""
+  target: CommentableTarget
+  targetEntity: VCommentTargetEntity!
+  targetId: String!
+}
+
+type ReactionTopTargetListResponse {
+  hasNext: Boolean
+  items: [ReactionTopTarget!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
 }
 
 type Ref {
@@ -1462,6 +1560,18 @@ input TagSearchInputSortType {
 
   """1: asc, -1: desc"""
   version: Int
+}
+
+type Thread implements CompactEntity & ICreatedAt & IReaction {
+  _id: String!
+  createdAt: DateTime!
+
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
+  status: StandardStatus!
+  targetEntity: VCommentTargetEntity!
+  targetId: String!
+  version: String!
 }
 
 input ThreadListByQry {

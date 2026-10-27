@@ -16,6 +16,11 @@ export const SENSE_STANDARD_LIST_QUERY = graphql(`
           lv
           createdAt
           opinionsCnt
+          reactionsCnt {
+            name
+            cnt
+            me
+          }
           tags {
             _id
             name
@@ -44,6 +49,11 @@ export const SENSE_MY_LIST_QUERY = graphql(`
           lv
           createdAt
           opinionsCnt
+          reactionsCnt {
+            name
+            cnt
+            me
+          }
           tags {
             _id
             name
