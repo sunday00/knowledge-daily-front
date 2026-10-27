@@ -377,6 +377,9 @@ type BooleanResponse {
   success: Int!
 }
 
+"""targetEntity 에 따라 Opinion | Thread | Sense"""
+union CommentableTarget = Opinion | Sense | Thread
+
 interface CompactEntity implements ICreatedAt {
   _id: String!
   createdAt: DateTime!
@@ -429,6 +432,11 @@ interface ICreatedAt {
 interface IOpinion {
   """[threadCnt/opinionCnt]"""
   opinionsCnt: [Int!]
+}
+
+interface IReaction {
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
 }
 
 interface ITag {
@@ -485,6 +493,7 @@ type Mutation {
   AuthMutation: AuthMutNamespace!
   NotifyMutation: NotifyMutNamespace!
   OpinionMutation: OpinionMutNamespace!
+  ReactionMutation: ReactionMutNamespace!
   SenseMutation: SenseMutNamespace!
   UserMutation: UserMutNamespace!
   VillainMutation: VillainMutNamespace!
@@ -624,7 +633,7 @@ input OmitObjectTypeSearchInputSortType {
   version: Int
 }
 
-type Opinion implements IAttach & ICreatedAt & IUser & IVillain & StandardEntity {
+type Opinion implements IAttach & ICreatedAt & IReaction & IUser & IVillain & StandardEntity {
   _id: String!
 
   """첨부 미디어 목록"""
@@ -640,6 +649,9 @@ type Opinion implements IAttach & ICreatedAt & IUser & IVillain & StandardEntity
   """부모 Thread의 아이디"""
   parent: String!
   pinn: Boolean!
+
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
   sid: Int!
   sortKey: Int!
   status: StandardStatus!
@@ -755,6 +767,11 @@ type OpinionMutNamespace {
 
 type OpinionQryNamespace {
   opinionStandardList(input: OpinionListByQry): OpinionListResponse!
+
+  """
+  opinion 수 * 1.5 + 최신 가중치(1일 내 1, 하루마다 -0.3, 4일째부터 0) 점수 상위 thread / 원컨텐츠
+  """
+  opinionTopList(input: OpinionTopByQry!): OpinionTopTargetListResponse!
   threadStandardList(input: ThreadListByQry): ThreadResItemListResponse!
 }
 
@@ -840,6 +857,49 @@ input OpinionSearchInputSortType {
 
   """1: asc, -1: desc"""
   version: Int
+}
+
+input OpinionTopByQry {
+  """가져올 갯수. default 10"""
+  size: Int
+
+  """Thread 면 thread 별, 그 외(ex. Sense) 면 원컨텐츠 별 순위"""
+  targetEntity: VCommentTargetEntity!
+}
+
+"""opinion 가중치 점수 순위 대상"""
+type OpinionTopTarget {
+  """해당 opinion 수"""
+  cnt: Int!
+
+  """opinion 수 * 1.5 + 최신 가중치 합"""
+  score: Float!
+
+  """대상 entity. 삭제된 경우 null"""
+  target: CommentableTarget
+  targetEntity: VCommentTargetEntity!
+  targetId: String!
+}
+
+type OpinionTopTargetListResponse {
+  hasNext: Boolean
+  items: [OpinionTopTarget!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
 }
 
 input OpinionUpdateInput {
@@ -940,6 +1000,18 @@ type Reaction implements CompactEntity & ICreatedAt & IUser {
   version: String!
 }
 
+type ReactionCnt {
+  cnt: Int!
+  me: Boolean!
+  name: String!
+}
+
+input ReactionCreateInput {
+  name: String!
+  targetEntity: VCommentTargetEntity!
+  targetId: String!
+}
+
 input ReactionInput {
   name: String!
   targetEntity: VCommentTargetEntity!
@@ -984,8 +1056,15 @@ type ReactionListResponse {
   total: Int
 }
 
+type ReactionMutNamespace {
+  reactionCreate(input: ReactionCreateInput): SimpleJsonRes!
+}
+
 type ReactionQryNamespace {
   reactionStandardList(input: ReactionListByQry): ReactionListResponse!
+
+  """인기 items 목록"""
+  reactionTopList(input: ReactionTopByQry!): ReactionTopTargetListResponse!
 }
 
 input ReactionSearchInput {
@@ -1030,6 +1109,50 @@ input ReactionSearchInputSortType {
   version: Int
 }
 
+input ReactionTopByQry {
+  """집계할 리액션 이름 목록"""
+  names: [String!]!
+
+  """가져올 갯수. default 10"""
+  size: Int
+  targetEntity: VCommentTargetEntity!
+}
+
+"""reaction 가중치 점수 순위 대상"""
+type ReactionTopTarget {
+  """해당 리액션 수"""
+  cnt: Int!
+
+  """리액션 수 * 1.5 + 최신 가중치 합"""
+  score: Float!
+
+  """대상 entity. 삭제된 경우 null"""
+  target: CommentableTarget
+  targetEntity: VCommentTargetEntity!
+  targetId: String!
+}
+
+type ReactionTopTargetListResponse {
+  hasNext: Boolean
+  items: [ReactionTopTarget!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
 type Ref {
   href: String!
   label: String!
@@ -1040,7 +1163,7 @@ input RefInput {
   label: String!
 }
 
-type Sense implements IAttach & ICreatedAt & IOpinion & ITag & StandardEntity {
+type Sense implements IAttach & ICreatedAt & IOpinion & IReaction & ITag & StandardEntity {
   _id: String!
 
   """첨부 미디어 목록"""
@@ -1061,6 +1184,9 @@ type Sense implements IAttach & ICreatedAt & IOpinion & ITag & StandardEntity {
   """[threadCnt/opinionCnt]"""
   opinionsCnt: [Int!]
   pinn: Boolean!
+
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
 
   """참조, 출처, 연관"""
   refs: [Ref!]!
@@ -1436,6 +1562,18 @@ input TagSearchInputSortType {
   version: Int
 }
 
+type Thread implements CompactEntity & ICreatedAt & IReaction {
+  _id: String!
+  createdAt: DateTime!
+
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
+  status: StandardStatus!
+  targetEntity: VCommentTargetEntity!
+  targetId: String!
+  version: String!
+}
+
 input ThreadListByQry {
   """커서"""
   after: String
@@ -1453,11 +1591,14 @@ input ThreadListByQry {
   sort: ThreadSearchInputSortType
 }
 
-type ThreadResItem implements CompactEntity & ICreatedAt {
+type ThreadResItem implements CompactEntity & ICreatedAt & IReaction {
   _id: String!
   createdAt: DateTime!
   opinion: Opinion!
   opinionsCnt: Int!
+
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
   status: StandardStatus!
   targetEntity: VCommentTargetEntity!
   targetId: String!
@@ -1627,7 +1768,9 @@ enum VBlockTargetEntity {
 
 """댓글이 붙을 수 있는 엔티티 종류"""
 enum VCommentTargetEntity {
+  Opinion
   Sense
+  Thread
 }
 
 type VillainMutNamespace {

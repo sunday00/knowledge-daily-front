@@ -6,6 +6,7 @@ import { SenseOneView } from '@/components/SenseArticle.tsx'
 import { OpinionItem } from '@/components/OpinionItem.tsx'
 import { PendingOpinionItem } from '@/components/PendingOpinion.tsx'
 import { OpinionComposer } from '@/components/OpinionComposer.tsx'
+import { ThreadReactionBar } from '@/components/ThreadReactionBar.tsx'
 import { useOpinionList } from '@/hooks/useOpinionList.ts'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll.ts'
 import { MentionProvider } from '@/components/MentionContext.tsx'
@@ -130,9 +131,12 @@ function Conversation({ senseId, threadId }: { senseId: string; threadId: string
   return (
     <MentionProvider findBySid={findBySid} jumpToSid={(sid) => void jumpToSid(sid)}>
       <OpinionSection senseId={senseId} list={list} addedIds={addedIds} notice={notice} />
+      {/* 하단 고정 영역에 대화록 리액션 줄이 더해진 만큼 여백 */}
+      <div aria-hidden className="h-12" />
       <OpinionComposer
         senseId={senseId}
         parent={threadId}
+        header={<ThreadReactionBar threadId={threadId} />}
         blocked={
           threadFull && (
             <>

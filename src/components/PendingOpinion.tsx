@@ -34,7 +34,13 @@ export function PendingThreadItem({
   if (!opinion) return null
   return (
     <ThreadItem
-      thread={{ _id: threadId, opinionsCnt: 1, createdAt: opinion.createdAt, opinion }}
+      thread={{
+        _id: threadId,
+        opinionsCnt: 1,
+        createdAt: opinion.createdAt,
+        reactionsCnt: [],
+        opinion,
+      }}
       senseId={senseId}
       isNew
     />

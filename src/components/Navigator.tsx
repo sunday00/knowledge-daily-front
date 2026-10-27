@@ -12,6 +12,11 @@ export function Navigator() {
         <Link to="/" className="nav-link">
           Home
         </Link>
+        {user && (
+          <Link to="/sense/my-sense" className="nav-link">
+            My Senses
+          </Link>
+        )}
         <Link to="/about" className="nav-link">
           About
         </Link>

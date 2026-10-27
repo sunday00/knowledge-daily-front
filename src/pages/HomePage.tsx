@@ -1,9 +1,11 @@
-import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, type ReactNode } from 'react'
 import { useQuery } from '@apollo/client'
 import { SYSTEM_HEALTH_QUERY } from '../graphql/queries/health'
 import { SenseStandardList } from '../components/SenseStandardList'
+import { SenseBuzzList, SensePopularList } from '../components/SenseTopList'
 import { ClockIcon } from '../components/ClockIcon'
+import { FlameIcon } from '../components/FlameIcon'
+import { ChatIcon } from '../components/ChatIcon'
 
 export default function HomePage() {
   const { data } = useQuery(SYSTEM_HEALTH_QUERY, {
@@ -17,20 +19,45 @@ export default function HomePage() {
   }, [data])
 
   return (
+    <div className="space-y-6">
+      <HomeSection
+        icon={<ClockIcon size={20} className="text-neutral-500 dark:text-neutral-400" />}
+        title="Recent Knowledge"
+      >
+        <SenseStandardList size={3} />
+      </HomeSection>
+      <HomeSection
+        icon={<FlameIcon size={20} className="text-orange-500 dark:text-orange-400" />}
+        title="인기 상식 Top 3"
+      >
+        <SensePopularList size={3} />
+      </HomeSection>
+      <HomeSection
+        icon={<ChatIcon size={20} className="text-brand-500 dark:text-indigo-300" />}
+        title="와글와글 Top 3"
+      >
+        <SenseBuzzList size={3} />
+      </HomeSection>
+    </div>
+  )
+}
+
+function HomeSection({
+  icon,
+  title,
+  children,
+}: {
+  icon: ReactNode
+  title: string
+  children: ReactNode
+}) {
+  return (
     <section className="space-y-4 rounded-lg border-2 border-brand-500/40 dark:border-indigo-400/40 p-5">
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-xl font-semibold">
-          <ClockIcon size={20} className="text-neutral-500 dark:text-neutral-400" />
-          Recent Knowledge
-        </h2>
-        <Link
-          to="/sense/my-sense"
-          className="text-sm text-brand-600 hover:text-brand-700 dark:text-indigo-300 dark:hover:text-indigo-200 no-underline"
-        >
-          more →
-        </Link>
-      </div>
-      <SenseStandardList size={5} />
+      <h2 className="flex items-center gap-2 text-xl font-semibold">
+        {icon}
+        {title}
+      </h2>
+      {children}
     </section>
   )
 }

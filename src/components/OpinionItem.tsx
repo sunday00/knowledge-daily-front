@@ -12,6 +12,7 @@ import { useAutoResizeTextarea } from '@/hooks/useAutoResizeTextarea.ts'
 import { useMention } from '@/components/MentionContext.tsx'
 import { CharCount } from '@/components/CharCount.tsx'
 import { OPINION_MAX_LENGTH } from '@/lib/opinionLimits.ts'
+import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { ReportedMark } from '@/components/ReportedMark.tsx'
 import { BlockableText } from '@/components/BlockableText.tsx'
 import { OpinionVillainMenu, UserVillainMenu } from '@/components/OpinionVillainMenu.tsx'
@@ -86,6 +87,9 @@ export function OpinionItem({
             <OpinionTypeBadge type={opinion.type} />
             <BlockableText text={blockedAwareContent(opinion)} />
           </p>
+          <div className="mt-2">
+            <ReactionBar target={{ entity: 'Opinion', id: opinion._id }} />
+          </div>
           {mode === 'confirmDelete' && (
             <DeleteConfirm opinionId={opinion._id} onDone={() => setMode('view')} />
           )}

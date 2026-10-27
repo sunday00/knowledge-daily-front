@@ -1,5 +1,6 @@
-import { useQuery } from '@apollo/client'
+import { useApolloClient, useQuery } from '@apollo/client'
 import { THREAD_STANDARD_LIST_QUERY } from '@/graphql/queries/opinion.ts'
+import { THREAD_REACTIONS_FRAGMENT } from '@/graphql/queries/reaction.ts'
 import type { CreatedResult } from '@/actions/createOpinion.ts'
 import { useOncePerCursor, usePendingCards } from '@/hooks/usePendingCards.ts'
 
@@ -26,6 +27,7 @@ export function useThreadList(targetId: string) {
       notifyOnNetworkStatusChange: true,
     },
   )
+  const client = useApolloClient()
   const cards = usePendingCards<CreatedResult>()
 
   const res = data?.OpinionQuery.threadStandardList
@@ -70,8 +72,11 @@ export function useThreadList(targetId: string) {
       _id: created.threadId,
       opinionsCnt: 1,
       createdAt: created.opinion.createdAt,
+      reactionsCnt: [],
       opinion: created.opinion,
     }
+    // 화면에만 끼워 둔 대화도 리액션을 캐시에서 읽고 고칠 수 있게 넣어 둔다
+    client.cache.writeFragment({ fragment: THREAD_REACTIONS_FRAGMENT, data: thread })
     updateQuery((prev) => {
       const list = prev?.OpinionQuery?.threadStandardList
       if (!list) return prev

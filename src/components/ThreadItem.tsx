@@ -5,6 +5,7 @@ import { formatDateTime } from '@/lib/formatDate.ts'
 import { isDeletedOpinion } from '@/lib/opinionStatus.ts'
 import { blockedAwareContent, maskBlocked } from '@/lib/blockedContent.ts'
 import { useAuth } from '@/auth/AuthProvider.tsx'
+import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { ReportedMark } from '@/components/ReportedMark.tsx'
 import { OpinionVillainMenu, UserVillainMenu } from '@/components/OpinionVillainMenu.tsx'
 import { opinionDomId } from '@/lib/scrollToOpinion.ts'
@@ -61,8 +62,9 @@ export function ThreadItem({
       >
         <ThreadContent opinion={opinion} />
       </Link>
-      <div className="mt-2 flex justify-end text-xs text-neutral-500">
-        <span title="의견수" className="inline-flex items-center gap-1">
+      <div className="mt-2 flex items-start justify-between gap-2 text-xs text-neutral-500">
+        <ReactionBar target={{ entity: 'Thread', id: thread._id }} />
+        <span title="의견수" className="ml-auto inline-flex shrink-0 items-center gap-1">
           <SayIcon size={16} label="의견수" />
           {thread.opinionsCnt}
         </span>

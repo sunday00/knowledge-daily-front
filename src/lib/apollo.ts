@@ -7,10 +7,12 @@ const QUERY_NAMESPACES = [
   'AuthQryNamespace',
   'NotifyQryNamespace',
   'OpinionQryNamespace',
+  'ReactionQryNamespace',
   'SenseQryNamespace',
   'SystemQryNamespace',
   'TagQryNamespace',
   'UserQryNamespace',
+  'VillainQryNamespace',
 ]
 
 const uri = import.meta.env.VITE_GRAPHQL_ENDPOINT ?? 'http://localhost:4000/graphql'
