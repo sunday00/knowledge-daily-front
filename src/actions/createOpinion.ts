@@ -96,6 +96,7 @@ export function useCreateOpinion(senseId: string, parent?: string) {
         content,
         type: type || null,
         status: 'ACTIVE',
+        reactionsCnt: [],
         // 내 의견이라 차단/신고 상태는 없다
         villainStatus: {
           __typename: 'VillainStatus',

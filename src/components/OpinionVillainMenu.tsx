@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useId, useState, type FormEvent } from 'react'
 import type { OpinionItemFieldsFragment } from '@/graphql/__generated__/graphql.ts'
 import {
   REPORT_MAX_LENGTH,
@@ -7,14 +7,12 @@ import {
   type BlockTarget,
 } from '@/actions/villain.ts'
 import { CharCount } from '@/components/CharCount.tsx'
+import { Popover } from '@/components/Popover.tsx'
 import { ReportStatus } from '@/components/ReportStatus.tsx'
 import { REPORT_REASONS, type ReportReasonCode } from '@/lib/reportReasons.ts'
 
 type Opinion = Pick<OpinionItemFieldsFragment, '_id' | 'villainStatus' | 'user'>
 type OpinionUser = NonNullable<OpinionItemFieldsFragment['user']>
-
-const textButton =
-  'rounded px-1.5 py-0.5 text-xs text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors disabled:opacity-50 disabled:hover:bg-transparent'
 
 const menuItem =
   'block w-full whitespace-nowrap rounded px-2 py-1.5 text-left text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors'
@@ -204,78 +202,5 @@ function ReportForm({ target, onDone }: { target: BlockTarget; onDone: () => voi
         </button>
       </div>
     </form>
-  )
-}
-
-/**
- * 버튼 + 그 아래 뜨는 작은 창. 바깥을 누르거나 Esc 로 닫는다.
- * 카드 전체가 링크인 곳(대화록 카드)에서도 눌리도록 relative z-1.
- */
-export function Popover({
-  label,
-  title,
-  open,
-  onOpenChange,
-  align = 'right',
-  buttonClassName = textButton,
-  children,
-}: {
-  label: ReactNode
-  title: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  /** 창을 버튼의 어느 쪽 끝에 맞출지 */
-  align?: 'left' | 'right'
-  buttonClassName?: string
-  children: ReactNode
-}) {
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const buttonRef = useRef<HTMLButtonElement>(null)
-  const panelId = useId()
-
-  useEffect(() => {
-    if (!open) return
-    const onPointerDown = (e: PointerEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) onOpenChange(false)
-    }
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      onOpenChange(false)
-      buttonRef.current?.focus()
-    }
-    document.addEventListener('pointerdown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open, onOpenChange])
-
-  return (
-    // relative z-1 이 쌓임 맥락을 만들어 창(z-30)도 그 안에 갇히므로,
-    // 열린 동안엔 감싼 요소째 올려 아래 카드의 닉네임/버튼(z-1) 위에 뜨게 한다
-    <div ref={wrapRef} className={`relative min-w-0 ${open ? 'z-30' : 'z-1'}`}>
-      <button
-        ref={buttonRef}
-        type="button"
-        title={title}
-        aria-expanded={open}
-        aria-controls={open ? panelId : undefined}
-        onClick={() => onOpenChange(!open)}
-        className={`max-w-full ${buttonClassName}`}
-      >
-        {label}
-      </button>
-      {open && (
-        <div
-          id={panelId}
-          role="dialog"
-          aria-label={title}
-          className={`absolute ${align === 'left' ? 'left-0' : 'right-0'} top-full z-30 mt-1 w-max max-w-[80vw] rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-1 text-left font-normal shadow-lg`}
-        >
-          {children}
-        </div>
-      )}
-    </div>
   )
 }

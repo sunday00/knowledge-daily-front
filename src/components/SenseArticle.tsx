@@ -4,6 +4,7 @@ import { SENSE_ONE_QUERY } from '@/graphql/queries/sense.ts'
 import type { SenseOneQuery } from '@/graphql/__generated__/graphql.ts'
 import { SenseAttaches } from '@/components/SenseAttaches.tsx'
 import { SenseRefs } from '@/components/SenseRefs.tsx'
+import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { SenseCounts } from '@/components/SenseCounts.tsx'
 import { TagChips } from '@/components/TagChips.tsx'
 import { MarkdownView } from '@/components/MarkdownView.tsx'
@@ -85,6 +86,7 @@ function SenseArticle({ sense }: { sense: SenseOneItem }) {
         </section>
       )}
       <SenseRefs refs={sense.refs} />
+      <ReactionBar target={{ entity: 'Sense', id: sense._id }} />
     </article>
   )
 }

@@ -25,6 +25,8 @@ type Props = {
   onCreated?: (created: CreatedResult) => void
   /** 있으면 입력창 대신 이 안내를 보여준다 (예: 대화의 의견 수 한도 도달) */
   blocked?: ReactNode
+  /** 입력 영역 위에 함께 띄울 내용 (예: 대화록 리액션) */
+  header?: ReactNode
 }
 
 export function OpinionComposer(props: Props) {
@@ -36,7 +38,8 @@ export function OpinionComposer(props: Props) {
       className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="mx-auto max-w-5xl px-6 py-3">
+      <div className="mx-auto max-w-5xl space-y-2 px-6 py-3">
+        {props.header}
         {props.blocked ? (
           <p role="status" className="text-sm text-neutral-600 dark:text-neutral-300">
             {props.blocked}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { OpinionItemFieldsFragment } from '@/graphql/__generated__/graphql.ts'
-import { Popover } from '@/components/OpinionVillainMenu.tsx'
+import { Popover } from '@/components/Popover.tsx'
 import { ReportStatus } from '@/components/ReportStatus.tsx'
 
 type Props = Pick<OpinionItemFieldsFragment, 'villainStatus' | 'user'>

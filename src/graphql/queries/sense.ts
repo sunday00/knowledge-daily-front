@@ -69,6 +69,11 @@ export const SENSE_ONE_QUERY = graphql(`
           lv
           createdAt
           opinionsCnt
+          reactionsCnt {
+            name
+            cnt
+            me
+          }
           tags {
             _id
             name
