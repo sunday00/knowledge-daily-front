@@ -5,7 +5,8 @@ import { formatDateTime } from '@/lib/formatDate.ts'
 import { isDeletedOpinion } from '@/lib/opinionStatus.ts'
 import { blockedAwareContent, maskBlocked } from '@/lib/blockedContent.ts'
 import { useAuth } from '@/auth/AuthProvider.tsx'
-import { OpinionVillainMenu } from '@/components/OpinionVillainMenu.tsx'
+import { ReportedMark } from '@/components/ReportedMark.tsx'
+import { OpinionVillainMenu, UserVillainMenu } from '@/components/OpinionVillainMenu.tsx'
 import { opinionDomId } from '@/lib/scrollToOpinion.ts'
 import { OpinionTypeBadge } from '@/components/OpinionTypeBadge.tsx'
 
@@ -39,10 +40,16 @@ export function ThreadItem({
       className={`relative rounded-md border p-4 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors ${isNew ? 'border-brand-500/50 dark:border-brand-500/60' : 'border-neutral-200 dark:border-neutral-800'}`}
     >
       <div className="flex items-center justify-between gap-3 text-xs text-neutral-500">
-        <span className="font-medium text-neutral-700 dark:text-neutral-300 truncate">
-          {opinion.user?.nickname ?? '알 수 없음'}
-          <span className="ml-1 font-normal text-neutral-400">@{opinion.sid}</span>
-        </span>
+        <div className="flex min-w-0 items-center font-medium text-neutral-700 dark:text-neutral-300">
+          {/* 남의 의견이면 닉네임을 눌러 그 유저를 차단/신고 */}
+          {others && opinion.user ? (
+            <UserVillainMenu user={opinion.user} />
+          ) : (
+            <span className="truncate">{opinion.user?.nickname ?? '알 수 없음'}</span>
+          )}
+          <span className="ml-1 shrink-0 font-normal text-neutral-400">@{opinion.sid}</span>
+          <ReportedMark villainStatus={opinion.villainStatus} user={opinion.user} />
+        </div>
         <div className="flex shrink-0 items-center gap-1">
           <time dateTime={String(opinion.createdAt)}>{formatDateTime(opinion.createdAt)}</time>
           {others && <OpinionVillainMenu opinion={opinion} />}

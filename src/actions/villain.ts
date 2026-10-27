@@ -13,7 +13,13 @@ export const REPORT_MAX_LENGTH = 300
 
 export type BlockTarget = { entity: VBlockTargetEntity; id: string }
 
-type VillainFlags = { __typename?: 'VillainStatus'; isBlocked?: boolean; isSuspected?: boolean }
+type VillainFlags = {
+  __typename?: 'VillainStatus'
+  isBlocked?: boolean
+  isSuspected?: boolean
+  status?: string | null
+  result?: string | null
+}
 
 /** 캐시의 대상(Opinion / User) villainStatus 를 고치고, 고치기 전 값을 돌려준다 */
 function patchVillainStatus(
@@ -74,17 +80,18 @@ const isDuplicatedReport = (e: unknown) =>
   e instanceof ApolloError &&
   e.graphQLErrors.some((g) => g.extensions?.code === 'VILLAIN_SUSPECT_CREATE_DUPLICATED')
 
-/** 의견 신고. 성공하면(이미 접수된 신고였어도) 캐시에 신고함으로 표시한다. */
-export function useReportOpinion() {
+/** 의견 / 유저 신고. 성공하면(이미 접수된 신고였어도) 캐시에 신고함으로 표시한다. */
+export function useReport() {
   const client = useApolloClient()
   const [error, setError] = useState<string | null>(null)
   const [mutate, { loading: sending }] = useMutation(VILLAIN_CREATE_SUSPECT_MUTATION)
 
-  const markReported = (opinionId: string) =>
-    patchVillainStatus(client.cache, { entity: 'Opinion', id: opinionId }, { isSuspected: true })
+  const markReported = (target: BlockTarget) =>
+    // 막 접수된 신고: 접수(DRAFT) 단계, 결과 미정(IDLE)
+    patchVillainStatus(client.cache, target, { isSuspected: true, status: 'DRAFT', result: 'IDLE' })
 
   /** 접수되면 true */
-  const report = async (opinionId: string, raw: string): Promise<boolean> => {
+  const report = async (target: BlockTarget, raw: string): Promise<boolean> => {
     setError(null)
     const quest = raw.trim()
     if (!quest) {
@@ -96,8 +103,8 @@ export function useReportOpinion() {
       const { data } = await mutate({
         variables: {
           input: {
-            targetEntity: 'Opinion',
-            targetId: opinionId,
+            targetEntity: target.entity,
+            targetId: target.id,
             quest,
             attaches: [],
             version: SUSPECT_VERSION,
@@ -109,12 +116,12 @@ export function useReportOpinion() {
         setError(result?.message ?? '서버가 실패를 반환했습니다.')
         return false
       }
-      markReported(opinionId)
+      markReported(target)
       return true
     } catch (e: unknown) {
       // 처리되지 않은 신고가 이미 있으면 이미 신고한 것으로 본다
       if (isDuplicatedReport(e)) {
-        markReported(opinionId)
+        markReported(target)
         return true
       }
       setError(e instanceof Error ? e.message : String(e))

@@ -97,13 +97,25 @@ export function useCreateOpinion(senseId: string, parent?: string) {
         type: type || null,
         status: 'ACTIVE',
         // 내 의견이라 차단/신고 상태는 없다
-        villainStatus: { __typename: 'VillainStatus', isBlocked: false, isSuspected: false },
+        villainStatus: {
+          __typename: 'VillainStatus',
+          isBlocked: false,
+          isSuspected: false,
+          status: null,
+          result: null,
+        },
         user: user
           ? {
               __typename: 'User',
               _id: user.userId,
               nickname: user.nickname,
-              villainStatus: { __typename: 'VillainStatus', isBlocked: false },
+              villainStatus: {
+                __typename: 'VillainStatus',
+                isBlocked: false,
+                isSuspected: false,
+                status: null,
+                result: null,
+              },
             }
           : null,
       } as CreatedOpinion
