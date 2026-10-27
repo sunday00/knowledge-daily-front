@@ -3,6 +3,7 @@ import { useQuery } from '@apollo/client'
 import { SENSE_ONE_QUERY } from '@/graphql/queries/sense.ts'
 import type { SenseOneQuery } from '@/graphql/__generated__/graphql.ts'
 import { SenseAttaches } from '@/components/SenseAttaches.tsx'
+import { SenseRefs } from '@/components/SenseRefs.tsx'
 import { SenseCounts } from '@/components/SenseCounts.tsx'
 import { TagChips } from '@/components/TagChips.tsx'
 import { MarkdownView } from '@/components/MarkdownView.tsx'
@@ -83,6 +84,7 @@ function SenseArticle({ sense }: { sense: SenseOneItem }) {
           <MarkdownView>{sense.detail}</MarkdownView>
         </section>
       )}
+      <SenseRefs refs={sense.refs} />
     </article>
   )
 }

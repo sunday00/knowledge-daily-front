@@ -12,7 +12,10 @@ import { useAutoResizeTextarea } from '@/hooks/useAutoResizeTextarea.ts'
 import { useMention } from '@/components/MentionContext.tsx'
 import { CharCount } from '@/components/CharCount.tsx'
 import { OPINION_MAX_LENGTH } from '@/lib/opinionLimits.ts'
-import { MentionText } from '@/components/MentionText.tsx'
+import { ReportedMark } from '@/components/ReportedMark.tsx'
+import { BlockableText } from '@/components/BlockableText.tsx'
+import { OpinionVillainMenu, UserVillainMenu } from '@/components/OpinionVillainMenu.tsx'
+import { blockedAwareContent } from '@/lib/blockedContent.ts'
 import { SUBMIT_SHORTCUT_LABEL, useSubmitShortcut } from '@/hooks/useSubmitShortcut.ts'
 
 export type OpinionListItem =
@@ -38,6 +41,8 @@ export function OpinionItem({
   const [mode, setMode] = useState<Mode>('view')
   const deleted = isDeletedOpinion(opinion)
   const mine = !!user && opinion.user?._id === user.userId && !deleted
+  // 남의 의견이면 차단/신고 (로그인했을 때만)
+  const others = !!user && !!opinion.user && opinion.user._id !== user.userId && !deleted
 
   return (
     <li
@@ -45,10 +50,16 @@ export function OpinionItem({
       className={`scroll-mt-4 rounded-md border p-4 ${isNew ? 'border-brand-500/50 dark:border-brand-500/60' : 'border-neutral-200 dark:border-neutral-800'}`}
     >
       <div className="flex items-center justify-between gap-3 text-xs text-neutral-500">
-        <span className="font-medium text-neutral-700 dark:text-neutral-300 truncate">
-          {opinion.user?.nickname ?? '알 수 없음'}
+        <div className="flex min-w-0 items-center font-medium text-neutral-700 dark:text-neutral-300">
+          {/* 남의 의견이면 닉네임을 눌러 그 유저를 차단/신고 */}
+          {others && opinion.user ? (
+            <UserVillainMenu user={opinion.user} />
+          ) : (
+            <span className="truncate">{opinion.user?.nickname ?? '알 수 없음'}</span>
+          )}
           <SidMention sid={opinion.sid} />
-        </span>
+          <ReportedMark villainStatus={opinion.villainStatus} user={opinion.user} />
+        </div>
         <div className="flex shrink-0 items-center gap-1">
           <time dateTime={String(opinion.createdAt)}>{formatDateTime(opinion.createdAt)}</time>
           {mine && mode === 'view' && (
@@ -61,6 +72,7 @@ export function OpinionItem({
               </button>
             </>
           )}
+          {others && <OpinionVillainMenu opinion={opinion} />}
         </div>
       </div>
 
@@ -72,7 +84,7 @@ export function OpinionItem({
         <>
           <p className="mt-2 whitespace-pre-wrap break-words">
             <OpinionTypeBadge type={opinion.type} />
-            <MentionText text={opinion.content} />
+            <BlockableText text={blockedAwareContent(opinion)} />
           </p>
           {mode === 'confirmDelete' && (
             <DeleteConfirm opinionId={opinion._id} onDone={() => setMode('view')} />
@@ -88,14 +100,14 @@ function SidMention({ sid }: { sid: number }) {
   const insertMention = useMention()?.insertMention
 
   if (!insertMention) {
-    return <span className="ml-1 font-normal text-neutral-400">@{sid}</span>
+    return <span className="ml-1 shrink-0 font-normal text-neutral-400">@{sid}</span>
   }
   return (
     <button
       type="button"
       onClick={() => insertMention(sid)}
       title="입력창에 언급 넣기"
-      className="ml-1 rounded px-0.5 font-normal text-neutral-400 hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-neutral-800 transition-colors"
+      className="ml-1 shrink-0 rounded px-0.5 font-normal text-neutral-400 hover:bg-brand-50 hover:text-brand-600 dark:hover:bg-neutral-800 transition-colors"
     >
       @{sid}
     </button>

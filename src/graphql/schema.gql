@@ -302,6 +302,75 @@ type AuthTokenResponseResponse {
   success: Int!
 }
 
+type Block implements ICreatedAt & IUser {
+  _id: String!
+  createdAt: DateTime!
+  reasons: [String!]!
+  status: StandardStatus!
+  targetEntity: VBlockTargetEntity!
+  targetId: String!
+
+  """user"""
+  user: User
+  version: String!
+}
+
+input BlockCreateInput {
+  reasons: [String!]!
+  status: StandardStatus
+  targetEntity: VBlockTargetEntity!
+  targetId: String!
+  version: String
+}
+
+input BlockInput {
+  _id: String!
+  createdAt: DateTime!
+  reasons: [String!]!
+  status: StandardStatus!
+  targetEntity: VBlockTargetEntity!
+  targetId: String!
+  version: String!
+}
+
+input BlockListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: OmitObjectTypeSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: OmitObjectTypeSearchInputSortType
+}
+
+type BlockListResponse {
+  hasNext: Boolean
+  items: [Block!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
 type BooleanResponse {
   item: Boolean!
   message: String
@@ -313,6 +382,24 @@ interface CompactEntity implements ICreatedAt {
   createdAt: DateTime!
   status: StandardStatus!
   version: String!
+}
+
+"""유저민원처리결과. standardStatus로 접수,진행,완료,삭제 중 완료 이후 결과 표시"""
+enum ComplaintResult {
+  """승인되어 원하는대로 처리함"""
+  ACCEPT
+
+  """진행중 유저 취소"""
+  CANCELED
+
+  """거절"""
+  DENY
+
+  """결과값 필드가 필수이므로 아직 미결을 의미"""
+  IDLE
+
+  """일부는 승인되어 일부는 원하는대로 처리해줌"""
+  PART
 }
 
 """
@@ -352,6 +439,10 @@ interface ITag {
 interface IUser {
   """user"""
   user: User
+}
+
+interface IVillain {
+  villainStatus: VillainStatus
 }
 
 type IdResult {
@@ -396,6 +487,7 @@ type Mutation {
   OpinionMutation: OpinionMutNamespace!
   SenseMutation: SenseMutNamespace!
   UserMutation: UserMutNamespace!
+  VillainMutation: VillainMutNamespace!
 }
 
 type NotifyMutNamespace {
@@ -496,7 +588,43 @@ input NotifySettingUpdateInput {
   version: String
 }
 
-type Opinion implements IAttach & ICreatedAt & IUser & StandardEntity {
+input OmitObjectTypeSearchInput {
+  _id: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  createdAt: RangeDate
+  reasons: [String!]
+  status: RangeStandardStatus
+  targetEntity: VBlockTargetEntity
+  targetId: RangeString
+  version: RangeString
+}
+
+input OmitObjectTypeSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  reasons: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  targetEntity: Int
+
+  """1: asc, -1: desc"""
+  targetId: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+type Opinion implements IAttach & ICreatedAt & IUser & IVillain & StandardEntity {
   _id: String!
 
   """첨부 미디어 목록"""
@@ -525,6 +653,7 @@ type Opinion implements IAttach & ICreatedAt & IUser & StandardEntity {
   """user"""
   user: User
   version: String!
+  villainStatus: VillainStatus
 }
 
 input OpinionCreateInput {
@@ -747,6 +876,7 @@ type Query {
   SystemQuery: SystemQryNamespace!
   TagQuery: TagQryNamespace!
   UserQuery: UserQryNamespace!
+  VillainQuery: VillainQryNamespace!
 }
 
 "\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
@@ -1200,6 +1330,17 @@ enum StandardStatus {
   INACTIVE
 }
 
+input SuspectCreateInput {
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]!
+
+  """요청, 신고, 질문 내용"""
+  quest: String!
+  targetEntity: VBlockTargetEntity!
+  targetId: String!
+  version: String
+}
+
 input SystemHealthQry {
   """not meaning. To check data can be passed safely"""
   d: Int
@@ -1376,7 +1517,7 @@ input ThreadSearchInputSortType {
   version: Int
 }
 
-type User implements ICreatedAt & StandardEntity {
+type User implements ICreatedAt & IVillain & StandardEntity {
   _id: String!
   createdAt: DateTime!
   deletedAt: DateTime
@@ -1393,6 +1534,7 @@ type User implements ICreatedAt & StandardEntity {
   sortKey: Int!
   status: StandardStatus!
   version: String!
+  villainStatus: VillainStatus
 }
 
 input UserCreateInput {
@@ -1477,7 +1619,31 @@ input UserUpdateInput {
   version: String
 }
 
+"""차단할 수 있는 엔티티 종류"""
+enum VBlockTargetEntity {
+  Opinion
+  User
+}
+
 """댓글이 붙을 수 있는 엔티티 종류"""
 enum VCommentTargetEntity {
   Sense
+}
+
+type VillainMutNamespace {
+  """유저, 의견 등 신고하기"""
+  villainCreateSuspect(input: SuspectCreateInput): SimpleJsonRes!
+  villainToggleBlock(input: BlockCreateInput): SimpleJsonRes!
+}
+
+type VillainQryNamespace {
+  villainStandardBlockList(input: BlockListByQry): BlockListResponse!
+}
+
+"""대상이 내가 이미 신고/차단 했는지, 신고했다면 지금 결과가 어떤지"""
+type VillainStatus {
+  isBlocked: Boolean!
+  isSuspected: Boolean!
+  result: ComplaintResult
+  status: StandardStatus
 }

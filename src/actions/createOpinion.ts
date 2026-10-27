@@ -96,7 +96,28 @@ export function useCreateOpinion(senseId: string, parent?: string) {
         content,
         type: type || null,
         status: 'ACTIVE',
-        user: user ? { __typename: 'User', _id: user.userId, nickname: user.nickname } : null,
+        // 내 의견이라 차단/신고 상태는 없다
+        villainStatus: {
+          __typename: 'VillainStatus',
+          isBlocked: false,
+          isSuspected: false,
+          status: null,
+          result: null,
+        },
+        user: user
+          ? {
+              __typename: 'User',
+              _id: user.userId,
+              nickname: user.nickname,
+              villainStatus: {
+                __typename: 'VillainStatus',
+                isBlocked: false,
+                isSuspected: false,
+                status: null,
+                result: null,
+              },
+            }
+          : null,
       } as CreatedOpinion
       // 캐시에 의견을 넣어 두면 목록에 없더라도 수정/삭제가 같은 방식(cache.modify)으로 반영된다
       client.cache.writeFragment({ fragment: OPINION_ITEM_FRAGMENT, data: created })
