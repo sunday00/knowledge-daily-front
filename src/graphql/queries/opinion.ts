@@ -20,9 +20,16 @@ export const THREAD_STANDARD_LIST_QUERY = graphql(`
             type
             status
             createdAt
+            villainStatus {
+              isBlocked
+              isSuspected
+            }
             user {
               _id
               nickname
+              villainStatus {
+                isBlocked
+              }
             }
           }
         }
@@ -47,9 +54,16 @@ export const OPINION_STANDARD_LIST_QUERY = graphql(`
           type
           status
           createdAt
+          villainStatus {
+            isBlocked
+            isSuspected
+          }
           user {
             _id
             nickname
+            villainStatus {
+              isBlocked
+            }
           }
         }
       }
@@ -66,9 +80,16 @@ export const OPINION_ITEM_FRAGMENT = graphql(`
     type
     status
     createdAt
+    villainStatus {
+      isBlocked
+      isSuspected
+    }
     user {
       _id
       nickname
+      villainStatus {
+        isBlocked
+      }
     }
   }
 `)

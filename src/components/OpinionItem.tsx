@@ -12,7 +12,9 @@ import { useAutoResizeTextarea } from '@/hooks/useAutoResizeTextarea.ts'
 import { useMention } from '@/components/MentionContext.tsx'
 import { CharCount } from '@/components/CharCount.tsx'
 import { OPINION_MAX_LENGTH } from '@/lib/opinionLimits.ts'
-import { MentionText } from '@/components/MentionText.tsx'
+import { BlockableText } from '@/components/BlockableText.tsx'
+import { OpinionVillainMenu } from '@/components/OpinionVillainMenu.tsx'
+import { blockedAwareContent } from '@/lib/blockedContent.ts'
 import { SUBMIT_SHORTCUT_LABEL, useSubmitShortcut } from '@/hooks/useSubmitShortcut.ts'
 
 export type OpinionListItem =
@@ -38,6 +40,8 @@ export function OpinionItem({
   const [mode, setMode] = useState<Mode>('view')
   const deleted = isDeletedOpinion(opinion)
   const mine = !!user && opinion.user?._id === user.userId && !deleted
+  // 남의 의견이면 차단/신고 (로그인했을 때만)
+  const others = !!user && !!opinion.user && opinion.user._id !== user.userId && !deleted
 
   return (
     <li
@@ -61,6 +65,7 @@ export function OpinionItem({
               </button>
             </>
           )}
+          {others && <OpinionVillainMenu opinion={opinion} />}
         </div>
       </div>
 
@@ -72,7 +77,7 @@ export function OpinionItem({
         <>
           <p className="mt-2 whitespace-pre-wrap break-words">
             <OpinionTypeBadge type={opinion.type} />
-            <MentionText text={opinion.content} />
+            <BlockableText text={blockedAwareContent(opinion)} />
           </p>
           {mode === 'confirmDelete' && (
             <DeleteConfirm opinionId={opinion._id} onDone={() => setMode('view')} />

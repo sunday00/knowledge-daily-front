@@ -3,6 +3,9 @@ import type { ThreadStandardListQuery } from '@/graphql/__generated__/graphql.ts
 import { SayIcon } from '@/components/SayIcon.tsx'
 import { formatDateTime } from '@/lib/formatDate.ts'
 import { isDeletedOpinion } from '@/lib/opinionStatus.ts'
+import { blockedAwareContent, maskBlocked } from '@/lib/blockedContent.ts'
+import { useAuth } from '@/auth/AuthProvider.tsx'
+import { OpinionVillainMenu } from '@/components/OpinionVillainMenu.tsx'
 import { opinionDomId } from '@/lib/scrollToOpinion.ts'
 import { OpinionTypeBadge } from '@/components/OpinionTypeBadge.tsx'
 
@@ -24,6 +27,10 @@ export function ThreadItem({
   isNew?: boolean
 }) {
   const { opinion } = thread
+  const { user } = useAuth()
+  // 남의 의견이면 차단/신고 (로그인했을 때만)
+  const others =
+    !!user && !!opinion.user && opinion.user._id !== user.userId && !isDeletedOpinion(opinion)
 
   return (
     // 내용 링크를 카드 전체로 늘려(after) 어디를 눌러도 이동
@@ -36,9 +43,10 @@ export function ThreadItem({
           {opinion.user?.nickname ?? '알 수 없음'}
           <span className="ml-1 font-normal text-neutral-400">@{opinion.sid}</span>
         </span>
-        <time dateTime={String(opinion.createdAt)} className="shrink-0">
-          {formatDateTime(opinion.createdAt)}
-        </time>
+        <div className="flex shrink-0 items-center gap-1">
+          <time dateTime={String(opinion.createdAt)}>{formatDateTime(opinion.createdAt)}</time>
+          {others && <OpinionVillainMenu opinion={opinion} />}
+        </div>
       </div>
       <Link
         to={threadPath(senseId, thread._id)}
@@ -63,7 +71,7 @@ function ThreadContent({ opinion }: { opinion: ThreadListItem['opinion'] }) {
   return (
     <>
       <OpinionTypeBadge type={opinion.type} />
-      {opinion.content}
+      {maskBlocked(blockedAwareContent(opinion))}
     </>
   )
 }

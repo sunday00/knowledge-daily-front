@@ -1,5 +1,6 @@
 import type { OpinionItemFieldsFragment } from '@/graphql/__generated__/graphql.ts'
 import { isDeletedOpinion } from '@/lib/opinionStatus.ts'
+import { blockedAwareContent, maskBlocked } from '@/lib/blockedContent.ts'
 import { OpinionTypeBadge } from '@/components/OpinionTypeBadge.tsx'
 
 /**
@@ -20,7 +21,7 @@ export function OpinionPeek({ opinion }: { opinion: OpinionItemFieldsFragment })
       ) : (
         <span className="mt-1 line-clamp-3 whitespace-pre-wrap break-words">
           <OpinionTypeBadge type={opinion.type} />
-          {opinion.content}
+          {maskBlocked(blockedAwareContent(opinion))}
         </span>
       )}
     </>

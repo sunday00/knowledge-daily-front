@@ -73,6 +73,10 @@ export const SENSE_ONE_QUERY = graphql(`
             _id
             name
           }
+          refs {
+            href
+            label
+          }
           attaches {
             sortKey
             attach {
