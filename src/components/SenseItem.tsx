@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import type { SenseStandardListQuery } from '@/graphql/__generated__/graphql.ts'
 import { SenseCounts } from '@/components/SenseCounts.tsx'
@@ -12,10 +13,13 @@ export type SenseListItem =
 export function SenseItem({
   item,
   rank,
+  action,
 }: {
   item: SenseListItem
   /** 순위 목록이면 제목 앞에 순위 */
   rank?: number
+  /** 리액션 오른쪽에 둘 버튼 (예: 내 상식 추가/제외) */
+  action?: ReactNode
 }) {
   const location = useLocation()
 
@@ -54,8 +58,9 @@ export function SenseItem({
       </div>
       <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{item.description}</p>
       <TagChips tags={item.tags} className="mt-2 relative z-1" />
-      <div className="mt-2">
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
         <ReactionBar target={{ entity: 'Sense', id: item._id }} />
+        {action && <div className="relative z-1">{action}</div>}
       </div>
     </li>
   )

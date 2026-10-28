@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -9,7 +9,7 @@ import UserSettingsEditPage from './pages/user/UserSettingsEditPage'
 import NotifyInterestEditPage from './pages/user/NotifyInterestEditPage'
 import KakaoCallbackPage from './pages/auth/KakaoCallbackPage'
 import MySensePage from './pages/sense/MySensePage'
-import TagSensePage from './pages/sense/TagSensePage'
+import TagsPage from './pages/tag/TagsPage'
 import { Navigator } from './components/Navigator'
 import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
@@ -19,6 +19,12 @@ import { ErrorBanner } from './components/ErrorBanner'
 const SenseDetailPage = lazy(() => import('./pages/sense/SenseDetailPage'))
 // 대화록 상세(의견 목록)도 들어갈 때만 불러온다.
 const ThreadOpinionsPage = lazy(() => import('./pages/sense/ThreadOpinionsPage'))
+
+// 예전 태그 주소(/sense/tag/:tag)는 태그 메뉴로 보낸다.
+function LegacyTagRedirect() {
+  const { tag = '' } = useParams<{ tag: string }>()
+  return <Navigate to={`/tags/${encodeURIComponent(tag)}`} replace />
+}
 
 const pageFallback = <p className="text-neutral-500">불러오는 중...</p>
 
@@ -42,7 +48,8 @@ export default function App() {
           <Route path="/user/settings/interest/edit" element={<NotifyInterestEditPage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
           <Route path="/sense/my-sense" element={<MySensePage />} />
-          <Route path="/sense/tag/:tag" element={<TagSensePage />} />
+          <Route path="/tags/:tag?" element={<TagsPage />} />
+          <Route path="/sense/tag/:tag" element={<LegacyTagRedirect />} />
           <Route
             path="/sense/:id"
             element={

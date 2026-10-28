@@ -64,6 +64,37 @@ export const SENSE_MY_LIST_QUERY = graphql(`
   }
 `)
 
+// 항목 필드는 SENSE_STANDARD_LIST_QUERY 와 동일하게 유지 (SenseItem 공용)
+export const SENSE_LIST_BY_TAG_QUERY = graphql(`
+  query SenseListByTag($input: SenseListByTagQry!) {
+    SenseQuery {
+      senseListByTag(input: $input) {
+        success
+        message
+        total
+        items {
+          _id
+          title
+          nativeLang
+          description
+          lv
+          createdAt
+          opinionsCnt
+          reactionsCnt {
+            name
+            cnt
+            me
+          }
+          tags {
+            _id
+            name
+          }
+        }
+      }
+    }
+  }
+`)
+
 export const SENSE_ONE_QUERY = graphql(`
   query SenseOne($input: SenseOneByQry) {
     SenseQuery {
