@@ -23,15 +23,16 @@ export function Navigator() {
         <Link to="/about" className="nav-link">
           About
         </Link>
-        {!user && (
+      </div>
+      <div className="flex items-center gap-3">
+        <ThemeToggle />
+        {user ? (
+          <UserMenu />
+        ) : (
           <Link to="/login" className="nav-link">
             Login
           </Link>
         )}
-      </div>
-      <div className="flex items-center gap-3">
-        <ThemeToggle />
-        {user && <UserMenu />}
       </div>
     </nav>
   )

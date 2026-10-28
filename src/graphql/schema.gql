@@ -371,6 +371,142 @@ type BlockListResponse {
   total: Int
 }
 
+"""게시판. 게시글은 하위에 article.entity 또는 ask.entity"""
+type Board implements CompactEntity & IAttach & ICreatedAt {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+  brief: String
+  categories: [BoardCategory!]!
+
+  """ask | article"""
+  children: String!
+  createdAt: DateTime!
+  label: String
+  status: StandardStatus!
+  title: String!
+  version: String!
+}
+
+type BoardCategory {
+  code: String!
+  label: String!
+}
+
+input BoardCategoryInput {
+  code: String!
+  label: String!
+}
+
+input BoardInput {
+  brief: String
+  categories: [BoardCategoryInput!]!
+
+  """ask | article"""
+  children: String!
+  label: String
+  title: String!
+}
+
+input BoardListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: BoardSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: BoardSearchInputSortType
+}
+
+type BoardListResponse {
+  hasNext: Boolean
+  items: [Board!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type BoardMutNamespace {
+  _boardMutNotImplementedThing(input: BoardListByQry): SimpleJsonRes!
+}
+
+type BoardQryNamespace {
+  boardStandardList(input: BoardListByQry): BoardListResponse!
+}
+
+input BoardSearchInput {
+  _id: RangeString
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+  brief: RangeString
+  categories: [BoardCategoryInput!]
+
+  """ask | article"""
+  children: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  createdAt: RangeDate
+  label: RangeString
+  status: RangeStandardStatus
+  title: RangeString
+  version: RangeString
+}
+
+input BoardSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  attaches: Int
+
+  """1: asc, -1: desc"""
+  brief: Int
+
+  """1: asc, -1: desc"""
+  categories: Int
+
+  """1: asc, -1: desc"""
+  children: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  label: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  title: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
 type BooleanResponse {
   item: Boolean!
   message: String
@@ -491,6 +627,7 @@ type MeResponseItemResponse {
 type Mutation {
   AttachMutation: AttachMutNamespace!
   AuthMutation: AuthMutNamespace!
+  BoardMutation: BoardMutNamespace!
   NotifyMutation: NotifyMutNamespace!
   OpinionMutation: OpinionMutNamespace!
   ReactionMutation: ReactionMutNamespace!
@@ -929,6 +1066,7 @@ input OpinionUpdateInput {
 type Query {
   AttachQuery: AttachQryNamespace!
   AuthQuery: AuthQryNamespace!
+  BoardQuery: BoardQryNamespace!
   NotifyQuery: NotifyQryNamespace!
   OpinionQuery: OpinionQryNamespace!
   ReactionQuery: ReactionQryNamespace!
@@ -1499,6 +1637,9 @@ input SystemHealthQry {
 
 type SystemQryNamespace {
   health(input: SystemHealthQry!): SimpleJsonRes!
+
+  """systemStates sharedconfigs.value. 비로그인 허용"""
+  sharedConfigs: SimpleJsonRes!
 }
 
 type Tag {
