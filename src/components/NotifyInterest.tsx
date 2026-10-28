@@ -47,7 +47,7 @@ export function NotifyInterest() {
                     <li key={id}>
                       {name ? (
                         <Link
-                          to={`/sense/tag/${encodeURIComponent(name)}`}
+                          to={`/tags/${encodeURIComponent(name)}`}
                           className="text-sm rounded-full px-2 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-brand-50 dark:hover:bg-neutral-700 hover:text-brand-700 dark:hover:text-brand-500 no-underline transition-colors"
                         >
                           #{name}

@@ -1199,6 +1199,10 @@ type Sense implements IAttach & ICreatedAt & IOpinion & IReaction & ITag & Stand
   version: String!
 }
 
+input SenseAddMyInput {
+  _id: String!
+}
+
 input SenseInput {
   description: String!
   detail: String!
@@ -1227,6 +1231,17 @@ input SenseListByQry {
 
   """정렬: { fieldName: 1 | -1 }"""
   sort: SenseSearchInputSortType
+}
+
+input SenseListByTagQry {
+  """recent: 최신 sense | my: 나의 sense. default recent"""
+  filter: String = "recent"
+
+  """tag name"""
+  name: String!
+
+  """가져올 갯수. default 10"""
+  size: Int = 10
 }
 
 input SenseListMyQry {
@@ -1268,7 +1283,11 @@ type SenseListResponse {
 }
 
 type SenseMutNamespace {
-  _senseMutNotImplementedThing(input: SenseListByQry): SimpleJsonRes!
+  """내 sense 목록에 추가"""
+  addMySense(input: SenseAddMyInput!): BooleanResponse!
+
+  """내 sense 목록에서 제외 (hard delete)"""
+  removeMySense(input: SenseRemoveMyInput!): BooleanResponse!
 }
 
 input SenseOneByQry {
@@ -1305,9 +1324,15 @@ input SenseOneByQry {
 }
 
 type SenseQryNamespace {
+  """tag name 이 붙은 sense 목록. filter recent: 최신 | my: 나의 sense"""
+  senseListByTag(input: SenseListByTagQry!): SenseListResponse!
   senseMyList(input: SenseListMyQry): SenseListResponse!
   senseOne(input: SenseOneByQry): SenseResponse!
   senseStandardList(input: SenseListByQry): SenseListResponse!
+}
+
+input SenseRemoveMyInput {
+  _id: String!
 }
 
 type SenseResponse {
@@ -1532,6 +1557,9 @@ type TagListResponse {
 
 type TagQryNamespace {
   tagStandardList(input: TagListByQry): TagListResponse!
+
+  """notify 관심 태그로 많이 설정된 태그 목록"""
+  tagTopFocusList(input: TagTopFocusQry): TagTopFocusListResponse!
 }
 
 input TagSearchInput {
@@ -1560,6 +1588,41 @@ input TagSearchInputSortType {
 
   """1: asc, -1: desc"""
   version: Int
+}
+
+"""notify 관심 태그(focusOn) 설정 수 순위"""
+type TagTopFocus {
+  """
+  해당 태그를 관심 태그로 설정한 notify setting 수. 없으면 sense 에 붙은 수, 그것도 없으면 무작위 태그로 0
+  """
+  cnt: Int!
+  tag: Tag!
+}
+
+type TagTopFocusListResponse {
+  hasNext: Boolean
+  items: [TagTopFocus!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+input TagTopFocusQry {
+  """가져올 갯수. default 10"""
+  size: Int = 10
 }
 
 type Thread implements CompactEntity & ICreatedAt & IReaction {

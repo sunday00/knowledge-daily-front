@@ -5,7 +5,7 @@ import { NOTIFY_SETTING_BY_USER_QUERY } from '@/graphql/queries/notify.ts'
 import { NOTIFY_SETTING_UPDATE_MUTATION } from '@/graphql/mutations/notify.ts'
 import type { NotifySettingByUserQuery } from '@/graphql/__generated__/graphql.ts'
 import type { TagOption } from '@/components/TagPicker.tsx'
-import { clearMyListCache } from '@/lib/senseMyListCache.ts'
+import { resetMyListCaches } from '@/lib/senseMyListCache.ts'
 import { LV_MAX, LV_MIN, type LevelRange } from '@/components/LevelRangeField.tsx'
 
 export type NotifyInterestDraft = {
@@ -74,10 +74,8 @@ export function useUpdateNotifyInterest() {
         return
       }
 
-      // 관심 태그/수준이 바뀌면 내 Knowledge 목록도 달라지므로 저장/메모리 캐시를 비운다.
-      clearMyListCache()
-      client.cache.evict({ id: 'ROOT_QUERY', fieldName: 'SenseQuery' })
-      client.cache.gc()
+      // 관심 태그/수준이 바뀌면 내 Knowledge 목록도 달라진다.
+      resetMyListCaches(client)
 
       navigate('/user/settings?tab=interest', { replace: true })
     } catch (e: unknown) {
@@ -86,4 +84,62 @@ export function useUpdateNotifyInterest() {
   }
 
   return { submit, saving, error }
+}
+
+/** 관심 태그 하나를 추가/제거한다. 나머지 설정은 기존 값 그대로 보낸다. */
+export function useInterestTag() {
+  const client = useApolloClient()
+  const [error, setError] = useState<string | null>(null)
+  const [mutate, { loading: saving }] = useMutation(NOTIFY_SETTING_UPDATE_MUTATION, {
+    refetchQueries: [NOTIFY_SETTING_BY_USER_QUERY],
+    awaitRefetchQueries: true,
+  })
+
+  const save = async (original: Original, focusOn: string[]): Promise<void> => {
+    setError(null)
+    const { senseSetting } = original
+    try {
+      const { data, errors } = await mutate({
+        variables: {
+          input: {
+            // 서버가 notiTimes 를 fromUtcH 기준으로 변환하므로 함께 보낸다.
+            fromUtcH: original.fromUtcH,
+            // senseSetting 은 nullish 필드를 삭제로 인식하므로 수정하지 않는 값도 채워 보낸다.
+            senseSetting: {
+              cntEach: senseSetting.cntEach ?? 1,
+              lvs: senseSetting.lvs ?? [LV_MIN, LV_MAX],
+              focusOn,
+              notiTimes: senseSetting.notiTimes,
+            },
+          },
+        },
+      })
+      if (errors?.length) {
+        setError(errors.map((e) => e.message).join(', '))
+        return
+      }
+      const result = data?.NotifyMutation.notifySettingUpdate
+      if (!result || !result.success) {
+        setError(result?.message ?? '서버가 실패를 반환했습니다.')
+        return
+      }
+      // 관심 태그/수준이 바뀌면 내 Knowledge 목록도 달라진다.
+      resetMyListCaches(client)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : String(e))
+    }
+  }
+
+  const add = (original: Original, tagId: string) =>
+    original.senseSetting.focusOn.includes(tagId)
+      ? Promise.resolve()
+      : save(original, [...original.senseSetting.focusOn, tagId])
+
+  const remove = (original: Original, tagId: string) =>
+    save(
+      original,
+      original.senseSetting.focusOn.filter((id) => id !== tagId),
+    )
+
+  return { add, remove, saving, error }
 }

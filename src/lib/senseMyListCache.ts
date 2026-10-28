@@ -1,3 +1,4 @@
+import type { ApolloClient } from '@apollo/client'
 import type { SenseMyListQuery } from '@/graphql/__generated__/graphql.ts'
 
 // 내 Knowledge 기본 목록(검색어 없음)의 1~5 페이지를 사용자별로 10분간 보관한다.
@@ -55,4 +56,25 @@ export function clearMyListCache(): void {
   } catch {
     // ignore
   }
+}
+
+// Apollo 캐시의 SenseQuery 안에서 "내 상식" 결과만 고른다. (senseMyList, senseListByTag filter=my)
+const isMyField = (key: string) =>
+  key.startsWith('senseMyList') ||
+  (key.startsWith('senseListByTag') && key.includes('"filter":"my"'))
+
+/**
+ * 내 Knowledge 목록이 달라졌을 때 저장 캐시와 Apollo 의 "내 상식" 조회 결과를 비워 다시 받게 한다.
+ * 최신/태그 목록 등 다른 결과는 그대로 둬서 보고 있던 화면이 다시 로딩되지 않게 한다.
+ */
+export function resetMyListCaches(client: ApolloClient<object>): void {
+  clearMyListCache()
+  client.cache.modify({
+    id: 'ROOT_QUERY',
+    fields: {
+      // SenseQuery 는 id 가 없어 ROOT_QUERY 안에 객체 그대로 저장된다.
+      SenseQuery: (prev) =>
+        Object.fromEntries(Object.entries(prev).filter(([key]) => !isMyField(key))) as typeof prev,
+    },
+  })
 }
