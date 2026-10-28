@@ -12,6 +12,18 @@ const components: Components = {
   img: ({ node: _node, ...props }) => <img loading="lazy" className="rounded-md" {...props} />,
 }
 
+// 코드 블록/인라인 코드는 엔티티가 그대로 보이므로 건드리지 않는다.
+const CODE_RE = /(```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`)/g
+
+// remark-gfm 은 ~ 하나짜리 짝도 취소선으로 처리한다 (예: 1995~1996 … 2007~2021).
+// 단독 ~ 는 &#126; 로 바꿔 문자 그대로 보이게 하고, ~~ 취소선은 유지한다.
+function escapeSingleTilde(md: string) {
+  return md
+    .split(CODE_RE)
+    .map((part, i) => (i % 2 === 1 ? part : part.replace(/(?<!~)~(?!~)/g, '&#126;')))
+    .join('')
+}
+
 export function MarkdownView({
   children,
   className = '',
@@ -22,7 +34,7 @@ export function MarkdownView({
   return (
     <div className={`prose prose-neutral dark:prose-invert max-w-none break-words ${className}`}>
       <Markdown remarkPlugins={[remarkGfm]} components={components}>
-        {children}
+        {escapeSingleTilde(children)}
       </Markdown>
     </div>
   )
