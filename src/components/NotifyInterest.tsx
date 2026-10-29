@@ -4,6 +4,7 @@ import { NOTIFY_SETTING_BY_USER_QUERY } from '@/graphql/queries/notify.ts'
 import { useTagsByIds } from '@/hooks/useTagsByIds.ts'
 import { InfoRow } from './InfoRow'
 import { NotificationToggle } from './NotificationToggle'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 /** 개인설정 > 내 관심 탭. notifySettingByUser 결과를 표시한다. */
 export function NotifyInterest() {
@@ -25,7 +26,7 @@ export function NotifyInterest() {
 
   return (
     <div className="space-y-4">
-      {loading && !item && <p className="text-neutral-500">불러오는 중...</p>}
+      {loading && !item && <LoadingSpinner />}
       {error && <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>}
       {res?.success === 4 && <p className="text-neutral-500">아직 설정된 관심이 없습니다.</p>}
       {res && !res.success && (

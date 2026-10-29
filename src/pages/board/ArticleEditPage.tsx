@@ -3,6 +3,7 @@ import { useAuth } from '@/auth/AuthProvider.tsx'
 import { boardPath, findBoardBySlug } from '@/lib/boards.ts'
 import { useArticleOne } from '@/components/board/ArticleOneView.tsx'
 import { ArticleForm } from '@/components/board/ArticleForm.tsx'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 /** /board/:slug/:id/edit — 내 게시글 수정 */
 export default function ArticleEditPage() {
@@ -13,7 +14,7 @@ export default function ArticleEditPage() {
 
   if (!user) return <Navigate to="/login" replace />
   if (!board) return <p className="text-neutral-500">게시판을 찾을 수 없습니다.</p>
-  if (loading) return <p className="text-neutral-500">불러오는 중...</p>
+  if (loading) return <LoadingSpinner />
   if (error && !res) return <p className="text-neutral-500">글을 찾을 수 없습니다.</p>
   if (!item)
     return (

@@ -2,6 +2,7 @@ import { useQuery } from '@apollo/client'
 import { SENSE_OPINION_TOP_QUERY, SENSE_REACTION_TOP_QUERY } from '@/graphql/queries/top.ts'
 import { POPULAR_REACTION_CODES } from '@/lib/reactions.ts'
 import { SenseItem, type SenseListItem } from '@/components/SenseItem.tsx'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 type TopResult = {
   success: number
@@ -25,7 +26,7 @@ function RankedSenses({
   error?: Error
   empty: string
 }) {
-  if (loading && !res) return <p className="text-neutral-500">불러오는 중...</p>
+  if (loading && !res) return <LoadingSpinner />
   if (error) return <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>
   if (!res || !res.success) {
     return (

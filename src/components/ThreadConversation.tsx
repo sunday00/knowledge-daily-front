@@ -14,6 +14,7 @@ import { isMissingSid, markMissingSid } from '@/lib/missingOpinions.ts'
 import { threadPath, type OpinionTarget } from '@/lib/opinionTarget.ts'
 import { THREAD_MAX_OPINIONS } from '@/lib/opinionLimits.ts'
 import { markOpinionAdded, useAddedOpinionIds } from '@/lib/addedOpinions.ts'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 /**
  * 원글의 대화(thread) 한 건: 의견 목록 + 하단 고정 입력창(대화록 리액션 포함).
@@ -207,7 +208,7 @@ function OpinionSection({
           {notice.text}
         </p>
       )}
-      {loading && <p className="text-neutral-500">불러오는 중...</p>}
+      {loading && <LoadingSpinner />}
       {error && <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>}
       {res && !res.success && (
         <p className="text-red-600 dark:text-red-400">
@@ -240,7 +241,7 @@ function OpinionSection({
       ) : null}
 
       <div ref={sentinelRef} aria-hidden />
-      {loadingMore && <p className="text-center text-sm text-neutral-500">불러오는 중...</p>}
+      {loadingMore && <LoadingSpinner size="sm" />}
     </section>
   )
 }

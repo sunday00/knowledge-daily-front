@@ -19,6 +19,7 @@ import { Navigator } from './components/Navigator'
 import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
 import { ErrorBanner } from './components/ErrorBanner'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 // 마크다운 라이브러리가 커서 상세 페이지를 열 때만 따로 불러온다.
 const SenseDetailPage = lazy(() => import('./pages/sense/SenseDetailPage'))
@@ -31,7 +32,7 @@ function LegacyTagRedirect() {
   return <Navigate to={`/tags/${encodeURIComponent(tag)}`} replace />
 }
 
-const pageFallback = <p className="text-neutral-500">불러오는 중...</p>
+const pageFallback = <LoadingSpinner />
 
 export default function App() {
   useFcmTokenSync()

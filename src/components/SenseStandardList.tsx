@@ -1,5 +1,6 @@
 import { useCachedSenseList } from '@/hooks/useCachedSenseList.ts'
 import { SenseItem } from './SenseItem'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 type Props = {
   size: number
@@ -9,7 +10,7 @@ export function SenseStandardList({ size }: Props) {
   const { data, loading, error } = useCachedSenseList(size)
 
   if (loading && !data) {
-    return <p className="text-neutral-500">불러오는 중...</p>
+    return <LoadingSpinner />
   }
 
   if (error) {

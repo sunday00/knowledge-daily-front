@@ -7,6 +7,7 @@ import { formatDateTime } from '@/lib/formatDate.ts'
 import { AskResultBadge } from '@/components/board/AskResultBadge.tsx'
 import { BoardItemCounts } from '@/components/board/BoardItemCounts.tsx'
 import { Pagination, usePageParam } from '@/components/Pagination.tsx'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 const PAGE_SIZE = 20
 
@@ -41,7 +42,7 @@ export function AskList({ board, action }: { board: BoardConfig; action?: ReactN
         </span>
         {action}
       </div>
-      {loading && !res && <p className="text-neutral-500">불러오는 중...</p>}
+      {loading && !res && <LoadingSpinner />}
       {error && <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>}
       {res && !res.success && (
         <p className="text-red-600 dark:text-red-400">

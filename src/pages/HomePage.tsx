@@ -6,6 +6,9 @@ import { SenseBuzzList, SensePopularList } from '../components/SenseTopList'
 import { ClockIcon } from '../components/ClockIcon'
 import { FlameIcon } from '../components/FlameIcon'
 import { ChatIcon } from '../components/ChatIcon'
+import { BannerCarousel } from '../components/BannerCarousel'
+import { BANNER_SPOT, useBanners } from '../hooks/useBanners'
+import { LoadingSpinner } from '../components/LoadingSpinner'
 
 export default function HomePage() {
   const { data } = useQuery(SYSTEM_HEALTH_QUERY, {
@@ -18,8 +21,15 @@ export default function HomePage() {
     }
   }, [data])
 
+  const { bySpot: banners, loading: bannersLoading } = useBanners('HOME_')
+  const topBanners = banners.get(BANNER_SPOT.HOME_TOP_MID) ?? []
+  const bottomBanners = banners.get(BANNER_SPOT.HOME_BOTTOM_MID) ?? []
+  // 배너는 있는지 받아 봐야 알므로, 받는 동안만 자리에 스피너를 둔다.
+  const bannerSpinner = bannersLoading && <LoadingSpinner size="sm" label="배너 불러오는 중..." />
+
   return (
     <div className="space-y-6">
+      {bannerSpinner || <BannerCarousel banners={topBanners} label="상단 배너" />}
       <HomeSection
         icon={<ClockIcon size={20} className="text-neutral-500 dark:text-neutral-400" />}
         title="Recent Knowledge"
@@ -38,6 +48,7 @@ export default function HomePage() {
       >
         <SenseBuzzList size={3} />
       </HomeSection>
+      {bannerSpinner || <BannerCarousel banners={bottomBanners} label="하단 배너" />}
     </div>
   )
 }

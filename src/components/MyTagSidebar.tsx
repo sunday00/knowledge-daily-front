@@ -8,6 +8,7 @@ import {
   TAG_LIST_CLASS,
   TagNavLink,
 } from '@/components/TagSidebar.tsx'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 const myTagPath = (name?: string) =>
   name ? `/sense/my-sense?tag=${encodeURIComponent(name)}` : '/sense/my-sense'
@@ -30,7 +31,7 @@ export function MyTagSidebar({ active }: { active?: string }) {
       <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">내 관심 태그</h2>
 
       {(loading && !data) || namesLoading ? (
-        <p className="text-sm text-neutral-500">불러오는 중...</p>
+        <LoadingSpinner size="sm" />
       ) : error ? (
         <p className="text-sm text-red-600 dark:text-red-400">조회 실패</p>
       ) : tags.length === 0 ? (

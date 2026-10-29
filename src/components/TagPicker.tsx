@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@apollo/client'
 import { TAG_STANDARD_LIST_QUERY } from '@/graphql/queries/tag.ts'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue.ts'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 export type TagOption = { _id: string; name: string }
 
@@ -72,7 +73,7 @@ export function TagPicker({ value, onChange, disabled }: Props) {
 
       <div className="min-h-10">
         {loading && options.length === 0 ? (
-          <p className="text-sm text-neutral-500">불러오는 중...</p>
+          <LoadingSpinner size="sm" />
         ) : options.length === 0 ? (
           <p className="text-sm text-neutral-500">검색 결과가 없습니다.</p>
         ) : (

@@ -6,6 +6,7 @@ import { useAuth } from '../../auth/AuthProvider'
 import { LinkItem } from '../../components/LinkItem'
 import { InfoRow } from '../../components/InfoRow'
 import { NotifyInterest } from '../../components/NotifyInterest'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 const TABS = [
   { key: 'basic', label: '기본정보', editTo: '/user/settings/edit' },
@@ -80,7 +81,7 @@ function BasicInfo() {
 
   return (
     <div className="space-y-4">
-      {loading && !item && <p className="text-neutral-500">불러오는 중...</p>}
+      {loading && !item && <LoadingSpinner />}
       {error && <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>}
       {info && !info.success && (
         <p className="text-red-600 dark:text-red-400">
