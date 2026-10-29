@@ -2,6 +2,222 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Ask implements ComplaintEntity & IAttach & ICreatedAt & IOpinion & IReaction & IUser {
+  _id: String!
+
+  """답변, 응답, 관리자 대답 등"""
+  answer: String
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+
+  """부모 게시판 아이디"""
+  board: String!
+  category: String!
+  components: [String!]
+  createdAt: DateTime!
+  deletedAt: DateTime
+  handledAt: DateTime
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+
+  """요청, 신고, 질문 내용"""
+  quest: String!
+
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
+  result: ComplaintResult!
+  status: StandardStatus!
+
+  """user"""
+  user: User
+  version: String!
+}
+
+input AskCreateInput {
+  """첨부 미디어 목록"""
+  attaches: [AttachInputItem!]!
+
+  """부모 게시판 아이디"""
+  board: String!
+  category: String!
+  components: [String!]
+
+  """요청, 신고, 질문 내용"""
+  quest: String!
+}
+
+input AskInput {
+  _id: String!
+
+  """답변, 응답, 관리자 대답 등"""
+  answer: String
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]!
+
+  """부모 게시판 아이디"""
+  board: String!
+  category: String!
+  components: [String!]
+  createdAt: DateTime!
+  deletedAt: DateTime
+  handledAt: DateTime
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+
+  """요청, 신고, 질문 내용"""
+  quest: String!
+  result: ComplaintResult!
+  status: StandardStatus!
+
+  """user"""
+  user: UserInput
+  version: String!
+}
+
+input AskListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: AskSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: AskSearchInputSortType
+}
+
+type AskListResponse {
+  hasNext: Boolean
+  items: [Ask!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+input AskOneByQry {
+  _id: String!
+}
+
+type AskResponse {
+  item: Ask!
+  message: String
+  success: Int!
+}
+
+input AskSearchInput {
+  _id: RangeString
+
+  """답변, 응답, 관리자 대답 등"""
+  answer: RangeString
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+
+  """부모 게시판 아이디"""
+  board: RangeString
+  category: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  components: [String!]
+  createdAt: RangeDate
+  deletedAt: RangeDate
+  handledAt: RangeDate
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+
+  """요청, 신고, 질문 내용"""
+  quest: RangeString
+  result: RangeComplaintResult
+  status: RangeStandardStatus
+
+  """user"""
+  user: UserInput
+  version: RangeString
+}
+
+input AskSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  answer: Int
+
+  """1: asc, -1: desc"""
+  attaches: Int
+
+  """1: asc, -1: desc"""
+  board: Int
+
+  """1: asc, -1: desc"""
+  category: Int
+
+  """1: asc, -1: desc"""
+  components: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  handledAt: Int
+
+  """1: asc, -1: desc"""
+  opinionsCnt: Int
+
+  """1: asc, -1: desc"""
+  quest: Int
+
+  """1: asc, -1: desc"""
+  result: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  user: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+input AskUpdateInput {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachInputItem!]
+  category: String
+  components: [String!]
+
+  """요청, 신고, 질문 내용"""
+  quest: String
+}
+
 type Attach implements ICreatedAt & StandardEntity {
   _id: String!
   createdAt: DateTime!
@@ -371,6 +587,172 @@ type BlockListResponse {
   total: Int
 }
 
+"""게시판. 게시글은 하위에 article.entity 또는 ask.entity"""
+type Board implements CompactEntity & IAttach & ICreatedAt {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+  brief: String
+  categories: [BoardCategory!]!
+
+  """ask | article"""
+  children: String!
+  componentSetting: BoardComponentSetting!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  label: String
+  status: StandardStatus!
+  title: String!
+  version: String!
+}
+
+type BoardCategory {
+  code: String!
+  label: String!
+}
+
+input BoardCategoryInput {
+  code: String!
+  label: String!
+}
+
+type BoardComponentSetting {
+  """고정적 제외 컴포넌트"""
+  fixedExcludes: [String!]!
+
+  """고정적 포함 컴포넌트"""
+  fixedIncludes: [String!]!
+}
+
+input BoardComponentSettingInput {
+  """고정적 제외 컴포넌트"""
+  fixedExcludes: [String!]!
+
+  """고정적 포함 컴포넌트"""
+  fixedIncludes: [String!]!
+}
+
+input BoardInput {
+  brief: String
+  categories: [BoardCategoryInput!]!
+
+  """ask | article"""
+  children: String!
+  componentSetting: BoardComponentSettingInput!
+  label: String
+  title: String!
+}
+
+input BoardListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: BoardSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: BoardSearchInputSortType
+}
+
+type BoardListResponse {
+  hasNext: Boolean
+  items: [Board!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type BoardMutNamespace {
+  askCreate(input: AskCreateInput!): IdResultResponse!
+  askUpdate(input: AskUpdateInput!): BooleanResponse!
+}
+
+type BoardQryNamespace {
+  askList(input: AskListByQry): AskListResponse!
+  askOne(input: AskOneByQry!): AskResponse!
+  boardStandardList(input: BoardListByQry): BoardListResponse!
+}
+
+input BoardSearchInput {
+  _id: RangeString
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+  brief: RangeString
+  categories: [BoardCategoryInput!]
+
+  """ask | article"""
+  children: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  componentSetting: BoardComponentSettingInput
+  createdAt: RangeDate
+  deletedAt: RangeDate
+  label: RangeString
+  status: RangeStandardStatus
+  title: RangeString
+  version: RangeString
+}
+
+input BoardSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  attaches: Int
+
+  """1: asc, -1: desc"""
+  brief: Int
+
+  """1: asc, -1: desc"""
+  categories: Int
+
+  """1: asc, -1: desc"""
+  children: Int
+
+  """1: asc, -1: desc"""
+  componentSetting: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  label: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  title: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
 type BooleanResponse {
   item: Boolean!
   message: String
@@ -383,7 +765,30 @@ union CommentableTarget = Opinion | Sense | Thread
 interface CompactEntity implements ICreatedAt {
   _id: String!
   createdAt: DateTime!
+  deletedAt: DateTime
   status: StandardStatus!
+  version: String!
+}
+
+interface ComplaintEntity implements IAttach & ICreatedAt & IUser {
+  _id: String!
+
+  """답변, 응답, 관리자 대답 등"""
+  answer: String
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  handledAt: DateTime
+
+  """요청, 신고, 질문 내용"""
+  quest: String!
+  result: ComplaintResult!
+  status: StandardStatus!
+
+  """user"""
+  user: User
   version: String!
 }
 
@@ -457,6 +862,12 @@ type IdResult {
   id: String!
 }
 
+type IdResultResponse {
+  item: IdResult!
+  message: String
+  success: Int!
+}
+
 """As flexible object"""
 scalar JsonType
 
@@ -491,6 +902,7 @@ type MeResponseItemResponse {
 type Mutation {
   AttachMutation: AttachMutNamespace!
   AuthMutation: AuthMutNamespace!
+  BoardMutation: BoardMutNamespace!
   NotifyMutation: NotifyMutNamespace!
   OpinionMutation: OpinionMutNamespace!
   ReactionMutation: ReactionMutNamespace!
@@ -540,9 +952,10 @@ input NotifySenseSettingInput {
   notiTimes: [String!]!
 }
 
-type NotifySetting implements CompactEntity & ICreatedAt & IUser {
+type NotifySetting {
   _id: String!
   createdAt: DateTime!
+  deletedAt: String!
   fcm: String
 
   """
@@ -562,6 +975,7 @@ type NotifySetting implements CompactEntity & ICreatedAt & IUser {
 }
 
 input NotifySettingInput {
+  deletedAt: String!
   fcm: String
 
   """
@@ -582,6 +996,7 @@ type NotifySettingResponse {
 }
 
 input NotifySettingUpdateInput {
+  deletedAt: DateTime
   fcm: String
 
   """
@@ -929,6 +1344,7 @@ input OpinionUpdateInput {
 type Query {
   AttachQuery: AttachQryNamespace!
   AuthQuery: AuthQryNamespace!
+  BoardQuery: BoardQryNamespace!
   NotifyQuery: NotifyQryNamespace!
   OpinionQuery: OpinionQryNamespace!
   ReactionQuery: ReactionQryNamespace!
@@ -937,6 +1353,18 @@ type Query {
   TagQuery: TagQryNamespace!
   UserQuery: UserQryNamespace!
   VillainQuery: VillainQryNamespace!
+}
+
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+input RangeComplaintResult {
+  contains: ComplaintResult
+  eq: ComplaintResult
+  gt: ComplaintResult
+  gte: ComplaintResult
+  lt: ComplaintResult
+  lte: ComplaintResult
+  mul: [ComplaintResult!]
+  not: ComplaintResult
 }
 
 "\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
@@ -990,6 +1418,7 @@ input RangeString {
 type Reaction implements CompactEntity & ICreatedAt & IUser {
   _id: String!
   createdAt: DateTime!
+  deletedAt: DateTime
   name: String!
   status: StandardStatus!
   targetEntity: VCommentTargetEntity!
@@ -1073,6 +1502,7 @@ input ReactionSearchInput {
   "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
   complex: JsonType
   createdAt: RangeDate
+  deletedAt: RangeDate
   name: RangeString
   status: RangeStandardStatus
   targetEntity: VCommentTargetEntity
@@ -1089,6 +1519,9 @@ input ReactionSearchInputSortType {
 
   """1: asc, -1: desc"""
   createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
 
   """1: asc, -1: desc"""
   name: Int
@@ -1484,6 +1917,7 @@ enum StandardStatus {
 input SuspectCreateInput {
   """첨부 미디어 목록"""
   attaches: [AttachItemInput!]!
+  deletedAt: DateTime
 
   """요청, 신고, 질문 내용"""
   quest: String!
@@ -1499,6 +1933,9 @@ input SystemHealthQry {
 
 type SystemQryNamespace {
   health(input: SystemHealthQry!): SimpleJsonRes!
+
+  """systemStates sharedconfigs.value. 비로그인 허용"""
+  sharedConfigs: SimpleJsonRes!
 }
 
 type Tag {
@@ -1628,6 +2065,7 @@ input TagTopFocusQry {
 type Thread implements CompactEntity & ICreatedAt & IReaction {
   _id: String!
   createdAt: DateTime!
+  deletedAt: DateTime
 
   """reaction 이름별 갯수"""
   reactionsCnt: [ReactionCnt!]
@@ -1657,6 +2095,7 @@ input ThreadListByQry {
 type ThreadResItem implements CompactEntity & ICreatedAt & IReaction {
   _id: String!
   createdAt: DateTime!
+  deletedAt: DateTime
   opinion: Opinion!
   opinionsCnt: Int!
 
@@ -1695,6 +2134,7 @@ input ThreadSearchInput {
   "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
   complex: JsonType
   createdAt: RangeDate
+  deletedAt: RangeDate
   status: RangeStandardStatus
   targetEntity: VCommentTargetEntity
   targetId: RangeString
@@ -1707,6 +2147,9 @@ input ThreadSearchInputSortType {
 
   """1: asc, -1: desc"""
   createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
 
   """1: asc, -1: desc"""
   status: Int
@@ -1831,6 +2274,7 @@ enum VBlockTargetEntity {
 
 """댓글이 붙을 수 있는 엔티티 종류"""
 enum VCommentTargetEntity {
+  Ask
   Opinion
   Sense
   Thread

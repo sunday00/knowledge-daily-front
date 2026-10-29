@@ -10,6 +10,11 @@ import NotifyInterestEditPage from './pages/user/NotifyInterestEditPage'
 import KakaoCallbackPage from './pages/auth/KakaoCallbackPage'
 import MySensePage from './pages/sense/MySensePage'
 import TagsPage from './pages/tag/TagsPage'
+import BoardLayout from './pages/board/BoardLayout'
+import BoardPage from './pages/board/BoardPage'
+import BoardWritePage from './pages/board/BoardWritePage'
+import AskDetailPage from './pages/board/AskDetailPage'
+import AskThreadPage from './pages/board/AskThreadPage'
 import { Navigator } from './components/Navigator'
 import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
@@ -49,6 +54,12 @@ export default function App() {
           <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
           <Route path="/sense/my-sense" element={<MySensePage />} />
           <Route path="/tags/:tag?" element={<TagsPage />} />
+          <Route path="/board/:slug" element={<BoardLayout />}>
+            <Route index element={<BoardPage />} />
+            <Route path="write" element={<BoardWritePage />} />
+            <Route path=":id" element={<AskDetailPage />} />
+            <Route path=":id/threads/:threadId" element={<AskThreadPage />} />
+          </Route>
           <Route path="/sense/tag/:tag" element={<LegacyTagRedirect />} />
           <Route
             path="/sense/:id"

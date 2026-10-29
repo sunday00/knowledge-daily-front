@@ -1,8 +1,13 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { buildKakaoAuthorizeUrl } from '../lib/kakao'
+import { ServiceUpdatedModal } from '../components/ServiceUpdatedModal'
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
+  // 공용 설정 메이저 버전이 바뀌면 로컬을 비우고 ?updated=1 로 보낸다.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const updated = searchParams.get('updated') === '1'
 
   const handleKakaoLogin = () => {
     try {
@@ -14,6 +19,7 @@ export default function LoginPage() {
 
   return (
     <section className="space-y-4">
+      {updated && <ServiceUpdatedModal onClose={() => setSearchParams({}, { replace: true })} />}
       <h2 className="text-xl font-semibold">로그인</h2>
       <p className="text-neutral-600 dark:text-neutral-400">소셜 로그인으로 시작하세요.</p>
 

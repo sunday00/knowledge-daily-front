@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { useFragment } from '@apollo/client'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import {
+  ASK_REACTIONS_FRAGMENT,
   OPINION_REACTIONS_FRAGMENT,
   SENSE_REACTIONS_FRAGMENT,
   THREAD_REACTIONS_FRAGMENT,
@@ -13,6 +14,7 @@ import { Popover } from '@/components/Popover.tsx'
 // 대상별로 캐시에서 리액션 집계를 읽을 fragment
 const REACTIONS_FRAGMENT = {
   Sense: SENSE_REACTIONS_FRAGMENT,
+  Ask: ASK_REACTIONS_FRAGMENT,
   Opinion: OPINION_REACTIONS_FRAGMENT,
   Thread: THREAD_REACTIONS_FRAGMENT,
 }

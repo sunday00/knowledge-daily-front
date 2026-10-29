@@ -10,21 +10,20 @@ import { ReportedMark } from '@/components/ReportedMark.tsx'
 import { OpinionVillainMenu, UserVillainMenu } from '@/components/OpinionVillainMenu.tsx'
 import { opinionDomId } from '@/lib/scrollToOpinion.ts'
 import { OpinionTypeBadge } from '@/components/OpinionTypeBadge.tsx'
+import { threadPath } from '@/lib/opinionTarget.ts'
 
 export type ThreadListItem =
   ThreadStandardListQuery['OpinionQuery']['threadStandardList']['items'][number]
 
-export const threadPath = (senseId: string, threadId: string) =>
-  `/sense/${senseId}/threads/${threadId}`
-
 /** 대화록 한 건: 첫 의견(opinion)과 그 대화의 의견 수. 누르면 의견 목록 페이지로 이동. */
 export function ThreadItem({
   thread,
-  senseId,
+  targetPath,
   isNew = false,
 }: {
   thread: ThreadListItem
-  senseId: string
+  /** 원글 페이지 주소 (대화 페이지는 그 아래) */
+  targetPath: string
   /** 이번 화면에서 방금 시작한 대화면 테두리를 살짝 강조 */
   isNew?: boolean
 }) {
@@ -57,7 +56,7 @@ export function ThreadItem({
         </div>
       </div>
       <Link
-        to={threadPath(senseId, thread._id)}
+        to={threadPath(targetPath, thread._id)}
         className="mt-2 block whitespace-pre-wrap break-words text-inherit no-underline after:content-empty after:absolute after:inset-0 after:rounded-md"
       >
         <ThreadContent opinion={opinion} />

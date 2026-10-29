@@ -24,11 +24,11 @@ export function PendingOpinionItem({ opinionId }: { opinionId: string }) {
 export function PendingThreadItem({
   threadId,
   opinionId,
-  senseId,
+  targetPath,
 }: {
   threadId: string
   opinionId: string
-  senseId: string
+  targetPath: string
 }) {
   const opinion = usePendingOpinion(opinionId)
   if (!opinion) return null
@@ -41,7 +41,7 @@ export function PendingThreadItem({
         reactionsCnt: [],
         opinion,
       }}
-      senseId={senseId}
+      targetPath={targetPath}
       isNew
     />
   )
