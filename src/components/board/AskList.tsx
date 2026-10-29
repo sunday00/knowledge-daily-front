@@ -1,16 +1,17 @@
+import type { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { ASK_LIST_QUERY } from '@/graphql/queries/board.ts'
 import { boardPath, type BoardConfig } from '@/lib/boards.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
 import { AskResultBadge } from '@/components/board/AskResultBadge.tsx'
-import { AskCounts } from '@/components/board/AskCounts.tsx'
+import { BoardItemCounts } from '@/components/board/BoardItemCounts.tsx'
 import { Pagination, usePageParam } from '@/components/Pagination.tsx'
 
 const PAGE_SIZE = 20
 
 /** 문의/요청 게시판의 글 목록 (최신순, ?page= 페이지 이동) */
-export function AskList({ board }: { board: BoardConfig }) {
+export function AskList({ board, action }: { board: BoardConfig; action?: ReactNode }) {
   const page = usePageParam()
   const location = useLocation()
   // board 는 ObjectId 로 저장돼 있어 complex.id 로 변환해 검색해야 한다.
@@ -33,6 +34,13 @@ export function AskList({ board }: { board: BoardConfig }) {
 
   return (
     <div className={`space-y-3 ${loading && res ? 'opacity-60' : ''}`}>
+      {/* 전체 글 수 + (오른쪽) 새 글 작성 등 */}
+      <div className="flex min-h-9 items-center justify-between gap-2">
+        <span className="text-sm text-neutral-500">
+          {res?.success ? `총 ${(res.total ?? 0).toLocaleString()}개` : null}
+        </span>
+        {action}
+      </div>
       {loading && !res && <p className="text-neutral-500">불러오는 중...</p>}
       {error && <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>}
       {res && !res.success && (
@@ -72,7 +80,7 @@ export function AskList({ board }: { board: BoardConfig }) {
                     {item.answer && (
                       <span className="text-brand-700 dark:text-indigo-300">💬 답변 있음</span>
                     )}
-                    <AskCounts item={item} />
+                    <BoardItemCounts item={item} />
                   </div>
                 </Link>
               </li>

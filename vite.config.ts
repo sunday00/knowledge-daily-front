@@ -10,6 +10,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // wasm 인코더가 자기 위치(import.meta.url) 기준으로 파일을 찾으므로 사전 번들에서 뺀다.
+  optimizeDeps: {
+    exclude: ['@jsquash/webp'],
+  },
   server: {
     host: '0.0.0.0',
     port: 5080,

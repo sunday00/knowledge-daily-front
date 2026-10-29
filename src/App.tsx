@@ -13,8 +13,8 @@ import TagsPage from './pages/tag/TagsPage'
 import BoardLayout from './pages/board/BoardLayout'
 import BoardPage from './pages/board/BoardPage'
 import BoardWritePage from './pages/board/BoardWritePage'
-import AskDetailPage from './pages/board/AskDetailPage'
-import AskThreadPage from './pages/board/AskThreadPage'
+import { BoardItemPage, BoardThreadPage } from './pages/board/BoardItemPages'
+import ArticleEditPage from './pages/board/ArticleEditPage'
 import { Navigator } from './components/Navigator'
 import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
@@ -57,8 +57,9 @@ export default function App() {
           <Route path="/board/:slug" element={<BoardLayout />}>
             <Route index element={<BoardPage />} />
             <Route path="write" element={<BoardWritePage />} />
-            <Route path=":id" element={<AskDetailPage />} />
-            <Route path=":id/threads/:threadId" element={<AskThreadPage />} />
+            <Route path=":id" element={<BoardItemPage />} />
+            <Route path=":id/edit" element={<ArticleEditPage />} />
+            <Route path=":id/threads/:threadId" element={<BoardThreadPage />} />
           </Route>
           <Route path="/sense/tag/:tag" element={<LegacyTagRedirect />} />
           <Route

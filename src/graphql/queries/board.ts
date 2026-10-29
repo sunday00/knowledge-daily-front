@@ -56,3 +56,78 @@ export const ASK_ONE_QUERY = graphql(`
     }
   }
 `)
+
+// 태그는 아직 서버가 채워 주지 않아(non-null 오류) 받지 않는다.
+export const ARTICLE_LIST_QUERY = graphql(`
+  query ArticleList($input: ArticleListByQry) {
+    BoardQuery {
+      articleList(input: $input) {
+        success
+        message
+        total
+        maxPage
+        items {
+          _id
+          title
+          # 목록에선 첨부가 있는지만 본다.
+          attaches {
+            sortKey
+          }
+          category
+          pinn
+          createdAt
+          components
+          opinionsCnt
+          reactionsCnt {
+            name
+            cnt
+            me
+          }
+          user {
+            _id
+            nickname
+          }
+        }
+      }
+    }
+  }
+`)
+
+export const ARTICLE_ONE_QUERY = graphql(`
+  query ArticleOne($input: ArticleOneByQry!) {
+    BoardQuery {
+      articleOne(input: $input) {
+        success
+        message
+        item {
+          _id
+          board
+          title
+          content
+          attaches {
+            sortKey
+            attach {
+              _id
+              originalName
+              src
+            }
+          }
+          category
+          pinn
+          createdAt
+          components
+          opinionsCnt
+          reactionsCnt {
+            name
+            cnt
+            me
+          }
+          user {
+            _id
+            nickname
+          }
+        }
+      }
+    }
+  }
+`)

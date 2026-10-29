@@ -4,6 +4,8 @@ export type BoardConfig = {
   _id: string
   title: string
   label?: string | null
+  /** 게시판 소개 (마크다운) */
+  brief?: string | null
   children?: string
   categories?: { code: string; label: string }[]
 }

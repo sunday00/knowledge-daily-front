@@ -1,6 +1,6 @@
-import type { SenseOneQuery } from '@/graphql/__generated__/graphql.ts'
-
-type AttachItem = SenseOneQuery['SenseQuery']['senseOne']['item']['attaches'][number]
+import { SafeImage } from '@/components/SafeImage.tsx'
+// 상식, 게시글 공용 (sortKey + attach { _id originalName src })
+type AttachItem = { sortKey: number; attach: { _id: string; originalName: string; src?: unknown } }
 
 /** attach.src = { [elementName]: url }. full 을 우선 쓰고, 없으면 첫 번째 url. */
 function fullSrcOf(src: unknown): string | null {
@@ -25,7 +25,7 @@ export function SenseAttaches({ attaches }: { attaches: AttachItem[] }) {
       {images.map((img) => (
         <li key={img.id}>
           <a href={img.src} target="_blank" rel="noreferrer" className="block">
-            <img
+            <SafeImage
               src={img.src}
               alt={img.alt}
               loading="lazy"

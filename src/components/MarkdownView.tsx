@@ -1,5 +1,6 @@
 import Markdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { SafeImage } from '@/components/SafeImage.tsx'
 
 // 원시 HTML 은 렌더링하지 않는다 (react-markdown 기본값). 외부 링크는 새 탭으로.
 const components: Components = {
@@ -9,7 +10,10 @@ const components: Components = {
       <a href={href} {...props} {...(external ? { target: '_blank', rel: 'noreferrer' } : {})} />
     )
   },
-  img: ({ node: _node, ...props }) => <img loading="lazy" className="rounded-md" {...props} />,
+  // 유실되거나 주소가 깨진 이미지는 대체 그림으로
+  img: ({ node: _node, ...props }) => (
+    <SafeImage loading="lazy" className="rounded-md" {...props} />
+  ),
 }
 
 // 코드 블록/인라인 코드는 엔티티가 그대로 보이므로 건드리지 않는다.
