@@ -2,7 +2,12 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { NOTIFY_SETTING_BY_USER_QUERY } from '@/graphql/queries/notify.ts'
 import { useTagsByIds } from '@/hooks/useTagsByIds.ts'
-import { TAG_ASIDE_CLASS, TAG_LIST_CLASS, TagNavLink } from '@/components/TagSidebar.tsx'
+import {
+  TAG_ADD_LINK_CLASS,
+  TAG_ASIDE_CLASS,
+  TAG_LIST_CLASS,
+  TagNavLink,
+} from '@/components/TagSidebar.tsx'
 
 const myTagPath = (name?: string) =>
   name ? `/sense/my-sense?tag=${encodeURIComponent(name)}` : '/sense/my-sense'
@@ -29,12 +34,7 @@ export function MyTagSidebar({ active }: { active?: string }) {
       ) : error ? (
         <p className="text-sm text-red-600 dark:text-red-400">조회 실패</p>
       ) : tags.length === 0 ? (
-        <p className="text-sm text-neutral-500">
-          관심 태그가 없습니다.{' '}
-          <Link to="/user/settings/interest/edit" className="text-brand-600">
-            설정하기
-          </Link>
-        </p>
+        <p className="text-sm text-neutral-500">관심 태그가 없습니다.</p>
       ) : (
         <ul className={TAG_LIST_CLASS}>
           <li>
@@ -47,6 +47,14 @@ export function MyTagSidebar({ active }: { active?: string }) {
           ))}
         </ul>
       )}
+
+      <Link
+        to="/user/settings/interest/edit"
+        className={TAG_ADD_LINK_CLASS}
+        title="내 관심 태그 수정"
+      >
+        ＋ 태그 추가
+      </Link>
     </aside>
   )
 }

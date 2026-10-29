@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { TAG_STANDARD_LIST_QUERY } from '@/graphql/queries/tag.ts'
 import { FlameIcon } from '@/components/FlameIcon.tsx'
+import { boardWritePath, findBoardByTitle, TAG_REQUEST_BOARD_TITLE } from '@/lib/boards.ts'
 
 const PAGE_SIZE = 50
 
@@ -11,6 +12,9 @@ const variables = { input: { size: PAGE_SIZE, page: 1, sort: { name: 1 } } }
 
 // 태그 사이드 공용 레이아웃: 모바일에서는 위쪽 칩 목록, md 이상에서는 좌측 세로 목록.
 export const TAG_ASIDE_CLASS = 'md:w-40 shrink-0 space-y-2 md:sticky md:top-4 md:self-start'
+/** 태그 사이드 맨 아래 "태그 추가" 버튼 */
+export const TAG_ADD_LINK_CLASS =
+  'flex items-center justify-center gap-1 rounded-md border border-dashed border-neutral-300 dark:border-neutral-700 px-2 py-1.5 text-sm text-neutral-600 dark:text-neutral-400 no-underline transition-colors hover:border-brand-500 hover:text-brand-600 dark:hover:text-indigo-300'
 export const TAG_LIST_CLASS =
   'flex flex-wrap gap-1.5 max-h-40 overflow-y-auto md:block md:space-y-0.5 md:max-h-[70vh]'
 
@@ -65,6 +69,7 @@ export function TagSidebar({ active, popular }: Props) {
   })
   const res = data?.TagQuery.tagStandardList
   const loadingMore = networkStatus === 3 // NetworkStatus.fetchMore
+  const requestBoard = findBoardByTitle(TAG_REQUEST_BOARD_TITLE)
 
   // 인기 태그는 아직 안 받은 페이지에 있어도 맨 위에 보이도록 따로 앞에 붙이고, 이름순 목록에서는 뺀다.
   const popularIds = useMemo(() => new Set(popular.map((t) => t._id)), [popular])
@@ -131,6 +136,17 @@ export function TagSidebar({ active, popular }: Props) {
           {loadingMore ? '불러오는 중...' : '더 보기'}
         </button>
       ) : null}
+
+      {/* 원하는 태그가 없으면 주제 추가/변경 요청 게시판에 '추가' 분류로 글을 쓰게 한다. */}
+      {requestBoard && (
+        <Link
+          to={boardWritePath(requestBoard, 'add')}
+          className={TAG_ADD_LINK_CLASS}
+          title="원하는 태그를 요청해 보세요"
+        >
+          ＋ 태그 추가
+        </Link>
+      )}
     </aside>
   )
 }

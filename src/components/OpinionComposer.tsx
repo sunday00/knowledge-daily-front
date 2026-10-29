@@ -11,13 +11,15 @@ import { SUBMIT_SHORTCUT_LABEL, useSubmitShortcut } from '@/hooks/useSubmitShort
 import { OPINION_MAX_LENGTH } from '@/lib/opinionLimits.ts'
 import { CharCount } from '@/components/CharCount.tsx'
 import { textareaCaretCoords } from '@/lib/textareaCaret.ts'
+import type { OpinionTarget } from '@/lib/opinionTarget.ts'
 
 /**
  * 화면 하단에 떠 있는 의견 입력창. 페이지 본문이 가려지지 않도록
  * 사용하는 쪽에서 하단 여백(pb-40 정도)을 두어야 한다.
  */
 type Props = {
-  senseId: string
+  /** 의견을 다는 원글 */
+  target: Pick<OpinionTarget, 'entity' | 'id'>
   /** 있으면 이 대화(thread _id)에 의견을 단다. 없으면 새 대화. */
   parent?: string
   placeholder?: string
@@ -60,20 +62,22 @@ export function OpinionComposer(props: Props) {
   )
 }
 
-function ComposerForm({ senseId, parent, placeholder = '의견을 남겨 보세요', onCreated }: Props) {
+function ComposerForm({ target, parent, placeholder = '의견을 남겨 보세요', onCreated }: Props) {
   const [content, setContent] = useState('')
   const [type, setType] = useState<OpinionType>('')
-  const { submit, sending, error } = useCreateOpinion(senseId, parent)
+  const { submit, sending, error } = useCreateOpinion(target, parent)
   const textareaRef = useAutoResizeTextarea(content)
   const selectRef = useRef<HTMLSelectElement>(null)
+  // 말머리는 상식(Sense)에서만 고른다. 그 외 원글은 말머리 없음('')으로 고정하고 선택을 숨긴다.
+  const typeSelectable = target.entity === 'Sense'
 
-  // 등록 직후엔 말머리 선택으로 포커스. (보내는 동안 disabled 라 풀린 뒤에 옮긴다)
+  // 등록 직후엔 말머리 선택(없으면 입력창)으로 포커스. (보내는 동안 disabled 라 풀린 뒤에 옮긴다)
   const [focusSelect, setFocusSelect] = useState(false)
   useEffect(() => {
     if (!focusSelect || sending) return
     setFocusSelect(false)
-    selectRef.current?.focus({ preventScroll: true })
-  }, [focusSelect, sending])
+    ;(selectRef.current ?? textareaRef.current)?.focus({ preventScroll: true })
+  }, [focusSelect, sending, textareaRef])
 
   // 목록의 @sid 를 누르면 마지막 커서 위치에 '@sid ' 를 넣고 입력창에 포커스
   const mention = useMention()
@@ -120,7 +124,7 @@ function ComposerForm({ senseId, parent, placeholder = '의견을 남겨 보세�
 
   const send = async () => {
     if (sending) return
-    const created = await submit(content, type)
+    const created = await submit(content, typeSelectable ? type : '')
     if (created) {
       setContent('')
       setType('')
@@ -140,7 +144,9 @@ function ComposerForm({ senseId, parent, placeholder = '의견을 남겨 보세�
   return (
     <form onSubmit={onSubmit} className="space-y-1">
       <div className="flex items-end gap-2">
-        <OpinionTypeSelect ref={selectRef} value={type} onChange={setType} disabled={sending} />
+        {typeSelectable && (
+          <OpinionTypeSelect ref={selectRef} value={type} onChange={setType} disabled={sending} />
+        )}
         <div className="relative min-w-0 flex-1">
           {anchor && (
             <MentionPreview

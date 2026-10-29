@@ -6,6 +6,7 @@ import { OPINION_CREATE_MUTATION } from '@/graphql/mutations/opinion.ts'
 import { OPINION_ITEM_FRAGMENT } from '@/graphql/queries/opinion.ts'
 import type { OpinionItemFieldsFragment } from '@/graphql/__generated__/graphql.ts'
 import { useAuth } from '@/auth/AuthProvider.tsx'
+import type { OpinionTarget } from '@/lib/opinionTarget.ts'
 
 // 기존 의견 데이터와 같은 스키마 버전
 const OPINION_VERSION = '1.0'
@@ -16,12 +17,12 @@ export type CreatedOpinion = OpinionItemFieldsFragment
 export type CreatedResult = { opinion: CreatedOpinion; threadId: string }
 
 /**
- * sense 에 의견을 남긴다.
+ * 원글(상식, 문의/요청 글)에 의견을 남긴다.
  * - parent(thread _id) 가 없으면 새 대화를 만들고, 있으면 그 대화에 의견을 단다.
  * 다시 조회하지 않고 등록 결과(_id/sid/createdAt/parent) + 입력값으로 의견을 만들어 캐시에 넣는다.
  * 목록에 붙이는 건 화면 쪽에서.
  */
-export function useCreateOpinion(senseId: string, parent?: string) {
+export function useCreateOpinion(target: Pick<OpinionTarget, 'entity' | 'id'>, parent?: string) {
   const client = useApolloClient()
   const { user } = useAuth()
   const [error, setError] = useState<string | null>(null)
@@ -30,7 +31,7 @@ export function useCreateOpinion(senseId: string, parent?: string) {
   /** 화면의 카운트만 올린다: 원글 [대화수, 의견수], 답글이면 그 대화의 의견수 */
   const bumpCounts = () => {
     client.cache.modify({
-      id: client.cache.identify({ __typename: 'Sense', _id: senseId }),
+      id: client.cache.identify({ __typename: target.entity, _id: target.id }),
       fields: {
         opinionsCnt: (prev) => {
           const [threadCnt = 0, opinionCnt = 0] = Array.isArray(prev) ? (prev as number[]) : []
@@ -63,8 +64,8 @@ export function useCreateOpinion(senseId: string, parent?: string) {
       const { data, errors } = await mutate({
         variables: {
           input: {
-            targetEntity: 'Sense',
-            targetId: senseId,
+            targetEntity: target.entity,
+            targetId: target.id,
             parent,
             // 말머리 없음이면 보내지 않는다
             type: type || undefined,
