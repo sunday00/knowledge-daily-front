@@ -7,6 +7,7 @@ import { useInfiniteScroll } from '@/hooks/useInfiniteScroll.ts'
 import { scrollToOpinion } from '@/lib/scrollToOpinion.ts'
 import { markOpinionAdded, useAddedOpinionIds } from '@/lib/addedOpinions.ts'
 import type { OpinionTarget } from '@/lib/opinionTarget.ts'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 /**
  * 원글(상식, 문의/요청 글) 아래 대화록 목록 + 하단 고정 새 대화 입력창.
@@ -69,7 +70,7 @@ function ThreadSection({
         {backLink}
       </div>
 
-      {loading && <p className="text-neutral-500">불러오는 중...</p>}
+      {loading && <LoadingSpinner />}
       {error && <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>}
       {res && !res.success && (
         <p className="text-red-600 dark:text-red-400">
@@ -105,7 +106,7 @@ function ThreadSection({
       ) : null}
 
       <div ref={sentinelRef} aria-hidden />
-      {loadingMore && <p className="text-center text-sm text-neutral-500">불러오는 중...</p>}
+      {loadingMore && <LoadingSpinner size="sm" />}
     </section>
   )
 }

@@ -21,10 +21,11 @@ const isLive = (b: Banner, now: number) =>
 /**
  * 노출 위치가 prefix(예: 'HOME_')로 시작하고 지금 노출 기간인 배너를 한 번에 받아
  * 위치별(exposedOn)로 나눠 준다. 각 위치 안에서는 sortKey 순.
+ * loading 은 처음 받는 동안만 true (캐시가 있으면 false).
  */
 export function useBanners(prefix: string) {
   const [nowStep] = useState(() => Math.floor(Date.now() / NOW_STEP_MS) * NOW_STEP_MS)
-  const { data } = useQuery(BANNER_LIST_QUERY, {
+  const { data, loading } = useQuery(BANNER_LIST_QUERY, {
     variables: {
       input: {
         size: BANNER_SIZE,
@@ -42,7 +43,7 @@ export function useBanners(prefix: string) {
   })
   const res = data?.BannerQuery.bannerStandardList
 
-  return useMemo(() => {
+  const bySpot = useMemo(() => {
     const bySpot = new Map<string, Banner[]>()
     if (!res?.success) return bySpot
     const now = Date.now()
@@ -55,4 +56,6 @@ export function useBanners(prefix: string) {
     }
     return bySpot
   }, [res, prefix])
+
+  return { bySpot, loading: loading && !res }
 }

@@ -8,6 +8,7 @@ import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { SenseCounts } from '@/components/SenseCounts.tsx'
 import { TagChips } from '@/components/TagChips.tsx'
 import { MarkdownView } from '@/components/MarkdownView.tsx'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 export type SenseOneItem = SenseOneQuery['SenseQuery']['senseOne']['item']
 
@@ -28,7 +29,7 @@ export function SenseOneView({
   })
   const res = data?.SenseQuery.senseOne
 
-  if (loading && !res) return <p className="text-neutral-500">불러오는 중...</p>
+  if (loading && !res) return <LoadingSpinner />
   if (error) return <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>
   if (!res) return null
   if (res.success === 4)

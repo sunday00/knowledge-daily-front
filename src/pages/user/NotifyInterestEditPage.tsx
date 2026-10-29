@@ -6,6 +6,7 @@ import { NotiHourField } from '@/components/NotiHourField.tsx'
 import { LevelRangeField } from '@/components/LevelRangeField.tsx'
 import { useUpdateNotifyInterest } from '@/actions/updateNotifyInterest.ts'
 import { useNotifyInterestForm } from '@/hooks/useNotifyInterestForm.ts'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 export default function NotifyInterestEditPage() {
   const { user } = useAuth()
@@ -26,7 +27,7 @@ export default function NotifyInterestEditPage() {
     <section className="space-y-4 max-w-xl">
       <h2 className="text-xl font-semibold">내 관심 수정</h2>
 
-      {loading && <p className="text-neutral-500">불러오는 중...</p>}
+      {loading && <LoadingSpinner />}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <TagPicker value={tags} onChange={setTags} disabled={disabled} />

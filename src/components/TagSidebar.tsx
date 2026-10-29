@@ -4,6 +4,7 @@ import { useQuery } from '@apollo/client'
 import { TAG_STANDARD_LIST_QUERY } from '@/graphql/queries/tag.ts'
 import { FlameIcon } from '@/components/FlameIcon.tsx'
 import { boardWritePath, findBoardByTitle, TAG_REQUEST_BOARD_TITLE } from '@/lib/boards.ts'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 const PAGE_SIZE = 50
 
@@ -104,7 +105,7 @@ export function TagSidebar({ active, popular }: Props) {
     <aside className={TAG_ASIDE_CLASS}>
       <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400">태그 목록</h2>
 
-      {loading && !res && <p className="text-sm text-neutral-500">불러오는 중...</p>}
+      {loading && !res && <LoadingSpinner size="sm" />}
       {error && <p className="text-sm text-red-600 dark:text-red-400">조회 실패</p>}
       {res && !res.success && (
         <p className="text-sm text-red-600 dark:text-red-400">

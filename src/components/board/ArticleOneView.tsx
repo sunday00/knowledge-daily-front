@@ -8,6 +8,7 @@ import { boardPath, findBoardBySlug, type BoardConfig } from '@/lib/boards.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
 import { MarkdownView } from '@/components/MarkdownView.tsx'
 import { ReactionBar } from '@/components/ReactionBar.tsx'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 export type ArticleOneItem = ArticleOneQuery['BoardQuery']['articleOne']['item']
 
@@ -59,7 +60,7 @@ export function ArticleOneView({
           ← {board.label || board.title}
         </Link>
 
-        {loading && <p className="text-neutral-500">불러오는 중...</p>}
+        {loading && <LoadingSpinner />}
         {/* 없는 글이면 서버가 item null 오류를 돌려준다. */}
         {error && !res && <p className="text-neutral-500">글을 찾을 수 없습니다.</p>}
         {res && !res.success && (

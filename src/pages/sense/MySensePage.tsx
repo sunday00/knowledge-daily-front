@@ -7,6 +7,7 @@ import { TagSenseList } from '@/components/TagSenseList.tsx'
 import { MySenseButton } from '@/components/MySenseButton.tsx'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue.ts'
 import { useSenseMyList } from '@/hooks/useSenseMyList.ts'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 export default function MySensePage() {
   const { user } = useAuth()
@@ -47,7 +48,7 @@ export default function MySensePage() {
               />
             </form>
 
-            {loading && <p className="text-neutral-500">불러오는 중...</p>}
+            {loading && <LoadingSpinner />}
             {error && <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>}
             {res && !res.success && (
               <p className="text-red-600 dark:text-red-400">

@@ -5,6 +5,7 @@ import { TAG_TOP_FOCUS_LIST_QUERY } from '@/graphql/queries/tag.ts'
 import { TagSidebar } from '@/components/TagSidebar.tsx'
 import { TagSenseList } from '@/components/TagSenseList.tsx'
 import { FlameIcon } from '@/components/FlameIcon.tsx'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 const POPULAR_SIZE = 5
 
@@ -30,7 +31,7 @@ export default function TagsPage() {
               <FlameIcon size={20} className="text-orange-500 dark:text-orange-400" />
               이런 주제는 어떤가요?
             </h2>
-            {loading && !res && <p className="text-neutral-500">불러오는 중...</p>}
+            {loading && !res && <LoadingSpinner />}
             {error && <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>}
             {res && !res.success && (
               <p className="text-red-600 dark:text-red-400">

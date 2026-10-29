@@ -3,6 +3,7 @@ import { SENSE_LIST_BY_TAG_QUERY } from '@/graphql/queries/sense.ts'
 import { SenseItem } from '@/components/SenseItem.tsx'
 import { InterestTagButton } from '@/components/InterestTagButton.tsx'
 import { MySenseButton } from '@/components/MySenseButton.tsx'
+import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 // 태그별로 최신 5개만 보여준다. (API 최대 10, 커서가 없어서 더 보기는 지원하지 않는다.)
 const SIZE = 5
@@ -36,7 +37,7 @@ export function TagSenseList({
         ) : null}
       </div>
 
-      {loading && !res && <p className="text-neutral-500">불러오는 중...</p>}
+      {loading && !res && <LoadingSpinner />}
       {error && <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>}
       {res && !res.success && (
         <p className="text-red-600 dark:text-red-400">
