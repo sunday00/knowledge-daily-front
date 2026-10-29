@@ -2,6 +2,7 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import { boardPath, findBoardBySlug } from '@/lib/boards.ts'
 import { AskList } from '@/components/board/AskList.tsx'
+import { ArticleList } from '@/components/board/ArticleList.tsx'
 
 export default function BoardPage() {
   const { slug = '' } = useParams<{ slug: string }>()
@@ -43,8 +44,10 @@ export default function BoardPage() {
           )}
           {board.children === 'Ask' ? (
             <AskList board={board} />
+          ) : board.children === 'Article' ? (
+            <ArticleList board={board} />
           ) : (
-            <p className="text-neutral-500">(게시글 목록 추후 추가 예정)</p>
+            <p className="text-neutral-500">이 게시판은 아직 목록을 지원하지 않습니다.</p>
           )}
         </section>
       )}

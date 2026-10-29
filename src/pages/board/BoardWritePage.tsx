@@ -5,6 +5,8 @@ import { boardPath, findBoardBySlug, type BoardConfig } from '@/lib/boards.ts'
 import { useCreateAsk } from '@/actions/createAsk.ts'
 import { useAutoResizeTextarea } from '@/hooks/useAutoResizeTextarea.ts'
 import { SUBMIT_SHORTCUT_LABEL, useSubmitShortcut } from '@/hooks/useSubmitShortcut.ts'
+import { CategoryChips } from '@/components/board/CategoryChips.tsx'
+import { ArticleForm } from '@/components/board/ArticleForm.tsx'
 
 export default function BoardWritePage() {
   const { slug = '' } = useParams<{ slug: string }>()
@@ -19,6 +21,8 @@ export default function BoardWritePage() {
       <h2 className="text-xl font-semibold">{board.label || board.title} · 새 글 작성</h2>
       {board.children === 'Ask' ? (
         <AskForm board={board} />
+      ) : board.children === 'Article' ? (
+        <ArticleForm board={board} />
       ) : (
         <p className="text-neutral-500">이 게시판은 아직 글쓰기를 지원하지 않습니다.</p>
       )}
@@ -53,28 +57,13 @@ function AskForm({ board }: { board: BoardConfig }) {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
-      {/* 분류는 몇 개뿐이라 드롭다운 대신 칩으로 고른다. 실제로는 라디오라 방향키로도 이동한다. */}
-      <fieldset className="space-y-2" disabled={saving}>
-        <legend className="text-sm text-neutral-700 dark:text-neutral-300">분류</legend>
-        <div className="flex flex-wrap gap-2">
-          {categories.map((c) => (
-            <label key={c.code} className="cursor-pointer">
-              <input
-                type="radio"
-                name="category"
-                value={c.code}
-                checked={category === c.code}
-                onChange={() => setCategory(c.code)}
-                required
-                className="peer sr-only"
-              />
-              <span className="inline-flex items-center gap-1 rounded-full border px-4 py-1.5 text-sm transition-colors border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-brand-500 hover:text-brand-600 dark:hover:text-indigo-300 peer-checked:border-brand-600 peer-checked:bg-brand-600 peer-checked:text-white dark:peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500/50 peer-disabled:opacity-60">
-                {c.label}
-              </span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      <CategoryChips
+        categories={categories}
+        value={category}
+        onChange={setCategory}
+        disabled={saving}
+        required
+      />
 
       <label className="block space-y-1">
         <span className="block text-sm text-neutral-700 dark:text-neutral-300">내용</span>

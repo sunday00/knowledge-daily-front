@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { useFragment } from '@apollo/client'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import {
+  ARTICLE_REACTIONS_FRAGMENT,
   ASK_REACTIONS_FRAGMENT,
   OPINION_REACTIONS_FRAGMENT,
   SENSE_REACTIONS_FRAGMENT,
@@ -15,6 +16,7 @@ import { Popover } from '@/components/Popover.tsx'
 const REACTIONS_FRAGMENT = {
   Sense: SENSE_REACTIONS_FRAGMENT,
   Ask: ASK_REACTIONS_FRAGMENT,
+  Article: ARTICLE_REACTIONS_FRAGMENT,
   Opinion: OPINION_REACTIONS_FRAGMENT,
   Thread: THREAD_REACTIONS_FRAGMENT,
 }

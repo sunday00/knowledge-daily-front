@@ -4,7 +4,7 @@ import { ASK_LIST_QUERY } from '@/graphql/queries/board.ts'
 import { boardPath, type BoardConfig } from '@/lib/boards.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
 import { AskResultBadge } from '@/components/board/AskResultBadge.tsx'
-import { AskCounts } from '@/components/board/AskCounts.tsx'
+import { BoardItemCounts } from '@/components/board/BoardItemCounts.tsx'
 import { Pagination, usePageParam } from '@/components/Pagination.tsx'
 
 const PAGE_SIZE = 20
@@ -72,7 +72,7 @@ export function AskList({ board }: { board: BoardConfig }) {
                     {item.answer && (
                       <span className="text-brand-700 dark:text-indigo-300">💬 답변 있음</span>
                     )}
-                    <AskCounts item={item} />
+                    <BoardItemCounts item={item} />
                   </div>
                 </Link>
               </li>

@@ -2,6 +2,221 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Article implements IAttach & ICreatedAt & IOpinion & IReaction & ITag & IUser & IVillain & StandardEntity {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+
+  """부모 게시판 아이디"""
+  board: String!
+  category: String
+  components: [String!]
+  content: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+  pinn: Boolean!
+
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
+  sortKey: Int!
+  status: StandardStatus!
+
+  """tags"""
+  tags: [Tag!]!
+  title: String!
+
+  """user"""
+  user: User
+  version: String!
+  villainStatus: VillainStatus
+}
+
+input ArticleCreateInput {
+  """첨부 미디어 목록"""
+  attaches: [AttachInputItem!]!
+
+  """부모 게시판 아이디"""
+  board: String!
+  category: String
+  components: [String!]
+  content: String!
+
+  """태그 이름. 없으면 새로 만들어 연결"""
+  tagNames: [String!]
+  title: String!
+}
+
+input ArticleInput {
+  """부모 게시판 아이디"""
+  board: String!
+  category: String
+  components: [String!]
+  content: String!
+  title: String!
+}
+
+input ArticleListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: ArticleSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: ArticleSearchInputSortType
+}
+
+type ArticleListResponse {
+  hasNext: Boolean
+  items: [Article!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+input ArticleOneByQry {
+  _id: String!
+}
+
+type ArticleResponse {
+  item: Article!
+  message: String
+  success: Int!
+}
+
+input ArticleSearchInput {
+  _id: RangeString
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+
+  """부모 게시판 아이디"""
+  board: RangeString
+  category: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  components: [String!]
+  content: RangeString
+  createdAt: RangeDate
+  deletedAt: RangeDate
+  flags: [String!]
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+  pinn: Boolean
+  sortKey: RangeInt
+  status: RangeStandardStatus
+
+  """tags"""
+  tags: [TagInput!]
+  title: RangeString
+
+  """user"""
+  user: UserInput
+  version: RangeString
+}
+
+input ArticleSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  attaches: Int
+
+  """1: asc, -1: desc"""
+  board: Int
+
+  """1: asc, -1: desc"""
+  category: Int
+
+  """1: asc, -1: desc"""
+  components: Int
+
+  """1: asc, -1: desc"""
+  content: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  flags: Int
+
+  """1: asc, -1: desc"""
+  links: Int
+
+  """1: asc, -1: desc"""
+  opinionsCnt: Int
+
+  """1: asc, -1: desc"""
+  pinn: Int
+
+  """1: asc, -1: desc"""
+  sortKey: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  tags: Int
+
+  """1: asc, -1: desc"""
+  title: Int
+
+  """1: asc, -1: desc"""
+  user: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+input ArticleUpdateInput {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachInputItem!]
+  category: String
+  components: [String!]
+  content: String
+
+  """태그 이름. 주면 기존 태그를 전부 지우고 이걸로 교체. 빈 배열이면 전부 제거. 안 주면 유지"""
+  tagNames: [String!]
+  title: String
+}
+
 type Ask implements ComplaintEntity & IAttach & ICreatedAt & IOpinion & IReaction & IUser {
   _id: String!
 
@@ -602,6 +817,7 @@ type Board implements CompactEntity & IAttach & ICreatedAt {
   createdAt: DateTime!
   deletedAt: DateTime
   label: String
+  sortKey: Int
   status: StandardStatus!
   title: String!
   version: String!
@@ -641,6 +857,7 @@ input BoardInput {
   children: String!
   componentSetting: BoardComponentSettingInput!
   label: String
+  sortKey: Int
   title: String!
 }
 
@@ -683,11 +900,15 @@ type BoardListResponse {
 }
 
 type BoardMutNamespace {
+  articleCreate(input: ArticleCreateInput!): IdResultResponse!
+  articleUpdate(input: ArticleUpdateInput!): BooleanResponse!
   askCreate(input: AskCreateInput!): IdResultResponse!
   askUpdate(input: AskUpdateInput!): BooleanResponse!
 }
 
 type BoardQryNamespace {
+  articleList(input: ArticleListByQry): ArticleListResponse!
+  articleOne(input: ArticleOneByQry!): ArticleResponse!
   askList(input: AskListByQry): AskListResponse!
   askOne(input: AskOneByQry!): AskResponse!
   boardStandardList(input: BoardListByQry): BoardListResponse!
@@ -710,6 +931,7 @@ input BoardSearchInput {
   createdAt: RangeDate
   deletedAt: RangeDate
   label: RangeString
+  sortKey: RangeInt
   status: RangeStandardStatus
   title: RangeString
   version: RangeString
@@ -742,6 +964,9 @@ input BoardSearchInputSortType {
 
   """1: asc, -1: desc"""
   label: Int
+
+  """1: asc, -1: desc"""
+  sortKey: Int
 
   """1: asc, -1: desc"""
   status: Int
@@ -2268,12 +2493,14 @@ input UserUpdateInput {
 
 """차단할 수 있는 엔티티 종류"""
 enum VBlockTargetEntity {
+  Article
   Opinion
   User
 }
 
 """댓글이 붙을 수 있는 엔티티 종류"""
 enum VCommentTargetEntity {
+  Article
   Ask
   Opinion
   Sense
