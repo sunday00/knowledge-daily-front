@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
-import { NOTICE_TITLE } from '@/lib/notice.ts'
+import { NOTICE_CATEGORIES, NOTICE_TITLE } from '@/lib/notice.ts'
+import { CategoryTabs } from '@/components/board/CategoryTabs.tsx'
 import { NoticeList } from '@/components/notice/NoticeList.tsx'
 import {
   hasNoticeComponent,
@@ -14,6 +15,7 @@ export function NoticePage() {
   return (
     <section className="space-y-4">
       <h2 className="text-xl font-semibold">{NOTICE_TITLE}</h2>
+      <CategoryTabs categories={NOTICE_CATEGORIES} />
       <NoticeList />
     </section>
   )

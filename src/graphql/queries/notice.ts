@@ -60,6 +60,21 @@ export const NOTICE_ONE_QUERY = graphql(`
             me
           }
         }
+        # 목록 순서상 바로 위(prev)/아래(next) 글. 상세의 이전글/다음글
+        pn {
+          prev {
+            _id
+            title
+            startAt
+            endAt
+          }
+          next {
+            _id
+            title
+            startAt
+            endAt
+          }
+        }
       }
     }
   }

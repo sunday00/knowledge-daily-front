@@ -103,6 +103,9 @@ type ArticleListResponse {
 
 input ArticleOneByQry {
   _id: String!
+
+  """이전/다음(pn) 을 이 category 안에서만 찾음. 없으면 같은 board 전체"""
+  category: String
 }
 
 type ArticlePN {
@@ -339,6 +342,9 @@ type AskListResponse {
 
 input AskOneByQry {
   _id: String!
+
+  """이전/다음(pn) 을 이 category 안에서만 찾음. 없으면 같은 board 전체"""
+  category: String
 }
 
 type AskPN {
@@ -1173,8 +1179,8 @@ type BooleanResponse {
   success: Int!
 }
 
-"""targetEntity 에 따라 Opinion | Thread | Sense"""
-union CommentableTarget = Opinion | Sense | Thread
+"""targetEntity 에 따라 Opinion | Thread | Sense | Article | Ask | Notice"""
+union CommentableTarget = Article | Ask | Notice | Opinion | Sense | Thread
 
 interface CompactEntity implements ICreatedAt {
   _id: String!
@@ -1442,6 +1448,9 @@ type NoticeMutNamespace {
 
 input NoticeOneByQry {
   _id: String!
+
+  """이전/다음(pn) 을 이 category 안에서만 찾음. 없으면 전체"""
+  category: String
 }
 
 type NoticePN {

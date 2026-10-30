@@ -3,6 +3,7 @@ import { useQuery } from '@apollo/client'
 import { SYSTEM_HEALTH_QUERY } from '../graphql/queries/health'
 import { SenseStandardList } from '../components/SenseStandardList'
 import { SenseBuzzList, SensePopularList } from '../components/SenseTopList'
+import { ArticleBuzzList, ArticlePopularList } from '../components/ArticleTopList'
 import { ClockIcon } from '../components/ClockIcon'
 import { FlameIcon } from '../components/FlameIcon'
 import { ChatIcon } from '../components/ChatIcon'
@@ -47,6 +48,18 @@ export default function HomePage() {
         title="와글와글 Top 3"
       >
         <SenseBuzzList size={3} />
+      </HomeSection>
+      <HomeSection
+        icon={<FlameIcon size={20} className="text-orange-500 dark:text-orange-400" />}
+        title="인기 게시글 Top 3"
+      >
+        <ArticlePopularList size={3} />
+      </HomeSection>
+      <HomeSection
+        icon={<ChatIcon size={20} className="text-brand-500 dark:text-indigo-300" />}
+        title="댓글 많은 게시글 Top 3"
+      >
+        <ArticleBuzzList size={3} />
       </HomeSection>
       {bannerSpinner || <BannerCarousel banners={bottomBanners} label="하단 배너" />}
     </div>

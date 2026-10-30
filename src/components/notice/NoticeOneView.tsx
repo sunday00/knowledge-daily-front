@@ -10,6 +10,7 @@ import {
   isPinnedNotice,
   noticeCategoryLabel,
   noticeItemPath,
+  NOTICE_CATEGORIES,
   NOTICE_PATH,
   NOTICE_TITLE,
 } from '@/lib/notice.ts'
@@ -17,7 +18,8 @@ import type { OpinionTarget } from '@/lib/opinionTarget.ts'
 import { MarkdownView } from '@/components/MarkdownView.tsx'
 import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
-import { NoticeAdjacentNav } from '@/components/AdjacentNav.tsx'
+import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
+import { AdjacentNav } from '@/components/AdjacentNav.tsx'
 
 export type NoticeOneItem = NoticeOneQuery['NoticeQuery']['noticeOne']['item']
 
@@ -45,14 +47,19 @@ export function NoticeOneView({
 }) {
   const location = useLocation()
   const from = (location.state as { from?: string } | null)?.from
+  const category = useCategoryParam(NOTICE_CATEGORIES)
   const { data, loading, error } = useQuery(NOTICE_ONE_QUERY, {
-    variables: { input: { _id: id } },
+    // 분류 탭에서 들어왔으면 이전/다음(pn)을 그 분류 안에서 찾는다.
+    variables: { input: { _id: id, category } },
     fetchPolicy: 'cache-and-network',
   })
   const res = data?.NoticeQuery.noticeOne
   const found = res?.success ? res.item : null
   const item = found && found.status === 'ACTIVE' && isLive(found) ? found : null
-  const category = item && noticeCategoryLabel(item.category)
+  const categoryLabel = item && noticeCategoryLabel(item.category)
+  // pn 은 게시 기간을 따지지 않고 와서, 게시 기간이 아닌 공지면 잇지 않는다.
+  const liveLink = (n?: { _id: string; title: string; startAt: unknown; endAt: unknown } | null) =>
+    n && isLive(n) ? { to: withCategory(noticeItemPath(n._id), category), title: n.title } : null
 
   return (
     // pb-32: 대화록이 있으면 하단 고정 입력창에 마지막 항목이 가리지 않도록 여백
@@ -81,9 +88,9 @@ export function NoticeOneView({
                 <span className="min-w-0 break-words">{item.title}</span>
               </h2>
               <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-500">
-                {category && (
+                {categoryLabel && (
                   <span className="rounded px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
-                    {category}
+                    {categoryLabel}
                   </span>
                 )}
                 <time dateTime={String(item.createdAt)}>{formatDateTime(item.createdAt)}</time>
@@ -99,7 +106,7 @@ export function NoticeOneView({
         )}
       </article>
 
-      {item && <NoticeAdjacentNav id={item._id} />}
+      {item && <AdjacentNav prev={liveLink(res?.pn?.prev)} next={liveLink(res?.pn?.next)} />}
       {item && children?.(item)}
     </div>
   )

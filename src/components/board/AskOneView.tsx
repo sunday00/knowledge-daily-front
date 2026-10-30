@@ -8,7 +8,8 @@ import { formatDateTime } from '@/lib/formatDate.ts'
 import { AskResultBadge } from '@/components/board/AskResultBadge.tsx'
 import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
-import { AskAdjacentNav } from '@/components/AdjacentNav.tsx'
+import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
+import { AdjacentNav } from '@/components/AdjacentNav.tsx'
 
 export type AskOneItem = AskOneQuery['BoardQuery']['askOne']['item']
 
@@ -30,10 +31,12 @@ export function AskOneView({
   children?: (item: AskOneItem, board: BoardConfig) => ReactNode
 }) {
   const board = findBoardBySlug(slug)
+  // 분류 탭에서 들어왔으면 이전/다음(pn)을 그 분류 안에서 찾는다.
+  const category = useCategoryParam(board?.categories)
   // 목록에서 왔으면 보던 페이지(?page=)로 돌아간다.
   const from = (useLocation().state as { from?: string } | null)?.from
   const { data, loading, error } = useQuery(ASK_ONE_QUERY, {
-    variables: { input: { _id: id } },
+    variables: { input: { _id: id, category } },
     fetchPolicy: 'cache-and-network',
   })
   const res = data?.BoardQuery.askOne
@@ -41,6 +44,9 @@ export function AskOneView({
 
   if (!board) return <p className="text-neutral-500">게시판을 찾을 수 없습니다.</p>
 
+  // 이전/다음 글도 같은 분류 탭(?category=)을 이어 간다.
+  const adjacentLink = (a?: { _id: string; quest: string } | null) =>
+    a ? { to: withCategory(`${boardPath(board)}/${a._id}`, category), title: a.quest } : null
   const categoryLabel = (code: string) =>
     board.categories?.find((c) => c.code === code)?.label ?? code
 
@@ -101,7 +107,9 @@ export function AskOneView({
         )}
       </article>
 
-      {item && <AskAdjacentNav board={board} id={item._id} />}
+      {item && (
+        <AdjacentNav prev={adjacentLink(res?.pn?.prev)} next={adjacentLink(res?.pn?.next)} />
+      )}
       {item && children?.(item, board)}
     </div>
   )

@@ -4,6 +4,7 @@ import { boardPath, findBoardBySlug } from '@/lib/boards.ts'
 import { AskList } from '@/components/board/AskList.tsx'
 import { ArticleList } from '@/components/board/ArticleList.tsx'
 import { MarkdownView } from '@/components/MarkdownView.tsx'
+import { CategoryTabs } from '@/components/board/CategoryTabs.tsx'
 
 export default function BoardPage() {
   const { slug = '' } = useParams<{ slug: string }>()
@@ -35,6 +36,8 @@ export default function BoardPage() {
               글이 등록되었습니다.
             </p>
           )}
+          {/* 분류가 있는 게시판이면 전체 / 분류별 탭 */}
+          <CategoryTabs categories={board.categories ?? []} />
           {board.children === 'Ask' ? (
             <AskList board={board} action={writeLink} />
           ) : board.children === 'Article' ? (

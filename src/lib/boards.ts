@@ -59,3 +59,7 @@ export const boardWritePath = (board: BoardConfig, category?: string) =>
 export function findBoardByTitle(title: string): BoardConfig | undefined {
   return listBoards().find((b) => b.title === title)
 }
+
+export function findBoardById(id: string): BoardConfig | undefined {
+  return listBoards().find((b) => b._id === id)
+}

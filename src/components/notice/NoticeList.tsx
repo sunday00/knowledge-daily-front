@@ -3,17 +3,25 @@ import { useQuery } from '@apollo/client'
 import { NOTICE_LIST_QUERY } from '@/graphql/queries/notice.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
 import { isLive, useLiveWindowSearch } from '@/lib/liveWindow.ts'
-import { isPinnedNotice, noticeCategoryLabel, noticeItemPath } from '@/lib/notice.ts'
+import {
+  isPinnedNotice,
+  NOTICE_CATEGORIES,
+  noticeCategoryLabel,
+  noticeItemPath,
+} from '@/lib/notice.ts'
 import { BoardItemCounts } from '@/components/board/BoardItemCounts.tsx'
 import { Pagination, usePageParam } from '@/components/Pagination.tsx'
 import { ImageIcon } from '@/components/ImageIcon.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
 
 const PAGE_SIZE = 20
 
 /** 공지 목록. 게시 중(ACTIVE, startAt~endAt)인 것만, 고정(sortKey 작은 순) 먼저 그다음 최신순. */
 export function NoticeList() {
   const page = usePageParam()
+  // 분류 탭(?category=)을 골랐으면 그 분류만
+  const category = useCategoryParam(NOTICE_CATEGORIES)
   const location = useLocation()
   const liveWindow = useLiveWindowSearch()
   const { data, previousData, loading, error } = useQuery(NOTICE_LIST_QUERY, {
@@ -21,7 +29,11 @@ export function NoticeList() {
       input: {
         size: PAGE_SIZE,
         page,
-        search: { status: { eq: 'ACTIVE' }, ...liveWindow },
+        search: {
+          status: { eq: 'ACTIVE' },
+          ...liveWindow,
+          ...(category ? { category: { eq: category } } : {}),
+        },
         sort: { sortKey: 1, _id: -1 },
       },
     },
@@ -56,11 +68,12 @@ export function NoticeList() {
           <ul className="divide-y divide-neutral-200 dark:divide-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-800">
             {items.map((item) => {
               const pinned = isPinnedNotice(item)
-              const category = noticeCategoryLabel(item.category)
+              const label = noticeCategoryLabel(item.category)
               return (
                 <li key={item._id} className={pinned ? 'bg-brand-50/50 dark:bg-indigo-500/5' : ''}>
                   <Link
-                    to={noticeItemPath(item._id)}
+                    // 분류 탭에서 들어가면 상세의 이전/다음도 그 분류 안에서
+                    to={withCategory(noticeItemPath(item._id), category)}
                     // 상세의 "← 공지사항" 이 보던 페이지로 돌아가도록
                     state={{ from: location.pathname + location.search }}
                     className="block space-y-1 px-4 py-3 no-underline text-inherit hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
@@ -71,9 +84,9 @@ export function NoticeList() {
                           📌
                         </span>
                       )}
-                      {category && (
+                      {label && (
                         <span className="shrink-0 rounded px-1.5 py-0.5 text-xs font-normal bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
-                          {category}
+                          {label}
                         </span>
                       )}
                       <span className="truncate">{item.title}</span>
