@@ -9,6 +9,7 @@ import { formatDateTime } from '@/lib/formatDate.ts'
 import { MarkdownView } from '@/components/MarkdownView.tsx'
 import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { ArticleAdjacentNav } from '@/components/AdjacentNav.tsx'
 
 export type ArticleOneItem = ArticleOneQuery['BoardQuery']['articleOne']['item']
 
@@ -114,6 +115,7 @@ export function ArticleOneView({
         )}
       </article>
 
+      {item && <ArticleAdjacentNav board={board} id={item._id} />}
       {item && children?.(item, board)}
     </div>
   )

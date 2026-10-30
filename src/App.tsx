@@ -15,6 +15,7 @@ import BoardPage from './pages/board/BoardPage'
 import BoardWritePage from './pages/board/BoardWritePage'
 import { BoardItemPage, BoardThreadPage } from './pages/board/BoardItemPages'
 import ArticleEditPage from './pages/board/ArticleEditPage'
+import { NoticeDetailPage, NoticePage, NoticeThreadPage } from './pages/board/NoticePages'
 import { Navigator } from './components/Navigator'
 import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
@@ -55,6 +56,12 @@ export default function App() {
           <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
           <Route path="/sense/my-sense" element={<MySensePage />} />
           <Route path="/tags/:tag?" element={<TagsPage />} />
+          {/* 공지사항은 공용 설정의 게시판이 아니라 따로 둔다. (정적 경로라 :slug 보다 먼저 맞는다) */}
+          <Route path="/board/notice" element={<BoardLayout />}>
+            <Route index element={<NoticePage />} />
+            <Route path=":id" element={<NoticeDetailPage />} />
+            <Route path=":id/threads/:threadId" element={<NoticeThreadPage />} />
+          </Route>
           <Route path="/board/:slug" element={<BoardLayout />}>
             <Route index element={<BoardPage />} />
             <Route path="write" element={<BoardWritePage />} />

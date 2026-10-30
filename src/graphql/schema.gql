@@ -105,9 +105,15 @@ input ArticleOneByQry {
   _id: String!
 }
 
+type ArticlePN {
+  next: Article
+  prev: Article
+}
+
 type ArticleResponse {
   item: Article!
   message: String
+  pn: ArticlePN
   success: Int!
 }
 
@@ -335,9 +341,15 @@ input AskOneByQry {
   _id: String!
 }
 
+type AskPN {
+  next: Ask
+  prev: Ask
+}
+
 type AskResponse {
   item: Ask!
   message: String
+  pn: AskPN
   success: Int!
 }
 
@@ -1306,12 +1318,249 @@ type Mutation {
   AuthMutation: AuthMutNamespace!
   BannerMutation: BannerMutNamespace!
   BoardMutation: BoardMutNamespace!
+  NoticeMutation: NoticeMutNamespace!
   NotifyMutation: NotifyMutNamespace!
   OpinionMutation: OpinionMutNamespace!
   ReactionMutation: ReactionMutNamespace!
   SenseMutation: SenseMutNamespace!
   UserMutation: UserMutNamespace!
   VillainMutation: VillainMutNamespace!
+}
+
+type Notice implements IAttach & ICreatedAt & IOpinion & IReaction & StandardEntity {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+
+  """
+  공지 분류. admin front - admin api - user front 간 약속값 (ex: notice, event, maintenance)
+  """
+  category: String!
+
+  """
+  이 공지에서 쓸 기능. 관리자 선택. admin front - admin api - user front 간 약속값 (ex: opinion, reaction)
+  """
+  components: [String!]!
+
+  """본문"""
+  content: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """게시 종료. 기한 없는 공지는 먼 미래(9999-12-31T00:00:00.000Z 등)로"""
+  endAt: DateTime!
+
+  """노출 위치. admin front - admin api - user front 간 약속값"""
+  exposedOn: [String!]!
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+  pinn: Boolean!
+
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
+  sortKey: Int!
+
+  """게시 시작. 바로 게시면 과거 아무 시각으로(1970-01-01T00:00:00.000Z)"""
+  startAt: DateTime!
+  status: StandardStatus!
+  title: String!
+  version: String!
+}
+
+input NoticeInput {
+  """
+  공지 분류. admin front - admin api - user front 간 약속값 (ex: notice, event, maintenance)
+  """
+  category: String!
+
+  """
+  이 공지에서 쓸 기능. 관리자 선택. admin front - admin api - user front 간 약속값 (ex: opinion, reaction)
+  """
+  components: [String!]!
+
+  """본문"""
+  content: String!
+
+  """게시 종료. 기한 없는 공지는 먼 미래(9999-12-31T00:00:00.000Z 등)로"""
+  endAt: DateTime!
+
+  """노출 위치. admin front - admin api - user front 간 약속값"""
+  exposedOn: [String!]!
+
+  """게시 시작. 바로 게시면 과거 아무 시각으로(1970-01-01T00:00:00.000Z)"""
+  startAt: DateTime!
+  title: String!
+}
+
+input NoticeListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: NoticeSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: NoticeSearchInputSortType
+}
+
+type NoticeListResponse {
+  hasNext: Boolean
+  items: [Notice!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type NoticeMutNamespace {
+  _noticeMutNotImplementedThing: SimpleJsonRes!
+}
+
+input NoticeOneByQry {
+  _id: String!
+}
+
+type NoticePN {
+  next: Notice
+  prev: Notice
+}
+
+type NoticeQryNamespace {
+  noticeOne(input: NoticeOneByQry!): NoticeResponse!
+  noticeStandardList(input: NoticeListByQry): NoticeListResponse!
+}
+
+type NoticeResponse {
+  item: Notice!
+  message: String
+  pn: NoticePN
+  success: Int!
+}
+
+input NoticeSearchInput {
+  _id: RangeString
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+
+  """
+  공지 분류. admin front - admin api - user front 간 약속값 (ex: notice, event, maintenance)
+  """
+  category: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+
+  """
+  이 공지에서 쓸 기능. 관리자 선택. admin front - admin api - user front 간 약속값 (ex: opinion, reaction)
+  """
+  components: [String!]
+
+  """본문"""
+  content: RangeString
+  createdAt: RangeDate
+  deletedAt: RangeDate
+
+  """게시 종료. 기한 없는 공지는 먼 미래(9999-12-31T00:00:00.000Z 등)로"""
+  endAt: RangeDate
+
+  """노출 위치. admin front - admin api - user front 간 약속값"""
+  exposedOn: RangeString
+  flags: [String!]
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+  pinn: Boolean
+  sortKey: RangeInt
+
+  """게시 시작. 바로 게시면 과거 아무 시각으로(1970-01-01T00:00:00.000Z)"""
+  startAt: RangeDate
+  status: RangeStandardStatus
+  title: RangeString
+  version: RangeString
+}
+
+input NoticeSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  attaches: Int
+
+  """1: asc, -1: desc"""
+  category: Int
+
+  """1: asc, -1: desc"""
+  components: Int
+
+  """1: asc, -1: desc"""
+  content: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  endAt: Int
+
+  """1: asc, -1: desc"""
+  exposedOn: Int
+
+  """1: asc, -1: desc"""
+  flags: Int
+
+  """1: asc, -1: desc"""
+  links: Int
+
+  """1: asc, -1: desc"""
+  opinionsCnt: Int
+
+  """1: asc, -1: desc"""
+  pinn: Int
+
+  """1: asc, -1: desc"""
+  sortKey: Int
+
+  """1: asc, -1: desc"""
+  startAt: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  title: Int
+
+  """1: asc, -1: desc"""
+  version: Int
 }
 
 type NotifyMutNamespace {
@@ -1749,6 +1998,7 @@ type Query {
   AuthQuery: AuthQryNamespace!
   BannerQuery: BannerQryNamespace!
   BoardQuery: BoardQryNamespace!
+  NoticeQuery: NoticeQryNamespace!
   NotifyQuery: NotifyQryNamespace!
   OpinionQuery: OpinionQryNamespace!
   ReactionQuery: ReactionQryNamespace!
@@ -2681,6 +2931,7 @@ enum VBlockTargetEntity {
 enum VCommentTargetEntity {
   Article
   Ask
+  Notice
   Opinion
   Sense
   Thread

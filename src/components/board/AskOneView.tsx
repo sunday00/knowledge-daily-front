@@ -8,6 +8,7 @@ import { formatDateTime } from '@/lib/formatDate.ts'
 import { AskResultBadge } from '@/components/board/AskResultBadge.tsx'
 import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { AskAdjacentNav } from '@/components/AdjacentNav.tsx'
 
 export type AskOneItem = AskOneQuery['BoardQuery']['askOne']['item']
 
@@ -100,6 +101,7 @@ export function AskOneView({
         )}
       </article>
 
+      {item && <AskAdjacentNav board={board} id={item._id} />}
       {item && children?.(item, board)}
     </div>
   )
