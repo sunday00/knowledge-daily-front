@@ -1,5 +1,6 @@
 import { SayIcon } from '@/components/SayIcon.tsx'
 import { reactionOf } from '@/lib/reactions.ts'
+import { hasComponent } from '@/lib/components.ts'
 
 type Item = {
   components?: string[] | null
@@ -11,11 +12,11 @@ type Item = {
 const unsupported = 'text-neutral-400 dark:text-neutral-500'
 
 /**
- * 게시판 목록용 리액션 집계와 댓글(의견) 수. 보기 전용. (Ask, Article 공용)
+ * 게시판 목록용 리액션 집계와 댓글(의견) 수. 보기 전용. (Ask, Article, Notice 공용)
  * 글의 components 에 없는 기능은 "미지원"으로 표시한다.
  */
 export function BoardItemCounts({ item }: { item: Item }) {
-  const has = (name: string) => !!item.components?.includes(name)
+  const has = (name: string) => hasComponent(item.components, name)
   const reactions = (item.reactionsCnt ?? []).filter((r) => r.cnt > 0)
   const opinionCnt = item.opinionsCnt?.[1] ?? 0
 

@@ -52,6 +52,19 @@ export const ASK_ONE_QUERY = graphql(`
             me
           }
         }
+        # 목록 순서상 바로 위(prev)/아래(next) 글. 상세의 이전글/다음글
+        pn {
+          prev {
+            _id
+            board
+            quest
+          }
+          next {
+            _id
+            board
+            quest
+          }
+        }
       }
     }
   }
@@ -125,6 +138,19 @@ export const ARTICLE_ONE_QUERY = graphql(`
           user {
             _id
             nickname
+          }
+        }
+        # 목록 순서상 바로 위(prev)/아래(next) 글. 상세의 이전글/다음글
+        pn {
+          prev {
+            _id
+            board
+            title
+          }
+          next {
+            _id
+            board
+            title
           }
         }
       }

@@ -9,6 +9,8 @@ import { formatDateTime } from '@/lib/formatDate.ts'
 import { MarkdownView } from '@/components/MarkdownView.tsx'
 import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
+import { AdjacentNav } from '@/components/AdjacentNav.tsx'
 
 export type ArticleOneItem = ArticleOneQuery['BoardQuery']['articleOne']['item']
 
@@ -17,9 +19,10 @@ export const hasArticleComponent = (item: ArticleOneItem, name: 'Reaction' | 'Op
   !!item.components?.includes(name)
 
 /** 게시글 한 건 조회 (상세, 수정 화면 공용) */
-export function useArticleOne(id: string) {
+export function useArticleOne(id: string, category?: string) {
   const { data, loading, error } = useQuery(ARTICLE_ONE_QUERY, {
-    variables: { input: { _id: id } },
+    // category 가 있으면 이전/다음(pn)을 그 분류 안에서 찾는다.
+    variables: { input: { _id: id, category } },
     fetchPolicy: 'cache-and-network',
   })
   const res = data?.BoardQuery.articleOne
@@ -43,10 +46,15 @@ export function ArticleOneView({
   const location = useLocation()
   const state = location.state as { from?: string; created?: boolean; updated?: boolean } | null
   const { user } = useAuth()
-  const { res, item, loading, error } = useArticleOne(id)
+  // 분류 탭에서 들어왔으면 이전/다음도 그 분류 안에서
+  const category = useCategoryParam(board?.categories)
+  const { res, item, loading, error } = useArticleOne(id, category)
 
   if (!board) return <p className="text-neutral-500">게시판을 찾을 수 없습니다.</p>
 
+  // 이전/다음 글도 같은 분류 탭(?category=)을 이어 간다.
+  const adjacentLink = (a?: { _id: string; title: string } | null) =>
+    a ? { to: withCategory(`${boardPath(board)}/${a._id}`, category), title: a.title } : null
   const categoryLabel = (code: string) =>
     board.categories?.find((c) => c.code === code)?.label ?? code
   const mine = !!user && !!item?.user && item.user._id === user.userId
@@ -114,6 +122,9 @@ export function ArticleOneView({
         )}
       </article>
 
+      {item && (
+        <AdjacentNav prev={adjacentLink(res?.pn?.prev)} next={adjacentLink(res?.pn?.next)} />
+      )}
       {item && children?.(item, board)}
     </div>
   )

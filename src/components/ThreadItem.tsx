@@ -11,6 +11,7 @@ import { OpinionVillainMenu, UserVillainMenu } from '@/components/OpinionVillain
 import { opinionDomId } from '@/lib/scrollToOpinion.ts'
 import { OpinionTypeBadge } from '@/components/OpinionTypeBadge.tsx'
 import { threadPath } from '@/lib/opinionTarget.ts'
+import { useKeepListContext } from '@/hooks/useKeepListContext.ts'
 
 export type ThreadListItem =
   ThreadStandardListQuery['OpinionQuery']['threadStandardList']['items'][number]
@@ -29,6 +30,7 @@ export function ThreadItem({
 }) {
   const { opinion } = thread
   const { user } = useAuth()
+  const listContext = useKeepListContext()
   // 남의 의견이면 차단/신고 (로그인했을 때만)
   const others =
     !!user && !!opinion.user && opinion.user._id !== user.userId && !isDeletedOpinion(opinion)
@@ -56,7 +58,8 @@ export function ThreadItem({
         </div>
       </div>
       <Link
-        to={threadPath(targetPath, thread._id)}
+        to={listContext.keep(threadPath(targetPath, thread._id))}
+        state={listContext.state}
         className="mt-2 block whitespace-pre-wrap break-words text-inherit no-underline after:content-empty after:absolute after:inset-0 after:rounded-md"
       >
         <ThreadContent opinion={opinion} />

@@ -12,6 +12,7 @@ import { MentionProvider } from '@/components/MentionContext.tsx'
 import { opinionDomId, scrollToOpinion } from '@/lib/scrollToOpinion.ts'
 import { isMissingSid, markMissingSid } from '@/lib/missingOpinions.ts'
 import { threadPath, type OpinionTarget } from '@/lib/opinionTarget.ts'
+import { useKeepListContext } from '@/hooks/useKeepListContext.ts'
 import { THREAD_MAX_OPINIONS } from '@/lib/opinionLimits.ts'
 import { markOpinionAdded, useAddedOpinionIds } from '@/lib/addedOpinions.ts'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
@@ -55,6 +56,7 @@ export function ThreadConversation({
   // @sid 링크 이동 중/실패 안내
   const [notice, setNotice] = useState<{ text: string; error?: boolean } | null>(null)
   const navigate = useNavigate()
+  const listContext = useKeepListContext()
   const location = useLocation()
 
   const notFound = (sid: number) => {
@@ -105,8 +107,19 @@ export function ThreadConversation({
         // 다른 대화의 의견이면 그 대화 페이지로 가서 이동 (#opinion-<_id>)
         setNotice(null)
         // 같은 원글이면 지금 원글 주소 아래로, 아니면 상식 대화로 (다른 원글 주소는 알 수 없음)
-        const path = target.targetId === current.id ? current.path : `/sense/${target.targetId}`
-        navigate(`${threadPath(path, target.parent)}#${opinionDomId(target._id)}`)
+        if (target.targetId === current.id) {
+          // 같은 원글 안이라 분류(?category=)와 목록 복귀 정보를 이어 간다.
+          navigate(
+            `${listContext.keep(threadPath(current.path, target.parent))}#${opinionDomId(target._id)}`,
+            {
+              state: listContext.state,
+            },
+          )
+        } else {
+          navigate(
+            `${threadPath(`/sense/${target.targetId}`, target.parent)}#${opinionDomId(target._id)}`,
+          )
+        }
         return
       }
       await jumpToOpinion(target._id, sid)
@@ -143,7 +156,11 @@ export function ThreadConversation({
             <>
               이 대화는 의견이 {THREAD_MAX_OPINIONS.toLocaleString()}개에 이르러 더 이상 의견을 달
               수 없습니다.{' '}
-              <Link to={current.path} className="text-brand-600">
+              <Link
+                to={listContext.keep(current.path)}
+                state={listContext.state}
+                className="text-brand-600"
+              >
                 대화록
               </Link>
               에서 새 대화를 시작해 주세요.
@@ -175,6 +192,7 @@ function OpinionSection({
   notice: { text: string; error?: boolean } | null
 }) {
   const { res, loading, loadingMore, error, loadMore } = list
+  const listContext = useKeepListContext()
   const sentinelRef = useInfiniteScroll<HTMLDivElement>(loadMore, !!res?.hasNext && !loadingMore)
 
   return (
@@ -189,7 +207,8 @@ function OpinionSection({
           ) : null}
         </h3>
         <Link
-          to={targetPath}
+          to={listContext.keep(targetPath)}
+          state={listContext.state}
           className="text-sm text-neutral-500 hover:text-brand-600 no-underline"
         >
           ← 대화록 전체 보기

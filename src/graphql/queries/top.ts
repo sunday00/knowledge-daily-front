@@ -71,3 +71,81 @@ export const SENSE_OPINION_TOP_QUERY = graphql(`
     }
   }
 `)
+
+// 인기 게시글: 고른 리액션 수 * 1.5 + 최신 가중치 점수 순
+export const ARTICLE_REACTION_TOP_QUERY = graphql(`
+  query ArticleReactionTop($input: ReactionTopByQry!) {
+    ReactionQuery {
+      reactionTopList(input: $input) {
+        success
+        message
+        items {
+          targetId
+          cnt
+          target {
+            ... on Article {
+              _id
+              board
+              title
+              attaches {
+                sortKey
+              }
+              category
+              createdAt
+              components
+              opinionsCnt
+              reactionsCnt {
+                name
+                cnt
+                me
+              }
+              user {
+                _id
+                nickname
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`)
+
+// 댓글 많은 게시글: 의견 수 * 1.5 + 최신 가중치 점수 순
+export const ARTICLE_OPINION_TOP_QUERY = graphql(`
+  query ArticleOpinionTop($input: OpinionTopByQry!) {
+    OpinionQuery {
+      opinionTopList(input: $input) {
+        success
+        message
+        items {
+          targetId
+          cnt
+          target {
+            ... on Article {
+              _id
+              board
+              title
+              attaches {
+                sortKey
+              }
+              category
+              createdAt
+              components
+              opinionsCnt
+              reactionsCnt {
+                name
+                cnt
+                me
+              }
+              user {
+                _id
+                nickname
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`)

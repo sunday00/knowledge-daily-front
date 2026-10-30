@@ -8,18 +8,25 @@ import { AskResultBadge } from '@/components/board/AskResultBadge.tsx'
 import { BoardItemCounts } from '@/components/board/BoardItemCounts.tsx'
 import { Pagination, usePageParam } from '@/components/Pagination.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
 
 const PAGE_SIZE = 20
 
 /** 문의/요청 게시판의 글 목록 (최신순, ?page= 페이지 이동) */
 export function AskList({ board, action }: { board: BoardConfig; action?: ReactNode }) {
   const page = usePageParam()
+  // 분류 탭(?category=)을 골랐으면 그 분류만
+  const category = useCategoryParam(board?.categories)
   const location = useLocation()
   // board 는 ObjectId 로 저장돼 있어 complex.id 로 변환해 검색해야 한다.
   const input = {
     size: PAGE_SIZE,
     page,
-    search: { board: { eq: board._id }, complex: { id: ['board'] } },
+    search: {
+      board: { eq: board._id },
+      complex: { id: ['board'] },
+      ...(category ? { category: { eq: category } } : {}),
+    },
     sort: { _id: -1 },
   }
   const { data, previousData, loading, error } = useQuery(ASK_LIST_QUERY, {
@@ -60,7 +67,8 @@ export function AskList({ board, action }: { board: BoardConfig; action?: ReactN
             {res.items.map((item) => (
               <li key={item._id}>
                 <Link
-                  to={`${boardPath(board)}/${item._id}`}
+                  // 분류 탭에서 들어가면 상세의 이전/다음도 그 분류 안에서
+                  to={withCategory(`${boardPath(board)}/${item._id}`, category)}
                   // 상세의 "← 목록" 이 보던 페이지로 돌아가도록
                   state={{ from: location.pathname + location.search }}
                   className="block space-y-1 px-4 py-3 no-underline text-inherit hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
