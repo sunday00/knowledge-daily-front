@@ -7,6 +7,8 @@ import { LinkItem } from '../../components/LinkItem'
 import { InfoRow } from '../../components/InfoRow'
 import { NotifyInterest } from '../../components/NotifyInterest'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { ARCHIVE_MY_QUERY } from '@/graphql/queries/archive.ts'
+import { ProfileImoji } from '@/components/profile/ProfileImoji.tsx'
 
 const TABS = [
   { key: 'basic', label: '기본정보', editTo: '/user/settings/edit' },
@@ -97,6 +99,9 @@ function BasicInfo() {
           <InfoRow label="SID" mono>
             {String(item.sid)}
           </InfoRow>
+          <InfoRow label="프로필">
+            <MyProfileImoji />
+          </InfoRow>
           <InfoRow label="닉네임">{item.nickname}</InfoRow>
           <InfoRow label="레벨">{String(item.lv)}</InfoRow>
           <InfoRow label="역할">{item.roles.join(', ') || '(없음)'}</InfoRow>
@@ -117,4 +122,24 @@ function BasicInfo() {
       )}
     </div>
   )
+}
+
+/** 지금 프로필 이모지. 고른 적 없으면 (없음) */
+function MyProfileImoji() {
+  const { data, loading, error } = useQuery(ARCHIVE_MY_QUERY, { fetchPolicy: 'cache-and-network' })
+  const res = data?.ArchiveQuery.archiveUserOne
+
+  if (loading && !res) return <LoadingSpinner size="sm" />
+  if (error)
+    return <span className="text-red-600 dark:text-red-400">조회 실패: {error.message}</span>
+  if (!res?.success) {
+    return (
+      <span className="text-red-600 dark:text-red-400">
+        {res?.message ?? '서버가 실패를 반환했습니다.'}
+      </span>
+    )
+  }
+  // 스키마는 img 가 필수지만, 처음 만들어진 archive 는 img: null 로 온다.
+  const current = res.item.img?.current
+  return current ? <ProfileImoji img={{ code: current }} /> : <>(없음)</>
 }
