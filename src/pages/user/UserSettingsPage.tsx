@@ -8,7 +8,7 @@ import { InfoRow } from '../../components/InfoRow'
 import { NotifyInterest } from '../../components/NotifyInterest'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { ARCHIVE_MY_QUERY } from '@/graphql/queries/archive.ts'
-import { ProfileImoji } from '@/components/profile/ProfileImoji.tsx'
+import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 
 const TABS = [
   { key: 'basic', label: '기본정보', editTo: '/user/settings/edit' },
@@ -124,7 +124,7 @@ function BasicInfo() {
   )
 }
 
-/** 지금 프로필 이모지. 고른 적 없으면 (없음) */
+/** 지금 프로필. 고른 적 없으면 기본 아이콘과 (없음) */
 function MyProfileImoji() {
   const { data, loading, error } = useQuery(ARCHIVE_MY_QUERY, { fetchPolicy: 'cache-and-network' })
   const res = data?.ArchiveQuery.archiveUserOne
@@ -139,7 +139,11 @@ function MyProfileImoji() {
       </span>
     )
   }
-  // 스키마는 img 가 필수지만, 처음 만들어진 archive 는 img: null 로 온다.
   const current = res.item.img?.current
-  return current ? <ProfileImoji img={{ code: current }} /> : <>(없음)</>
+  return (
+    <span className="flex items-center gap-2">
+      <UserAvatar archive={res.item} size={40} />
+      {!current && <span className="text-neutral-500">(없음)</span>}
+    </span>
+  )
 }

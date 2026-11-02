@@ -18,6 +18,7 @@ import { BlockableText } from '@/components/BlockableText.tsx'
 import { OpinionVillainMenu, UserVillainMenu } from '@/components/OpinionVillainMenu.tsx'
 import { blockedAwareContent } from '@/lib/blockedContent.ts'
 import { SUBMIT_SHORTCUT_LABEL, useSubmitShortcut } from '@/hooks/useSubmitShortcut.ts'
+import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 
 export type OpinionListItem =
   OpinionStandardListQuery['OpinionQuery']['opinionStandardList']['items'][number]
@@ -52,6 +53,7 @@ export function OpinionItem({
     >
       <div className="flex items-center justify-between gap-3 text-xs text-neutral-500">
         <div className="flex min-w-0 items-center font-medium text-neutral-700 dark:text-neutral-300">
+          <UserAvatar archive={opinion.user?.archive} size={20} className="mr-1.5" />
           {/* 남의 의견이면 닉네임을 눌러 그 유저를 차단/신고 */}
           {others && opinion.user ? (
             <UserVillainMenu user={opinion.user} />

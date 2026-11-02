@@ -10,8 +10,19 @@ export const ARCHIVE_MY_QUERY = graphql(`
         item {
           _id
           img {
-            current
+            current {
+              _id
+              code
+              type
+            }
             available
+          }
+          attaches {
+            sortKey
+            attach {
+              _id
+              src
+            }
           }
         }
       }
@@ -19,14 +30,15 @@ export const ARCHIVE_MY_QUERY = graphql(`
   }
 `)
 
-/** 고를 수 있는 프로필 이모지 목록 */
-export const ARCHIVE_AVAILABLE_IMG_LIST_QUERY = graphql(`
-  query ArchiveAvailableImgList($input: ArchiveAvailableImgListByQry) {
+/** 내가 고를 수 있는 프로필 이모지 목록 (내 img.available 에 속한 것만) */
+export const ARCHIVE_MY_AVAILABLE_IMG_LIST_QUERY = graphql(`
+  query ArchiveMyAvailableImgList($input: ArchiveAvailableImgListByQry) {
     ArchiveQuery {
-      archiveAvailableImgList(input: $input) {
+      archiveMyAvailableImgList(input: $input) {
         success
         message
         items {
+          _id
           code
           type
           subType

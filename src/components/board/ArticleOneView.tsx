@@ -11,6 +11,7 @@ import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
 import { AdjacentNav } from '@/components/AdjacentNav.tsx'
+import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 
 export type ArticleOneItem = ArticleOneQuery['BoardQuery']['articleOne']['item']
 
@@ -99,7 +100,10 @@ export function ArticleOneView({
                     {categoryLabel(item.category)}
                   </span>
                 )}
-                <span>{item.user?.nickname ?? '알 수 없음'}</span>
+                <span className="inline-flex items-center gap-1.5">
+                  <UserAvatar archive={item.user?.archive} size={20} />
+                  {item.user?.nickname ?? '알 수 없음'}
+                </span>
                 <time dateTime={String(item.createdAt)}>{formatDateTime(item.createdAt)}</time>
                 {mine && (
                   <Link

@@ -9,6 +9,7 @@ import { Pagination, usePageParam } from '@/components/Pagination.tsx'
 import { ImageIcon } from '@/components/ImageIcon.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
+import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 
 const PAGE_SIZE = 20
 
@@ -94,7 +95,10 @@ export function ArticleList({ board, action }: { board: BoardConfig; action?: Re
                     )}
                   </p>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
-                    <span>{item.user?.nickname ?? '알 수 없음'}</span>
+                    <span className="inline-flex items-center gap-1">
+                      <UserAvatar archive={item.user?.archive} size={16} />
+                      {item.user?.nickname ?? '알 수 없음'}
+                    </span>
                     <time dateTime={String(item.createdAt)}>{formatDateTime(item.createdAt)}</time>
                     <BoardItemCounts item={item} />
                   </div>

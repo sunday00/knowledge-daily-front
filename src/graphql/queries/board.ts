@@ -99,6 +99,23 @@ export const ARTICLE_LIST_QUERY = graphql(`
           user {
             _id
             nickname
+            archive {
+              _id
+              img {
+                current {
+                  _id
+                  code
+                  type
+                }
+              }
+              attaches {
+                sortKey
+                attach {
+                  _id
+                  src
+                }
+              }
+            }
           }
         }
       }
@@ -138,6 +155,23 @@ export const ARTICLE_ONE_QUERY = graphql(`
           user {
             _id
             nickname
+            archive {
+              _id
+              img {
+                current {
+                  _id
+                  code
+                  type
+                }
+              }
+              attaches {
+                sortKey
+                attach {
+                  _id
+                  src
+                }
+              }
+            }
           }
         }
         # 목록 순서상 바로 위(prev)/아래(next) 글. 상세의 이전글/다음글

@@ -34,6 +34,23 @@ export const THREAD_STANDARD_LIST_QUERY = graphql(`
             user {
               _id
               nickname
+              archive {
+                _id
+                img {
+                  current {
+                    _id
+                    code
+                    type
+                  }
+                }
+                attaches {
+                  sortKey
+                  attach {
+                    _id
+                    src
+                  }
+                }
+              }
               villainStatus {
                 isBlocked
                 isSuspected
@@ -78,6 +95,23 @@ export const OPINION_STANDARD_LIST_QUERY = graphql(`
           user {
             _id
             nickname
+            archive {
+              _id
+              img {
+                current {
+                  _id
+                  code
+                  type
+                }
+              }
+              attaches {
+                sortKey
+                attach {
+                  _id
+                  src
+                }
+              }
+            }
             villainStatus {
               isBlocked
               isSuspected
@@ -114,6 +148,23 @@ export const OPINION_ITEM_FRAGMENT = graphql(`
     user {
       _id
       nickname
+      archive {
+        _id
+        img {
+          current {
+            _id
+            code
+            type
+          }
+        }
+        attaches {
+          sortKey
+          attach {
+            _id
+            src
+          }
+        }
+      }
       villainStatus {
         isBlocked
         isSuspected

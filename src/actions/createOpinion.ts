@@ -7,6 +7,7 @@ import { OPINION_ITEM_FRAGMENT } from '@/graphql/queries/opinion.ts'
 import type { OpinionItemFieldsFragment } from '@/graphql/__generated__/graphql.ts'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import type { OpinionTarget } from '@/lib/opinionTarget.ts'
+import { ARCHIVE_MY_QUERY } from '@/graphql/queries/archive.ts'
 
 // 기존 의견 데이터와 같은 스키마 버전
 const OPINION_VERSION = '1.0'
@@ -27,6 +28,18 @@ export function useCreateOpinion(target: Pick<OpinionTarget, 'entity' | 'id'>, p
   const { user } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [mutate, { loading: sending }] = useMutation(OPINION_CREATE_MUTATION)
+
+  // 새 의견에 붙일 내 프로필. 받아 둔 내 archive 가 없으면 기본 아이콘으로 보이다가 다시 조회할 때 채워진다.
+  const myArchive = () => {
+    const item = client.readQuery({ query: ARCHIVE_MY_QUERY })?.ArchiveQuery.archiveUserOne.item
+    if (!item) return null
+    return {
+      __typename: 'Archive' as const,
+      _id: item._id,
+      img: item.img ? { __typename: 'ArchiveImg' as const, current: item.img.current } : null,
+      attaches: item.attaches,
+    }
+  }
 
   /** 화면의 카운트만 올린다: 원글 [대화수, 의견수], 답글이면 그 대화의 의견수 */
   const bumpCounts = () => {
@@ -111,6 +124,7 @@ export function useCreateOpinion(target: Pick<OpinionTarget, 'entity' | 'id'>, p
               __typename: 'User',
               _id: user.userId,
               nickname: user.nickname,
+              archive: myArchive(),
               villainStatus: {
                 __typename: 'VillainStatus',
                 isBlocked: false,
