@@ -1,6 +1,14 @@
+import { isLive } from '@/lib/liveWindow.ts'
+
 /** 공지사항 주소. 게시판 메뉴 맨 위에 둔다. */
 export const NOTICE_PATH = '/board/notice'
 export const NOTICE_TITLE = '공지사항'
+
+/** 노출 위치 (admin front - admin api - user front 간 약속값) */
+export const NOTICE_SPOT = {
+  /** 홈 배너 위 세로 롤링 */
+  MAIN_ROLE: 'MAIN_ROLE',
+} as const
 
 export const noticeItemPath = (id: string) => `${NOTICE_PATH}/${id}`
 
@@ -15,7 +23,12 @@ export const NOTICE_CATEGORIES = [
 export const noticeCategoryLabel = (code: string): string | null =>
   NOTICE_CATEGORIES.find((c) => c.code === code)?.label ?? null
 
-/** 상단 고정: pinn 이거나 sortKey 가 기본값(1000)보다 작으면 (목록은 sortKey 오름차순) */
-const DEFAULT_SORT_KEY = 1000
-export const isPinnedNotice = (n: { pinn: boolean; sortKey: number }) =>
-  n.pinn || n.sortKey < DEFAULT_SORT_KEY
+/**
+ * 고정(📌) 표시: pinn 인 공지 중 게시 기간(startAt~endAt) 안인 것만.
+ * 게시 기간은 고정 표시와 홈 롤링에만 쓰고, 목록·상세·이전/다음글에는 영향이 없다.
+ * sortKey 는 목록 순서를 당기는 용도일 뿐이라 고정 표시에 쓰지 않는다.
+ */
+export const isPinnedNotice = (
+  n: { pinn: boolean; startAt: unknown; endAt: unknown },
+  now = Date.now(),
+) => n.pinn && isLive(n, now)

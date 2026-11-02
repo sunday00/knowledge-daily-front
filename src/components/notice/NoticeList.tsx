@@ -2,7 +2,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { NOTICE_LIST_QUERY } from '@/graphql/queries/notice.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
-import { isLive, useLiveWindowSearch } from '@/lib/liveWindow.ts'
 import {
   isPinnedNotice,
   NOTICE_CATEGORIES,
@@ -17,13 +16,15 @@ import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.
 
 const PAGE_SIZE = 20
 
-/** 공지 목록. 게시 중(ACTIVE, startAt~endAt)인 것만, 고정(sortKey 작은 순) 먼저 그다음 최신순. */
+/**
+ * 공지 목록. ACTIVE 인 공지 전부 (게시 기간은 고정 표시에만 쓴다).
+ * 순서는 sortKey 작은 순 먼저, 그다음 최신순.
+ */
 export function NoticeList() {
   const page = usePageParam()
   // 분류 탭(?category=)을 골랐으면 그 분류만
   const category = useCategoryParam(NOTICE_CATEGORIES)
   const location = useLocation()
-  const liveWindow = useLiveWindowSearch()
   const { data, previousData, loading, error } = useQuery(NOTICE_LIST_QUERY, {
     variables: {
       input: {
@@ -31,7 +32,6 @@ export function NoticeList() {
         page,
         search: {
           status: { eq: 'ACTIVE' },
-          ...liveWindow,
           ...(category ? { category: { eq: category } } : {}),
         },
         sort: { sortKey: 1, _id: -1 },
@@ -42,9 +42,8 @@ export function NoticeList() {
   // 페이지를 옮기는 동안엔 이전 페이지를 그대로 두어 화면이 비지 않게 한다.
   const res = (data ?? previousData)?.NoticeQuery.noticeStandardList
   const maxPage = res?.maxPage || Math.ceil((res?.total ?? 0) / PAGE_SIZE)
-  // 기준 시각을 내려 맞춰 받으므로, 정확한 게시 기간으로 다시 거른다.
   const now = Date.now()
-  const items = (res?.items ?? []).filter((n) => isLive(n, now))
+  const items = res?.items ?? []
 
   return (
     <div className={`space-y-3 ${loading && res ? 'opacity-60' : ''}`}>
@@ -67,7 +66,7 @@ export function NoticeList() {
         ) : (
           <ul className="divide-y divide-neutral-200 dark:divide-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-800">
             {items.map((item) => {
-              const pinned = isPinnedNotice(item)
+              const pinned = isPinnedNotice(item, now)
               const label = noticeCategoryLabel(item.category)
               return (
                 <li key={item._id} className={pinned ? 'bg-brand-50/50 dark:bg-indigo-500/5' : ''}>

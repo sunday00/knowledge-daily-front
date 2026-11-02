@@ -10,6 +10,8 @@ import { ChatIcon } from '../components/ChatIcon'
 import { BannerCarousel } from '../components/BannerCarousel'
 import { BANNER_SPOT, useBanners } from '../hooks/useBanners'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import { NoticeTicker } from '../components/notice/NoticeTicker'
+import { NOTICE_SPOT } from '../lib/notice'
 
 export default function HomePage() {
   const { data } = useQuery(SYSTEM_HEALTH_QUERY, {
@@ -30,6 +32,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6">
+      <NoticeTicker spot={NOTICE_SPOT.MAIN_ROLE} />
       {bannerSpinner || <BannerCarousel banners={topBanners} label="상단 배너" />}
       <HomeSection
         icon={<ClockIcon size={20} className="text-neutral-500 dark:text-neutral-400" />}
