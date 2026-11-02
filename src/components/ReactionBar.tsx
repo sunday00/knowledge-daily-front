@@ -10,7 +10,7 @@ import {
   THREAD_REACTIONS_FRAGMENT,
 } from '@/graphql/queries/reaction.ts'
 import { reactionTypename, useToggleReaction, type ReactionTarget } from '@/actions/reaction.ts'
-import { REACTIONS, reactionOf, type ReactionCode } from '@/lib/reactions.ts'
+import { REACTIONS, reactionOf, sortReactions, type ReactionCode } from '@/lib/reactions.ts'
 import { Popover } from '@/components/Popover.tsx'
 
 // 대상별로 캐시에서 리액션 집계를 읽을 fragment
@@ -55,8 +55,10 @@ export function ReactionBar({
     from: { __typename: reactionTypename(target.entity), _id: target.id },
   })
   // useFragment 는 부분 데이터(DeepPartial)를 줄 수 있어 완전한 항목만 쓴다
-  const reactions = (data?.reactionsCnt ?? []).flatMap((r) =>
-    r?.name && typeof r.cnt === 'number' ? [{ name: r.name, cnt: r.cnt, me: !!r.me }] : [],
+  const reactions = sortReactions(
+    (data?.reactionsCnt ?? []).flatMap((r) =>
+      r?.name && typeof r.cnt === 'number' ? [{ name: r.name, cnt: r.cnt, me: !!r.me }] : [],
+    ),
   )
   const mineOf = (code: string) => !!reactions.find((r) => r.name === code)?.me
 

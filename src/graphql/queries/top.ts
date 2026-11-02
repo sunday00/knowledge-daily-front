@@ -102,6 +102,23 @@ export const ARTICLE_REACTION_TOP_QUERY = graphql(`
               user {
                 _id
                 nickname
+                archive {
+                  _id
+                  img {
+                    current {
+                      _id
+                      code
+                      type
+                    }
+                  }
+                  attaches {
+                    sortKey
+                    attach {
+                      _id
+                      src
+                    }
+                  }
+                }
               }
             }
           }
@@ -141,6 +158,23 @@ export const ARTICLE_OPINION_TOP_QUERY = graphql(`
               user {
                 _id
                 nickname
+                archive {
+                  _id
+                  img {
+                    current {
+                      _id
+                      code
+                      type
+                    }
+                  }
+                  attaches {
+                    sortKey
+                    attach {
+                      _id
+                      src
+                    }
+                  }
+                }
               }
             }
           }

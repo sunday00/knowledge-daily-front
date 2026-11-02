@@ -7,6 +7,8 @@ import { LinkItem } from '../../components/LinkItem'
 import { InfoRow } from '../../components/InfoRow'
 import { NotifyInterest } from '../../components/NotifyInterest'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { ARCHIVE_MY_QUERY } from '@/graphql/queries/archive.ts'
+import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 
 const TABS = [
   { key: 'basic', label: '기본정보', editTo: '/user/settings/edit' },
@@ -97,6 +99,9 @@ function BasicInfo() {
           <InfoRow label="SID" mono>
             {String(item.sid)}
           </InfoRow>
+          <InfoRow label="프로필">
+            <MyProfileImoji />
+          </InfoRow>
           <InfoRow label="닉네임">{item.nickname}</InfoRow>
           <InfoRow label="레벨">{String(item.lv)}</InfoRow>
           <InfoRow label="역할">{item.roles.join(', ') || '(없음)'}</InfoRow>
@@ -116,5 +121,29 @@ function BasicInfo() {
         </dl>
       )}
     </div>
+  )
+}
+
+/** 지금 프로필. 고른 적 없으면 기본 아이콘과 (없음) */
+function MyProfileImoji() {
+  const { data, loading, error } = useQuery(ARCHIVE_MY_QUERY, { fetchPolicy: 'cache-and-network' })
+  const res = data?.ArchiveQuery.archiveUserOne
+
+  if (loading && !res) return <LoadingSpinner size="sm" />
+  if (error)
+    return <span className="text-red-600 dark:text-red-400">조회 실패: {error.message}</span>
+  if (!res?.success) {
+    return (
+      <span className="text-red-600 dark:text-red-400">
+        {res?.message ?? '서버가 실패를 반환했습니다.'}
+      </span>
+    )
+  }
+  const current = res.item.img?.current
+  return (
+    <span className="flex items-center gap-2">
+      <UserAvatar archive={res.item} size={40} />
+      {!current && <span className="text-neutral-500">(없음)</span>}
+    </span>
   )
 }

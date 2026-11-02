@@ -2,6 +2,7 @@ import type { OpinionItemFieldsFragment } from '@/graphql/__generated__/graphql.
 import { isDeletedOpinion } from '@/lib/opinionStatus.ts'
 import { blockedAwareContent, maskBlocked } from '@/lib/blockedContent.ts'
 import { OpinionTypeBadge } from '@/components/OpinionTypeBadge.tsx'
+import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 
 /**
  * 의견 미리보기 내용: 닉네임 @sid + 본문(3줄까지)
@@ -11,7 +12,8 @@ export function OpinionPeek({ opinion }: { opinion: OpinionItemFieldsFragment })
   return (
     <>
       <span className="block text-xs text-neutral-500">
-        <span className="font-medium text-neutral-700 dark:text-neutral-300">
+        <span className="inline-flex items-center gap-1 align-middle font-medium text-neutral-700 dark:text-neutral-300">
+          <UserAvatar archive={opinion.user?.archive} size={16} />
           {opinion.user?.nickname ?? '알 수 없음'}
         </span>
         <span className="ml-1 text-neutral-400">@{opinion.sid}</span>

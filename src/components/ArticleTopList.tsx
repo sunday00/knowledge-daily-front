@@ -8,6 +8,7 @@ import { formatDateTime } from '@/lib/formatDate.ts'
 import { BoardItemCounts } from '@/components/board/BoardItemCounts.tsx'
 import { ImageIcon } from '@/components/ImageIcon.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 
 type Target = ArticleReactionTopQuery['ReactionQuery']['reactionTopList']['items'][number]['target']
 type ArticleItem = Exclude<NonNullable<Target>, Record<PropertyKey, never>>
@@ -107,7 +108,10 @@ function ArticleRow({
           <span className="rounded px-1.5 py-0.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
             {boardLabel}
           </span>
-          <span>{article.user?.nickname ?? '알 수 없음'}</span>
+          <span className="inline-flex items-center gap-1">
+            <UserAvatar archive={article.user?.archive} size={16} />
+            {article.user?.nickname ?? '알 수 없음'}
+          </span>
           <time dateTime={String(article.createdAt)}>{formatDateTime(article.createdAt)}</time>
           <BoardItemCounts item={article} />
         </div>

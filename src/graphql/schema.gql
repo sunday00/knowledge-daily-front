@@ -2,6 +2,256 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Archive implements CompactEntity & IAttach & ICreatedAt & IUser {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  img: ArchiveImg
+  status: StandardStatus!
+
+  """user"""
+  user: User
+  version: String!
+}
+
+type ArchiveAvailableImg implements CompactEntity & ICreatedAt {
+  _id: String!
+
+  """
+  type imoji -> tiger, rabbit, ... anything to show imoji | custom -> url fixed
+  """
+  code: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  status: StandardStatus!
+
+  """paid package, series, special imoji..."""
+  subType: ArchiveAvailableImgSubType!
+  type: ArchiveAvailableImgType!
+  version: String!
+}
+
+input ArchiveAvailableImgActiveSearchInput {
+  _id: RangeString
+
+  """
+  type imoji -> tiger, rabbit, ... anything to show imoji | custom -> url fixed
+  """
+  code: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  createdAt: RangeDate
+  deletedAt: RangeDate
+  status: RangeStandardStatus
+
+  """paid package, series, special imoji..."""
+  subType: RangeArchiveAvailableImgSubType
+  type: RangeArchiveAvailableImgType
+  version: RangeString
+}
+
+input ArchiveAvailableImgActiveSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  code: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  subType: Int
+
+  """1: asc, -1: desc"""
+  type: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+input ArchiveAvailableImgInput {
+  _id: String!
+
+  """
+  type imoji -> tiger, rabbit, ... anything to show imoji | custom -> url fixed
+  """
+  code: String!
+
+  """paid package, series, special imoji..."""
+  subType: ArchiveAvailableImgSubType!
+  type: ArchiveAvailableImgType!
+}
+
+input ArchiveAvailableImgListActiveQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: ArchiveAvailableImgActiveSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: ArchiveAvailableImgActiveSearchInputSortType
+}
+
+input ArchiveAvailableImgListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: ArchiveAvailableImgSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: ArchiveAvailableImgSearchInputSortType
+}
+
+type ArchiveAvailableImgListResponse {
+  hasNext: Boolean
+  items: [ArchiveAvailableImg!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+input ArchiveAvailableImgSearchInput {
+  _id: RangeString
+
+  """
+  type imoji -> tiger, rabbit, ... anything to show imoji | custom -> url fixed
+  """
+  code: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  createdAt: RangeDate
+  deletedAt: RangeDate
+  status: RangeStandardStatus
+
+  """paid package, series, special imoji..."""
+  subType: RangeArchiveAvailableImgSubType
+  type: RangeArchiveAvailableImgType
+  version: RangeString
+}
+
+input ArchiveAvailableImgSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  code: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  subType: Int
+
+  """1: asc, -1: desc"""
+  type: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+enum ArchiveAvailableImgSubType {
+  BRONZE
+  STANDARD
+}
+
+enum ArchiveAvailableImgType {
+  CUSTOM
+  IMOJI
+}
+
+type ArchiveImg {
+  available: [ArchiveAvailableImgSubType!]!
+  current: ArchiveAvailableImg
+}
+
+input ArchiveImgInput {
+  available: [ArchiveAvailableImgSubType!]!
+  current: ArchiveAvailableImgInput
+}
+
+input ArchiveImgUpsertInput {
+  """
+  ArchiveAvailableImg _id. 유저 img.available 에 속한 프로필만 가능. null 이면 해제, 생략하면 변경 없음
+  """
+  current: String
+}
+
+input ArchiveInput {
+  img: ArchiveImgInput
+}
+
+type ArchiveMutNamespace {
+  archiveUpsert(input: ArchiveUpsertInput!): BooleanResponse!
+}
+
+input ArchiveOneMyQry {
+  """없으면 로그인 유저"""
+  userId: String
+}
+
+type ArchiveQryNamespace {
+  archiveAvailableImgList(input: ArchiveAvailableImgListActiveQry): ArchiveAvailableImgListResponse!
+  archiveMyAvailableImgList(input: ArchiveAvailableImgListByQry): ArchiveAvailableImgListResponse!
+  archiveUserOne(input: ArchiveOneMyQry): ArchiveResponse!
+}
+
+type ArchiveResponse {
+  item: Archive!
+  message: String
+  success: Int!
+}
+
+input ArchiveUpsertInput {
+  """첨부 미디어 목록"""
+  attaches: [AttachInputItem!]
+  img: ArchiveImgUpsertInput!
+}
+
 type Article implements IAttach & ICreatedAt & IOpinion & IReaction & ITag & IUser & IVillain & StandardEntity {
   _id: String!
 
@@ -1320,6 +1570,7 @@ type MeResponseItemResponse {
 }
 
 type Mutation {
+  ArchiveMutation: ArchiveMutNamespace!
   AttachMutation: AttachMutNamespace!
   AuthMutation: AuthMutNamespace!
   BannerMutation: BannerMutNamespace!
@@ -2003,6 +2254,7 @@ input OpinionUpdateInput {
 }
 
 type Query {
+  ArchiveQuery: ArchiveQryNamespace!
   AttachQuery: AttachQryNamespace!
   AuthQuery: AuthQryNamespace!
   BannerQuery: BannerQryNamespace!
@@ -2016,6 +2268,30 @@ type Query {
   TagQuery: TagQryNamespace!
   UserQuery: UserQryNamespace!
   VillainQuery: VillainQryNamespace!
+}
+
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+input RangeArchiveAvailableImgSubType {
+  contains: ArchiveAvailableImgSubType
+  eq: ArchiveAvailableImgSubType
+  gt: ArchiveAvailableImgSubType
+  gte: ArchiveAvailableImgSubType
+  lt: ArchiveAvailableImgSubType
+  lte: ArchiveAvailableImgSubType
+  mul: [ArchiveAvailableImgSubType!]
+  not: ArchiveAvailableImgSubType
+}
+
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+input RangeArchiveAvailableImgType {
+  contains: ArchiveAvailableImgType
+  eq: ArchiveAvailableImgType
+  gt: ArchiveAvailableImgType
+  gte: ArchiveAvailableImgType
+  lt: ArchiveAvailableImgType
+  lte: ArchiveAvailableImgType
+  mul: [ArchiveAvailableImgType!]
+  not: ArchiveAvailableImgType
 }
 
 "\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
@@ -2829,6 +3105,7 @@ input ThreadSearchInputSortType {
 
 type User implements ICreatedAt & IVillain & StandardEntity {
   _id: String!
+  archive: Archive!
   createdAt: DateTime!
   deletedAt: DateTime
   flags: [String!]!
@@ -2862,6 +3139,7 @@ input UserCreateInput {
 
 type UserInfoResponseItem {
   _id: String!
+  archive: Archive!
   createdAt: DateTime!
 
   """url address to move other pages"""
@@ -2881,6 +3159,7 @@ type UserInfoResponseItemResponse {
 
 input UserInput {
   _id: String!
+  archive: ArchiveInput!
   createdAt: DateTime!
   deletedAt: DateTime
   flags: [String!]!

@@ -1,5 +1,5 @@
 import { SayIcon } from '@/components/SayIcon.tsx'
-import { reactionOf } from '@/lib/reactions.ts'
+import { reactionOf, sortReactions } from '@/lib/reactions.ts'
 import { hasComponent } from '@/lib/components.ts'
 
 type Item = {
@@ -17,7 +17,7 @@ const unsupported = 'text-neutral-400 dark:text-neutral-500'
  */
 export function BoardItemCounts({ item }: { item: Item }) {
   const has = (name: string) => hasComponent(item.components, name)
-  const reactions = (item.reactionsCnt ?? []).filter((r) => r.cnt > 0)
+  const reactions = sortReactions((item.reactionsCnt ?? []).filter((r) => r.cnt > 0))
   const opinionCnt = item.opinionsCnt?.[1] ?? 0
 
   return (

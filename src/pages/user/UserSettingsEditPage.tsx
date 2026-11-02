@@ -6,11 +6,14 @@ import { LinksEditor } from '@/components/LinksEditor.tsx'
 import { useUpdateUserSettings } from '@/actions/updateUserSettings.ts'
 import { useUserInfoForm } from '@/hooks/useUserInfoForm.ts'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { useProfileImoji } from '@/actions/profileImoji.ts'
+import { ProfileImojiPicker } from '@/components/profile/ProfileImojiPicker.tsx'
 
 export default function UserSettingsEditPage() {
   const { user } = useAuth()
   const { nickname, setNickname, links, setLinks, loading } = useUserInfoForm()
   const { submit, saving, error } = useUpdateUserSettings()
+  const imoji = useProfileImoji()
 
   if (!user) return <Navigate to="/login" replace />
 
@@ -24,6 +27,18 @@ export default function UserSettingsEditPage() {
       <h2 className="text-xl font-semibold">개인설정 수정</h2>
 
       {loading && <LoadingSpinner />}
+
+      {/* 프로필 이모지는 고르면 바로 적용된다. (아래 저장 버튼과 따로) */}
+      <div className="space-y-1">
+        <ProfileImojiPicker value={imoji.value} onChange={imoji.setValue} current={imoji.current} />
+        <p aria-live="polite" className="min-h-5 text-sm">
+          {imoji.error ? (
+            <span className="text-red-600 dark:text-red-400">{imoji.error}</span>
+          ) : imoji.applying ? (
+            <span className="text-neutral-500">적용 중...</span>
+          ) : null}
+        </p>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <NicknameField value={nickname} onChange={setNickname} disabled={saving} />
