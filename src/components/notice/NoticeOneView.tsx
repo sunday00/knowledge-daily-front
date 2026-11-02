@@ -5,7 +5,6 @@ import { NOTICE_ONE_QUERY } from '@/graphql/queries/notice.ts'
 import type { NoticeOneQuery } from '@/graphql/__generated__/graphql.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
 import { hasComponent } from '@/lib/components.ts'
-import { isLive } from '@/lib/liveWindow.ts'
 import {
   isPinnedNotice,
   noticeCategoryLabel,
@@ -36,7 +35,7 @@ export const noticeTarget = (item: NoticeOneItem): OpinionTarget => ({
 
 /**
  * 공지 한 건: 제목, 날짜, 본문(마크다운), (reaction 이면) 리액션 줄.
- * 게시 중(ACTIVE, 게시 기간 안)이 아니면 보여주지 않는다. 그 아래 내용(대화록 등)은 children 으로.
+ * ACTIVE 인 공지면 게시 기간과 상관없이 보여준다. 그 아래 내용(대화록 등)은 children 으로.
  */
 export function NoticeOneView({
   id,
@@ -55,11 +54,11 @@ export function NoticeOneView({
   })
   const res = data?.NoticeQuery.noticeOne
   const found = res?.success ? res.item : null
-  const item = found && found.status === 'ACTIVE' && isLive(found) ? found : null
+  // 게시 기간과 상관없이 ACTIVE 면 보인다. (게시 기간은 고정 표시에만)
+  const item = found && found.status === 'ACTIVE' ? found : null
   const categoryLabel = item && noticeCategoryLabel(item.category)
-  // pn 은 게시 기간을 따지지 않고 와서, 게시 기간이 아닌 공지면 잇지 않는다.
-  const liveLink = (n?: { _id: string; title: string; startAt: unknown; endAt: unknown } | null) =>
-    n && isLive(n) ? { to: withCategory(noticeItemPath(n._id), category), title: n.title } : null
+  const adjacentLink = (n?: { _id: string; title: string } | null) =>
+    n ? { to: withCategory(noticeItemPath(n._id), category), title: n.title } : null
 
   return (
     // pb-32: 대화록이 있으면 하단 고정 입력창에 마지막 항목이 가리지 않도록 여백
@@ -106,7 +105,9 @@ export function NoticeOneView({
         )}
       </article>
 
-      {item && <AdjacentNav prev={liveLink(res?.pn?.prev)} next={liveLink(res?.pn?.next)} />}
+      {item && (
+        <AdjacentNav prev={adjacentLink(res?.pn?.prev)} next={adjacentLink(res?.pn?.next)} />
+      )}
       {item && children?.(item)}
     </div>
   )

@@ -65,15 +65,28 @@ export const NOTICE_ONE_QUERY = graphql(`
           prev {
             _id
             title
-            startAt
-            endAt
           }
           next {
             _id
             title
-            startAt
-            endAt
           }
+        }
+      }
+    }
+  }
+`)
+
+// 홈 상단 공지 롤링: exposedOn(노출 위치) + 게시 중인 공지 제목만
+export const NOTICE_TICKER_QUERY = graphql(`
+  query NoticeTicker($input: NoticeListByQry) {
+    NoticeQuery {
+      noticeStandardList(input: $input) {
+        success
+        items {
+          _id
+          title
+          startAt
+          endAt
         }
       }
     }
