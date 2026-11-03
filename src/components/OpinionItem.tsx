@@ -53,7 +53,12 @@ export function OpinionItem({
     >
       <div className="flex items-center justify-between gap-3 text-xs text-neutral-500">
         <div className="flex min-w-0 items-center font-medium text-neutral-700 dark:text-neutral-300">
-          <UserAvatar archive={opinion.user?.archive} size={20} className="mr-1.5" />
+          <UserAvatar
+            archive={opinion.user?.archive}
+            userId={opinion.user?._id}
+            size={20}
+            className="mr-1.5"
+          />
           {/* 남의 의견이면 닉네임을 눌러 그 유저를 차단/신고 */}
           {others && opinion.user ? (
             <UserVillainMenu user={opinion.user} />

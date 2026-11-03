@@ -12,6 +12,24 @@ export const KAKAO_LOGIN_MUTATION = graphql(`
           isNewUser
           userId
           nickname
+          archive {
+            _id
+            point
+            img {
+              current {
+                _id
+                code
+                type
+              }
+            }
+            attaches {
+              sortKey
+              attach {
+                _id
+                src
+              }
+            }
+          }
         }
       }
     }

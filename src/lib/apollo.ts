@@ -17,6 +17,7 @@ import {
   refreshSharedConfigs,
   SHARED_CONFIGS_VERSION_HEADER,
 } from './sharedConfigs'
+import { syncUserPointFromHeaders } from './userPoint'
 
 const QUERY_NAMESPACES = [
   'AttachQryNamespace',
@@ -84,11 +85,21 @@ const configVersionRetryLink = new ApolloLink(
     }),
 )
 
+// 응답 헤더의 현재 포인트(x-user-point)를 받을 때마다 반영한다.
+const userPointLink = new ApolloLink((operation, forward) =>
+  forward(operation).map((result) => {
+    const { response } = operation.getContext() as { response?: Response }
+    syncUserPointFromHeaders(response?.headers)
+    return result
+  }),
+)
+
 export const apolloClient = new ApolloClient({
   link: from([
     errorLink,
     configVersionRetryLink,
     sharedConfigsLink,
+    userPointLink,
     new HttpLink({
       uri,
       // HttpOnly 쿠키 전송을 위해 필수.

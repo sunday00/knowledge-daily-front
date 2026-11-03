@@ -1,5 +1,7 @@
 import { SafeImage } from '@/components/SafeImage.tsx'
 import { ProfileImoji } from '@/components/profile/ProfileImoji.tsx'
+import { useAuth } from '@/auth/AuthProvider.tsx'
+import { useMyArchive } from '@/hooks/useMyArchive.ts'
 
 /** 프로필을 그리는 데 필요한 user.archive 의 일부 */
 export type AvatarArchive = {
@@ -17,16 +19,23 @@ function customSrc(archive: NonNullable<AvatarArchive>): string | undefined {
 /**
  * 사용자 프로필 그림.
  * IMOJI 는 code 를 이모지로, CUSTOM 은 archive 첨부 이미지로, 고른 게 없으면 기본 사람 아이콘.
+ * userId 가 나면 서버 응답 대신 로컬의 내 archive(auth_archive)를 써서, 프로필을 바꾸면 새로고침 없이 바로 바뀐다.
  */
 export function UserAvatar({
-  archive,
+  archive: given,
+  userId,
   size = 20,
   className = '',
 }: {
   archive?: AvatarArchive
+  /** 이 프로필의 주인. 나면 로컬의 내 archive 를 쓴다. */
+  userId?: string | null
   size?: number
   className?: string
 }) {
+  const { user } = useAuth()
+  const mine = useMyArchive()
+  const archive = userId && userId === user?.userId && mine ? mine : given
   const current = archive?.img?.current
   const box = `inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full ${className}`
   const style = { width: size, height: size }

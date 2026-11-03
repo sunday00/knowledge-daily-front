@@ -101,7 +101,7 @@ export function ArticleOneView({
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1.5">
-                  <UserAvatar archive={item.user?.archive} size={20} />
+                  <UserAvatar archive={item.user?.archive} userId={item.user?._id} size={20} />
                   {item.user?.nickname ?? '알 수 없음'}
                 </span>
                 <time dateTime={String(item.createdAt)}>{formatDateTime(item.createdAt)}</time>

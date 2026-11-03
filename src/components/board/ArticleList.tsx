@@ -96,7 +96,7 @@ export function ArticleList({ board, action }: { board: BoardConfig; action?: Re
                   </p>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
                     <span className="inline-flex items-center gap-1">
-                      <UserAvatar archive={item.user?.archive} size={16} />
+                      <UserAvatar archive={item.user?.archive} userId={item.user?._id} size={16} />
                       {item.user?.nickname ?? '알 수 없음'}
                     </span>
                     <time dateTime={String(item.createdAt)}>{formatDateTime(item.createdAt)}</time>

@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@apollo/client'
 import { ARCHIVE_MY_QUERY } from '@/graphql/queries/archive.ts'
 import { ARCHIVE_UPSERT_MUTATION } from '@/graphql/mutations/archive.ts'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue.ts'
+import { syncArchiveProfile } from '@/lib/authStorage.ts'
 
 // 이 시간 동안 더 고르지 않으면 마지막으로 고른 이모지를 저장한다.
 const DEBOUNCE_MS = 500
@@ -16,6 +17,12 @@ export function useProfileImoji() {
   const res = data?.ArchiveQuery.archiveUserOne
   // 처음 만들어진 archive 는 img: null 로 온다.
   const current = res?.success ? (res.item.img?.current?._id ?? null) : undefined
+
+  // 서버의 내 프로필을 로컬(auth_archive)에도 반영 — 바꾸면 refetch 결과로 여기까지 온다.
+  const serverItem = res?.success ? res.item : null
+  useEffect(() => {
+    if (serverItem) syncArchiveProfile(serverItem)
+  }, [serverItem])
 
   const [value, setValue] = useState<string | null>(null)
   const [initialized, setInitialized] = useState(false)

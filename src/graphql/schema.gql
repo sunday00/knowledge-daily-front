@@ -10,6 +10,9 @@ type Archive implements CompactEntity & IAttach & ICreatedAt & IUser {
   createdAt: DateTime!
   deletedAt: DateTime
   img: ArchiveImg
+
+  """보유 포인트"""
+  point: Int!
   status: StandardStatus!
 
   """user"""
@@ -223,6 +226,9 @@ input ArchiveImgUpsertInput {
 
 input ArchiveInput {
   img: ArchiveImgInput
+
+  """보유 포인트"""
+  point: Int!
 }
 
 type ArchiveMutNamespace {
@@ -986,6 +992,11 @@ type AuthTokenResponse {
   """자체 JWT (프론트가 Authorization 헤더에 사용)"""
   accessToken: String!
 
+  """
+  로그인 유저 archive. img.current 는 doc, img.available 은 항상 [] (보유 목록은 별도 조회)
+  """
+  archive: Archive
+
   """seconds"""
   expiresIn: Int!
 
@@ -1485,6 +1496,51 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type DeployFreePointData {
+  """
+  지급 대상 상세필드. ex) { targetEntity: "Sense" } 면 targetEntity sense 일 때만 지급.
+  """
+  input: [JsonType!]
+  maxes: [DeployFreePointDataItem!]!
+
+  """
+  지급 대상 resolver. resolver 메서드의 @ResolveGraph(..., { name }) options.name 값을 그대로 넣어야 함 (graphql field 이름과 비교). ex) opinionStandardList
+  """
+  resolver: String!
+}
+
+input DeployFreePointDataInput {
+  """
+  지급 대상 상세필드. ex) { targetEntity: "Sense" } 면 targetEntity sense 일 때만 지급.
+  """
+  input: [JsonType!]
+  maxes: [DeployFreePointDataItemInput!]!
+
+  """
+  지급 대상 resolver. resolver 메서드의 @ResolveGraph(..., { name }) options.name 값을 그대로 넣어야 함 (graphql field 이름과 비교). ex) opinionStandardList
+  """
+  resolver: String!
+}
+
+type DeployFreePointDataItem {
+  cnt: Int!
+  duration: Int!
+
+  """YYYY | MM | DD | HH | mm | ss"""
+  unit: String!
+}
+
+"""
+제한공통. duration unit 에 cnt 번. ex) { duration: 3, unit:"mm", cnt: 7 } 이면 3분에 7번까지를 의미.
+"""
+input DeployFreePointDataItemInput {
+  cnt: Int!
+  duration: Int!
+
+  """YYYY | MM | DD | HH | mm | ss"""
+  unit: String!
+}
+
 """
 formatted date string, 
 not DateType, without time, just Date only. 
@@ -1578,6 +1634,7 @@ type Mutation {
   NoticeMutation: NoticeMutNamespace!
   NotifyMutation: NotifyMutNamespace!
   OpinionMutation: OpinionMutNamespace!
+  PointMutation: PointMutNamespace!
   ReactionMutation: ReactionMutNamespace!
   SenseMutation: SenseMutNamespace!
   UserMutation: UserMutNamespace!
@@ -2253,6 +2310,175 @@ input OpinionUpdateInput {
   version: String
 }
 
+type PointHistory implements CompactEntity & ICreatedAt & IUser {
+  _id: String!
+
+  """변동 후 잔액"""
+  balance: Int!
+
+  """상대 유저 id. null 이면 system"""
+  counterpart: String
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """변동량. 차감은 음수"""
+  delta: Int!
+
+  """사유 상세"""
+  reasonDetail: PointReasonDetail
+
+  """사유 id"""
+  reasonId: String!
+  status: StandardStatus!
+
+  """user"""
+  user: User
+  version: String!
+}
+
+input PointHistoryInput {
+  """변동 후 잔액"""
+  balance: Int!
+
+  """상대 유저 id. null 이면 system"""
+  counterpart: String
+
+  """변동량. 차감은 음수"""
+  delta: Int!
+
+  """사유 상세"""
+  reasonDetail: PointReasonDetailInput
+
+  """사유 id"""
+  reasonId: String!
+}
+
+input PointHistoryListMyQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: PointHistorySearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: PointHistorySearchInputSortType
+}
+
+type PointHistoryListResponse {
+  hasNext: Boolean
+  items: [PointHistory!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+input PointHistorySearchInput {
+  _id: RangeString
+
+  """변동 후 잔액"""
+  balance: RangeInt
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+
+  """상대 유저 id. null 이면 system"""
+  counterpart: RangeString
+  createdAt: RangeDate
+  deletedAt: RangeDate
+
+  """변동량. 차감은 음수"""
+  delta: RangeInt
+
+  """사유 상세"""
+  reasonDetail: PointReasonDetailInput
+
+  """사유 id"""
+  reasonId: RangeString
+  status: RangeStandardStatus
+
+  """user"""
+  user: UserInput
+  version: RangeString
+}
+
+input PointHistorySearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  balance: Int
+
+  """1: asc, -1: desc"""
+  counterpart: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  delta: Int
+
+  """1: asc, -1: desc"""
+  reasonDetail: Int
+
+  """1: asc, -1: desc"""
+  reasonId: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  user: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+type PointMutNamespace {
+  _pointMutNotImplementedThing: SimpleJsonRes!
+}
+
+type PointQryNamespace {
+  pointHistoryMyList(input: PointHistoryListMyQry): PointHistoryListResponse!
+}
+
+type PointReasonDetail {
+  """사유 대상 id"""
+  counterId: String
+
+  """사유 대상 표시명"""
+  counterLabel: String
+}
+
+input PointReasonDetailInput {
+  """사유 대상 id"""
+  counterId: String
+
+  """사유 대상 표시명"""
+  counterLabel: String
+}
+
 type Query {
   ArchiveQuery: ArchiveQryNamespace!
   AttachQuery: AttachQryNamespace!
@@ -2262,6 +2488,7 @@ type Query {
   NoticeQuery: NoticeQryNamespace!
   NotifyQuery: NotifyQryNamespace!
   OpinionQuery: OpinionQryNamespace!
+  PointQuery: PointQryNamespace!
   ReactionQuery: ReactionQryNamespace!
   SenseQuery: SenseQryNamespace!
   SystemQuery: SystemQryNamespace!
