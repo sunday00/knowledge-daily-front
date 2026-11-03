@@ -3,6 +3,7 @@ import { useAuth } from '@/auth/AuthProvider.tsx'
 import { ThemeToggle } from '@/theme/ThemeToggle.tsx'
 import { UserMenu } from './UserMenu'
 import { BoardMenu } from './BoardMenu'
+import { UserPoint } from './UserPoint'
 
 export function Navigator() {
   const { user } = useAuth()
@@ -27,6 +28,7 @@ export function Navigator() {
         </Link>
       </div>
       <div className="flex items-center gap-3">
+        <UserPoint />
         <ThemeToggle />
         {user ? (
           <UserMenu />

@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import { useSignOut } from '@/actions/signOut.ts'
+import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
+import { useMyArchive } from '@/hooks/useMyArchive.ts'
 
 export function UserMenu() {
   const { user } = useAuth()
+  const myArchive = useMyArchive()
   const signOut = useSignOut()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -38,7 +41,7 @@ export function UserMenu() {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <span aria-hidden>👤</span>
+        <UserAvatar archive={myArchive} size={20} />
         <span>{label}</span>
         <span aria-hidden>▾</span>
       </button>

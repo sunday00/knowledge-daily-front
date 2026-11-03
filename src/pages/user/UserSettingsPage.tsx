@@ -9,6 +9,7 @@ import { NotifyInterest } from '../../components/NotifyInterest'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { ARCHIVE_MY_QUERY } from '@/graphql/queries/archive.ts'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
+import { syncArchiveProfile } from '@/lib/authStorage.ts'
 
 const TABS = [
   { key: 'basic', label: '기본정보', editTo: '/user/settings/edit' },
@@ -128,6 +129,11 @@ function BasicInfo() {
 function MyProfileImoji() {
   const { data, loading, error } = useQuery(ARCHIVE_MY_QUERY, { fetchPolicy: 'cache-and-network' })
   const res = data?.ArchiveQuery.archiveUserOne
+  const serverItem = res?.success ? res.item : null
+  // 서버의 내 프로필을 로컬(auth_archive)에도 반영 (다른 기기에서 바꾼 경우 등)
+  useEffect(() => {
+    if (serverItem) syncArchiveProfile(serverItem)
+  }, [serverItem])
 
   if (loading && !res) return <LoadingSpinner size="sm" />
   if (error)

@@ -7,7 +7,7 @@ import { OPINION_ITEM_FRAGMENT } from '@/graphql/queries/opinion.ts'
 import type { OpinionItemFieldsFragment } from '@/graphql/__generated__/graphql.ts'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import type { OpinionTarget } from '@/lib/opinionTarget.ts'
-import { ARCHIVE_MY_QUERY } from '@/graphql/queries/archive.ts'
+import { getArchive } from '@/lib/authStorage.ts'
 
 // 기존 의견 데이터와 같은 스키마 버전
 const OPINION_VERSION = '1.0'
@@ -29,15 +29,18 @@ export function useCreateOpinion(target: Pick<OpinionTarget, 'entity' | 'id'>, p
   const [error, setError] = useState<string | null>(null)
   const [mutate, { loading: sending }] = useMutation(OPINION_CREATE_MUTATION)
 
-  // 새 의견에 붙일 내 프로필. 받아 둔 내 archive 가 없으면 기본 아이콘으로 보이다가 다시 조회할 때 채워진다.
+  // 새 의견에 붙일 내 프로필: 로컬의 내 archive(auth_archive). 화면에선 UserAvatar 가 어차피 로컬 값을 쓴다.
+  // (저장 값은 Apollo 응답 그대로라 하위 객체에 __typename 이 들어 있다)
   const myArchive = () => {
-    const item = client.readQuery({ query: ARCHIVE_MY_QUERY })?.ArchiveQuery.archiveUserOne.item
-    if (!item) return null
+    const stored = getArchive()
+    if (!stored) return null
     return {
       __typename: 'Archive' as const,
-      _id: item._id,
-      img: item.img ? { __typename: 'ArchiveImg' as const, current: item.img.current } : null,
-      attaches: item.attaches,
+      _id: stored._id,
+      img: stored.img
+        ? { __typename: 'ArchiveImg' as const, current: stored.img.current ?? null }
+        : null,
+      attaches: stored.attaches,
     }
   }
 

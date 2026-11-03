@@ -62,7 +62,11 @@ export function useKakaoSignIn(params: URLSearchParams) {
           return
         }
 
-        signIn({ userId: res.item.userId, nickname: res.item.nickname })
+        signIn({
+          userId: res.item.userId,
+          nickname: res.item.nickname,
+          archive: res.item.archive,
+        })
         setStatus({
           kind: 'ok',
           isNewUser: res.item.isNewUser,

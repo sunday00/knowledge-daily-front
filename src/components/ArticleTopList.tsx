@@ -109,7 +109,7 @@ function ArticleRow({
             {boardLabel}
           </span>
           <span className="inline-flex items-center gap-1">
-            <UserAvatar archive={article.user?.archive} size={16} />
+            <UserAvatar archive={article.user?.archive} userId={article.user?._id} size={16} />
             {article.user?.nickname ?? '알 수 없음'}
           </span>
           <time dateTime={String(article.createdAt)}>{formatDateTime(article.createdAt)}</time>

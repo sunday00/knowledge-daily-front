@@ -5,13 +5,15 @@ import {
   getUserId,
   saveSession,
   updateNickname,
+  type StoredArchive,
 } from '../lib/authStorage'
+import { setUserPoint } from '../lib/userPoint'
 
 type AuthUser = { userId: string; nickname: string }
 
 type AuthContextValue = {
   user: AuthUser | null
-  signIn: (payload: AuthUser) => void
+  signIn: (payload: AuthUser & { archive?: StoredArchive | null }) => void
   signOut: () => void
   updateUser: (partial: Partial<AuthUser>) => void
 }
@@ -31,12 +33,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
-      signIn: ({ userId, nickname }) => {
-        saveSession({ userId, nickname })
+      signIn: ({ userId, nickname, archive }) => {
+        saveSession({ userId, nickname, archive })
         setUser({ userId, nickname })
       },
       signOut: () => {
         clearSession()
+        setUserPoint(null)
         setUser(null)
       },
       updateUser: (partial) => {
