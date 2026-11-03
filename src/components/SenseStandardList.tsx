@@ -1,5 +1,6 @@
 import { useCachedSenseList } from '@/hooks/useCachedSenseList.ts'
 import { SenseItem } from './SenseItem'
+import { MySenseButton } from '@/components/MySenseButton.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
 type Props = {
@@ -33,7 +34,11 @@ export function SenseStandardList({ size }: Props) {
   return (
     <ul className="space-y-3">
       {res.items.map((item) => (
-        <SenseItem key={item._id} item={item} />
+        <SenseItem
+          key={item._id}
+          item={item}
+          action={<MySenseButton senseId={item._id} mode="add" />}
+        />
       ))}
     </ul>
   )

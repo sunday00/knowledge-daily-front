@@ -22,6 +22,7 @@ import { syncUserPointFromHeaders } from './userPoint'
 const QUERY_NAMESPACES = [
   'AttachQryNamespace',
   'AuthQryNamespace',
+  'DocumentQryNamespace',
   'EmbedQryNamespace',
   'NotifyQryNamespace',
   'OpinionQryNamespace',

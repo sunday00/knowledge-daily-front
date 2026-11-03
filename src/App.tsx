@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import HomePage from './pages/HomePage'
-import AboutPage from './pages/AboutPage'
 import NotFoundPage from './pages/NotFoundPage'
 import LoginPage from './pages/LoginPage'
 import UserSettingsPage from './pages/user/UserSettingsPage'
@@ -19,6 +18,9 @@ import { BoardItemPage, BoardThreadPage } from './pages/board/BoardItemPages'
 import ArticleEditPage from './pages/board/ArticleEditPage'
 import { NoticeDetailPage, NoticePage, NoticeThreadPage } from './pages/board/NoticePages'
 import { Navigator } from './components/Navigator'
+import { Footer } from './components/Footer'
+import { ScrollTopButton } from './components/ScrollTopButton'
+import { documentPath } from './lib/documents'
 import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
 import { ErrorBanner } from './components/ErrorBanner'
@@ -28,6 +30,8 @@ import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 const SenseDetailPage = lazy(() => import('./pages/sense/SenseDetailPage'))
 // 대화록 상세(의견 목록)도 들어갈 때만 불러온다.
 const ThreadOpinionsPage = lazy(() => import('./pages/sense/ThreadOpinionsPage'))
+// 개인정보처리방침, 이용약관, 소개 등 문서도 마크다운이라 들어갈 때만 불러온다.
+const DocumentPage = lazy(() => import('./pages/document/DocumentPage'))
 
 // 예전 태그 주소(/sense/tag/:tag)는 태그 메뉴로 보낸다.
 function LegacyTagRedirect() {
@@ -50,7 +54,15 @@ export default function App() {
       <main className="pt-6">
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/about" element={<AboutPage />} />
+          <Route
+            path="/documents/:slug"
+            element={
+              <Suspense fallback={pageFallback}>
+                <DocumentPage />
+              </Suspense>
+            }
+          />
+          <Route path="/about" element={<Navigate to={documentPath('about')} replace />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/user/settings" element={<UserSettingsPage />} />
           <Route path="/user/settings/edit" element={<UserSettingsEditPage />} />
@@ -92,6 +104,8 @@ export default function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
+      <Footer />
+      <ScrollTopButton />
     </div>
   )
 }

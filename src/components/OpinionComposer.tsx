@@ -34,9 +34,11 @@ type Props = {
 export function OpinionComposer(props: Props) {
   const { user } = useAuth()
   const location = useLocation()
+  const dockRef = useBottomDock()
 
   return (
     <div
+      ref={dockRef}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
@@ -201,4 +203,26 @@ function mentionAtCaret(value: string, caret: number): { sid: number; start: num
     if (caret >= start && caret <= start + m[0].length) return { sid: Number(m[1]), start }
   }
   return null
+}
+
+/**
+ * 하단 고정 영역의 높이를 --bottom-dock 으로 알린다. 다른 떠 있는 버튼(맨 위로 등)이 그 위로 피한다.
+ * 입력창이 늘어나거나 줄어도 따라간다. 사라지면 지운다.
+ */
+function useBottomDock() {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const root = document.documentElement
+    const observer = new ResizeObserver(() =>
+      root.style.setProperty('--bottom-dock', `${el.offsetHeight}px`),
+    )
+    observer.observe(el)
+    return () => {
+      observer.disconnect()
+      root.style.removeProperty('--bottom-dock')
+    }
+  }, [])
+  return ref
 }
