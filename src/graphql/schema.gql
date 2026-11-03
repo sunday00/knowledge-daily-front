@@ -1541,6 +1541,74 @@ input DeployFreePointDataItemInput {
   unit: String!
 }
 
+type Embed implements CompactEntity & ICreatedAt & IUser {
+  _id: String!
+
+  """임베드 허용 도메인(호스트). ex) ["myblog.tistory.com"]. 비어 있으면 도메인 제한 없음"""
+  allowedDomains: [String!]!
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """유료 기한. 지나면 url 은 그대로, 이미지는 서비스 종료 안내로"""
+  expiredAt: DateTime!
+  status: StandardStatus!
+
+  """user"""
+  user: User
+  version: String!
+}
+
+type EmbedApplyResult {
+  """임베드 토큰 원문. 다시 조회할 수 없으니 이때 보관"""
+  code: String!
+
+  """블로그 등에 붙여넣을 img 태그 예시"""
+  imgHtml: String!
+
+  """이미지 url (기본 크기)"""
+  src: String!
+}
+
+type EmbedApplyResultResponse {
+  item: EmbedApplyResult!
+  message: String
+  success: Int!
+}
+
+input EmbedInput {
+  """임베드 허용 도메인(호스트). ex) ["myblog.tistory.com"]. 비어 있으면 도메인 제한 없음"""
+  allowedDomains: [String!]!
+
+  """유료 기한. 지나면 url 은 그대로, 이미지는 서비스 종료 안내로"""
+  expiredAt: DateTime!
+}
+
+input EmbedIssueInput {
+  """임베드 허용 도메인(호스트). ex) ["myblog.tistory.com"]. 비우면 도메인 제한 없음"""
+  allowedDomains: [String!]
+}
+
+type EmbedMutNamespace {
+  embedApply(input: EmbedIssueInput): EmbedApplyResultResponse!
+  embedCodeReissue: EmbedApplyResultResponse!
+  embedUpdate(input: EmbedUpdateInput!): EmbedResponse!
+}
+
+type EmbedQryNamespace {
+  embedMyOne: EmbedResponse!
+}
+
+type EmbedResponse {
+  item: Embed!
+  message: String
+  success: Int!
+}
+
+input EmbedUpdateInput {
+  """임베드 허용 도메인(호스트). 빈 배열이면 도메인 제한 없음, 생략하면 변경 없음"""
+  allowedDomains: [String!]
+}
+
 """
 formatted date string, 
 not DateType, without time, just Date only. 
@@ -1631,6 +1699,7 @@ type Mutation {
   AuthMutation: AuthMutNamespace!
   BannerMutation: BannerMutNamespace!
   BoardMutation: BoardMutNamespace!
+  EmbedMutation: EmbedMutNamespace!
   NoticeMutation: NoticeMutNamespace!
   NotifyMutation: NotifyMutNamespace!
   OpinionMutation: OpinionMutNamespace!
@@ -2485,6 +2554,7 @@ type Query {
   AuthQuery: AuthQryNamespace!
   BannerQuery: BannerQryNamespace!
   BoardQuery: BoardQryNamespace!
+  EmbedQuery: EmbedQryNamespace!
   NoticeQuery: NoticeQryNamespace!
   NotifyQuery: NotifyQryNamespace!
   OpinionQuery: OpinionQryNamespace!
