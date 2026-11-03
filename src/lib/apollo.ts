@@ -22,6 +22,7 @@ import { syncUserPointFromHeaders } from './userPoint'
 const QUERY_NAMESPACES = [
   'AttachQryNamespace',
   'AuthQryNamespace',
+  'EmbedQryNamespace',
   'NotifyQryNamespace',
   'OpinionQryNamespace',
   'ReactionQryNamespace',
@@ -35,7 +36,16 @@ const QUERY_NAMESPACES = [
 const uri = import.meta.env.VITE_GRAPHQL_ENDPOINT ?? 'http://localhost:4000/graphql'
 
 // 모든 API 에러를 화면 상단 ErrorBanner 로 보고.
+// 화면에서 직접 처리하는 에러(예: 아직 신청 안 함)는 요청 context 의 expectedErrorCodes 에 적으면 보고하지 않는다.
 const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+  const expected = (operation.getContext().expectedErrorCodes ?? []) as string[]
+  if (
+    !networkError &&
+    graphQLErrors?.length &&
+    graphQLErrors.every((g) => expected.includes(String(g.extensions?.code)))
+  ) {
+    return
+  }
   const error = new ApolloError({ graphQLErrors, networkError })
   reportError(`[API] ${operation.operationName}: ${error.message}`, error)
 })

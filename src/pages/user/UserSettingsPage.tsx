@@ -10,10 +10,12 @@ import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { ARCHIVE_MY_QUERY } from '@/graphql/queries/archive.ts'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 import { syncArchiveProfile } from '@/lib/authStorage.ts'
+import { PaidServices } from '@/components/paid/PaidServices.tsx'
 
 const TABS = [
   { key: 'basic', label: '기본정보', editTo: '/user/settings/edit' },
   { key: 'interest', label: '내 관심', editTo: '/user/settings/interest/edit' },
+  { key: 'paid', label: '유료서비스', editTo: null },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
@@ -22,7 +24,8 @@ export default function UserSettingsPage() {
   const { user } = useAuth()
   const [params, setParams] = useSearchParams()
   // 새로고침/뒤로가기에도 탭이 유지되도록 URL 에 둔다.
-  const tab: TabKey = params.get('tab') === 'interest' ? 'interest' : 'basic'
+  const tab: TabKey = TABS.find((t) => t.key === params.get('tab'))?.key ?? 'basic'
+  const editTo = TABS.find((t) => t.key === tab)?.editTo
 
   if (!user) return <Navigate to="/login" replace />
 
@@ -30,9 +33,11 @@ export default function UserSettingsPage() {
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">개인설정</h2>
-        <Link to={TABS.find((t) => t.key === tab)!.editTo} className="btn">
-          수정
-        </Link>
+        {editTo && (
+          <Link to={editTo} className="btn">
+            수정
+          </Link>
+        )}
       </div>
 
       <div
@@ -60,7 +65,9 @@ export default function UserSettingsPage() {
         })}
       </div>
 
-      {tab === 'basic' ? <BasicInfo /> : <NotifyInterest />}
+      {tab === 'basic' && <BasicInfo />}
+      {tab === 'interest' && <NotifyInterest />}
+      {tab === 'paid' && <PaidServices />}
     </section>
   )
 }
