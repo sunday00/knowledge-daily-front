@@ -1541,6 +1541,204 @@ input DeployFreePointDataItemInput {
   unit: String!
 }
 
+type Document implements IAttach & ICreatedAt & StandardEntity {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+
+  """본문 (markdown)"""
+  content: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """시행일. 이 시각부터 현재 문서로 노출"""
+  effectiveAt: DateTime!
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+  pinn: Boolean!
+
+  """문서 개정 차수. 1 부터, 개정할 때마다 +1"""
+  revision: Int!
+
+  """고유 경로. ex) privacy, terms, about. front url /documents/:slug"""
+  slug: String!
+  sortKey: Int!
+  status: StandardStatus!
+  title: String!
+  type: DocumentType!
+  version: String!
+}
+
+input DocumentInput {
+  """본문 (markdown)"""
+  content: String!
+
+  """시행일. 이 시각부터 현재 문서로 노출"""
+  effectiveAt: DateTime!
+
+  """문서 개정 차수. 1 부터, 개정할 때마다 +1"""
+  revision: Int!
+
+  """고유 경로. ex) privacy, terms, about. front url /documents/:slug"""
+  slug: String!
+  title: String!
+  type: DocumentType!
+}
+
+input DocumentListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: DocumentSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: DocumentSearchInputSortType
+}
+
+type DocumentListResponse {
+  hasNext: Boolean
+  items: [Document!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type DocumentMutNamespace {
+  _documentMutNotImplementedThing: SimpleJsonRes!
+}
+
+input DocumentOneBySlugQry {
+  """지난 문서 열람용 개정 차수. 없으면 현재 시행 중인 문서"""
+  revision: Int
+
+  """문서 고유 경로. ex) privacy, terms, about"""
+  slug: String!
+}
+
+type DocumentQryNamespace {
+  documentOne(input: DocumentOneBySlugQry!): DocumentResponse!
+  documentStandardList(input: DocumentListByQry): DocumentListResponse!
+}
+
+type DocumentResponse {
+  item: Document!
+  message: String
+  success: Int!
+}
+
+input DocumentSearchInput {
+  _id: RangeString
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+
+  """본문 (markdown)"""
+  content: RangeString
+  createdAt: RangeDate
+  deletedAt: RangeDate
+
+  """시행일. 이 시각부터 현재 문서로 노출"""
+  effectiveAt: RangeDate
+  flags: [String!]
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+  pinn: Boolean
+
+  """문서 개정 차수. 1 부터, 개정할 때마다 +1"""
+  revision: RangeInt
+
+  """고유 경로. ex) privacy, terms, about. front url /documents/:slug"""
+  slug: RangeString
+  sortKey: RangeInt
+  status: RangeStandardStatus
+  title: RangeString
+  type: RangeDocumentType
+  version: RangeString
+}
+
+input DocumentSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  attaches: Int
+
+  """1: asc, -1: desc"""
+  content: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  effectiveAt: Int
+
+  """1: asc, -1: desc"""
+  flags: Int
+
+  """1: asc, -1: desc"""
+  links: Int
+
+  """1: asc, -1: desc"""
+  pinn: Int
+
+  """1: asc, -1: desc"""
+  revision: Int
+
+  """1: asc, -1: desc"""
+  slug: Int
+
+  """1: asc, -1: desc"""
+  sortKey: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  title: Int
+
+  """1: asc, -1: desc"""
+  type: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+enum DocumentType {
+  ABOUT
+  PRIVACY
+  TERMS
+}
+
 type Embed implements CompactEntity & ICreatedAt & IUser {
   _id: String!
 
@@ -1699,6 +1897,7 @@ type Mutation {
   AuthMutation: AuthMutNamespace!
   BannerMutation: BannerMutNamespace!
   BoardMutation: BoardMutNamespace!
+  DocumentMutation: DocumentMutNamespace!
   EmbedMutation: EmbedMutNamespace!
   NoticeMutation: NoticeMutNamespace!
   NotifyMutation: NotifyMutNamespace!
@@ -2554,6 +2753,7 @@ type Query {
   AuthQuery: AuthQryNamespace!
   BannerQuery: BannerQryNamespace!
   BoardQuery: BoardQryNamespace!
+  DocumentQuery: DocumentQryNamespace!
   EmbedQuery: EmbedQryNamespace!
   NoticeQuery: NoticeQryNamespace!
   NotifyQuery: NotifyQryNamespace!
@@ -2613,6 +2813,18 @@ input RangeDate {
   lte: DateTime
   mul: [DateTime!]
   not: DateTime
+}
+
+"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
+input RangeDocumentType {
+  contains: DocumentType
+  eq: DocumentType
+  gt: DocumentType
+  gte: DocumentType
+  lt: DocumentType
+  lte: DocumentType
+  mul: [DocumentType!]
+  not: DocumentType
 }
 
 "\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "

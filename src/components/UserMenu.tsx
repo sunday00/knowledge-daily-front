@@ -39,10 +39,13 @@ export function UserMenu() {
         className="btn"
         aria-haspopup="menu"
         aria-expanded={open}
+        // 좁은 화면에선 닉네임을 숨기므로 툴팁/스크린리더로 알린다.
+        title={user.nickname}
+        aria-label={`${user.nickname} 메뉴`}
         onClick={() => setOpen((v) => !v)}
       >
         <UserAvatar archive={myArchive} size={20} />
-        <span>{label}</span>
+        <span className="hidden sm:inline">{label}</span>
         <span aria-hidden>▾</span>
       </button>
       {open && (

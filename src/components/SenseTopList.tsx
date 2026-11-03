@@ -3,6 +3,7 @@ import { SENSE_OPINION_TOP_QUERY, SENSE_REACTION_TOP_QUERY } from '@/graphql/que
 import { POPULAR_REACTION_CODES } from '@/lib/reactions.ts'
 import { SenseItem, type SenseListItem } from '@/components/SenseItem.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { MySenseButton } from '@/components/MySenseButton.tsx'
 
 type TopResult = {
   success: number
@@ -42,7 +43,12 @@ function RankedSenses({
   return (
     <ol className="space-y-3">
       {senses.map((item, i) => (
-        <SenseItem key={item._id} item={item} rank={i + 1} />
+        <SenseItem
+          key={item._id}
+          item={item}
+          rank={i + 1}
+          action={<MySenseButton senseId={item._id} mode="add" />}
+        />
       ))}
     </ol>
   )
