@@ -5,6 +5,7 @@ import { ThemeToggle } from '@/theme/ThemeToggle.tsx'
 import { documentPath } from '@/lib/documents.ts'
 import { boardPath, listBoards } from '@/lib/boards.ts'
 import { NOTICE_PATH, NOTICE_TITLE } from '@/lib/notice.ts'
+import { CAMPAIGN_PATH } from '@/lib/campaign.ts'
 import { UserMenu } from './UserMenu'
 import { BoardMenu } from './BoardMenu'
 import { UserPoint } from './UserPoint'
@@ -32,6 +33,9 @@ export function Navigator() {
           </Link>
         )}
         <BoardMenu />
+        <Link to={CAMPAIGN_PATH} className="nav-link">
+          Event
+        </Link>
         <Link to={ABOUT_PATH} className="nav-link">
           About
         </Link>
@@ -108,6 +112,7 @@ function MobileMenu() {
         </li>
         {boardItems.map(renderItem)}
         <li aria-hidden className="my-1 border-t border-neutral-200 dark:border-neutral-700" />
+        {renderItem({ key: 'event', to: CAMPAIGN_PATH, label: 'Event' })}
         {renderItem({ key: 'about', to: ABOUT_PATH, label: 'About' })}
       </ul>
     </Popover>

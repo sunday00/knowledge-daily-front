@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { OpinionComposer } from '@/components/OpinionComposer.tsx'
 import { ThreadItem } from '@/components/ThreadItem.tsx'
 import { PendingThreadItem } from '@/components/PendingOpinion.tsx'
@@ -13,20 +12,14 @@ import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
  * 원글(상식, 문의/요청 글) 아래 대화록 목록 + 하단 고정 새 대화 입력창.
  * 하단 입력창에 가리지 않도록 쓰는 쪽에서 아래 여백(pb-32 정도)을 둔다.
  */
-export function TargetThreads({
-  target,
-  backLink,
-}: {
-  target: OpinionTarget
-  backLink?: ReactNode
-}) {
+export function TargetThreads({ target }: { target: OpinionTarget }) {
   // 내가 새로 단 의견 (테두리로 살짝 강조). 새로고침 전까지 유지
   const addedIds = useAddedOpinionIds()
   const list = useThreadList(target.id)
 
   return (
     <>
-      <ThreadSection target={target} list={list} addedIds={addedIds} backLink={backLink} />
+      <ThreadSection target={target} list={list} addedIds={addedIds} />
       <OpinionComposer
         target={target}
         placeholder="새 대화를 시작해 보세요"
@@ -46,12 +39,10 @@ function ThreadSection({
   target,
   list,
   addedIds,
-  backLink,
 }: {
   target: OpinionTarget
   list: ReturnType<typeof useThreadList>
   addedIds: ReadonlySet<string>
-  backLink?: ReactNode
 }) {
   const { res, loading, loadingMore, error, loadMore } = list
   const sentinelRef = useInfiniteScroll<HTMLDivElement>(loadMore, !!res?.hasNext && !loadingMore)
@@ -67,7 +58,6 @@ function ThreadSection({
             </span>
           ) : null}
         </h3>
-        {backLink}
       </div>
 
       {loading && <LoadingSpinner />}

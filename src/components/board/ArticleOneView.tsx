@@ -11,6 +11,7 @@ import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
 import { AdjacentNav } from '@/components/AdjacentNav.tsx'
+import { BackToList } from '@/components/BackToList.tsx'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 
 export type ArticleOneItem = ArticleOneQuery['BoardQuery']['articleOne']['item']
@@ -65,9 +66,7 @@ export function ArticleOneView({
     <div className={`space-y-8 ${item && hasArticleComponent(item, 'Opinion') ? 'pb-32' : ''}`}>
       <article className="space-y-4">
         {/* 목록에서 왔으면 보던 페이지(?page=)로 돌아간다. */}
-        <Link to={state?.from ?? boardPath(board)} className="text-sm no-underline">
-          ← {board.label || board.title}
-        </Link>
+        <BackToList fallback={boardPath(board)}>{board.label || board.title} 목록</BackToList>
 
         {loading && <LoadingSpinner />}
         {/* 없는 글이면 서버가 item null 오류를 돌려준다. */}

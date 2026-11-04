@@ -70,7 +70,7 @@ export function ArticleList({ board, action }: { board: BoardConfig; action?: Re
                 <Link
                   // 분류 탭에서 들어가면 상세의 이전/다음도 그 분류 안에서
                   to={withCategory(`${boardPath(board)}/${item._id}`, category)}
-                  // 상세의 "← 목록" 이 보던 페이지로 돌아가도록
+                  // 상세의 목록 버튼이 보던 페이지로 돌아가도록
                   state={{ from: location.pathname + location.search }}
                   className="block space-y-1 px-4 py-3 no-underline text-inherit hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
                 >

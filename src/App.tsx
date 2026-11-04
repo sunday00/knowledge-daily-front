@@ -21,6 +21,8 @@ import { Navigator } from './components/Navigator'
 import { Footer } from './components/Footer'
 import { ScrollTopButton } from './components/ScrollTopButton'
 import { documentPath } from './lib/documents'
+import { CAMPAIGN_PATH } from './lib/campaign'
+import CampaignListPage from './pages/campaign/CampaignListPage'
 import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
 import { ErrorBanner } from './components/ErrorBanner'
@@ -32,6 +34,13 @@ const SenseDetailPage = lazy(() => import('./pages/sense/SenseDetailPage'))
 const ThreadOpinionsPage = lazy(() => import('./pages/sense/ThreadOpinionsPage'))
 // 개인정보처리방침, 이용약관, 소개 등 문서도 마크다운이라 들어갈 때만 불러온다.
 const DocumentPage = lazy(() => import('./pages/document/DocumentPage'))
+// 캠페인 상세도 마크다운이라 들어갈 때만 불러온다.
+const CampaignDetailPage = lazy(() =>
+  import('./pages/campaign/CampaignPages').then((m) => ({ default: m.CampaignDetailPage })),
+)
+const CampaignThreadPage = lazy(() =>
+  import('./pages/campaign/CampaignPages').then((m) => ({ default: m.CampaignThreadPage })),
+)
 
 // 예전 태그 주소(/sense/tag/:tag)는 태그 메뉴로 보낸다.
 function LegacyTagRedirect() {
@@ -59,6 +68,23 @@ export default function App() {
             element={
               <Suspense fallback={pageFallback}>
                 <DocumentPage />
+              </Suspense>
+            }
+          />
+          <Route path={CAMPAIGN_PATH} element={<CampaignListPage />} />
+          <Route
+            path="/campaign/:type/:id"
+            element={
+              <Suspense fallback={pageFallback}>
+                <CampaignDetailPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/campaign/:type/:id/threads/:threadId"
+            element={
+              <Suspense fallback={pageFallback}>
+                <CampaignThreadPage />
               </Suspense>
             }
           />

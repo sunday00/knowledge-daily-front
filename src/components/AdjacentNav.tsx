@@ -8,7 +8,7 @@ export type AdjacentLink = { to: string; title: string } | null
  * 단건 조회의 pn 을 쓴다: prev = 목록에서 바로 위, next = 목록에서 바로 아래. 목록 배치대로 위/아래에 둔다.
  */
 export function AdjacentNav({ prev, next }: { prev: AdjacentLink; next: AdjacentLink }) {
-  // 옮겨 가도 "← 목록" 이 처음 보던 목록 페이지로 돌아가도록 넘겨받은 state 를 이어 준다.
+  // 옮겨 가도 목록 버튼이 처음 보던 목록 페이지로 돌아가도록 넘겨받은 state 를 이어 준다.
   const state = useLocation().state as { from?: string } | null
   const from = state?.from ? { from: state.from } : undefined
 

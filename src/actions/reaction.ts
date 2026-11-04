@@ -5,7 +5,7 @@ import type { ReactionCode } from '@/lib/reactions.ts'
 
 /** 리액션 대상. 상식 본문은 Sense, 문의/요청 글은 Ask, 게시글은 Article, 공지는 Notice, 대화록 카드는 Thread, 의견 카드는 Opinion */
 export type ReactionTarget = {
-  entity: 'Sense' | 'Ask' | 'Article' | 'Notice' | 'Opinion' | 'Thread'
+  entity: 'Sense' | 'Ask' | 'Article' | 'Notice' | 'Campaign' | 'Opinion' | 'Thread'
   id: string
 }
 
