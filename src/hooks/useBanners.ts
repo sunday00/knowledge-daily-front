@@ -3,6 +3,7 @@ import { useQuery } from '@apollo/client'
 import { BANNER_LIST_QUERY } from '@/graphql/queries/banner.ts'
 import type { BannerListQuery } from '@/graphql/__generated__/graphql.ts'
 import { isLive, useLiveWindowSearch } from '@/lib/liveWindow.ts'
+import { firstAttach, type CarouselSlide } from '@/components/BannerCarousel.tsx'
 
 export type Banner = BannerListQuery['BannerQuery']['bannerStandardList']['items'][number]
 
@@ -13,6 +14,17 @@ export const BANNER_SPOT = {
 } as const
 
 const BANNER_SIZE = 50
+
+/** 배너를 캐러셀 한 장으로. links[0] 으로 이동한다. */
+export const bannerSlide = (b: Banner): CarouselSlide => ({
+  key: `banner:${b._id}`,
+  title: b.title,
+  subTitle: b.subTitle,
+  showTitle: b.isTitleExpose,
+  href: b.links[0]?.href,
+  attach: firstAttach(b.attaches),
+  sortKey: b.sortKey,
+})
 
 /**
  * 노출 위치가 prefix(예: 'HOME_')로 시작하고 지금 노출 기간인 배너를 한 번에 받아

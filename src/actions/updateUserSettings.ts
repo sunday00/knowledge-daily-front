@@ -44,7 +44,9 @@ export function useUpdateUserSettings() {
         variables: {
           input: {
             nickname: trimmedNickname,
-            links: cleanedLinks.map((l) => ({
+            links: cleanedLinks.map((l, i) => ({
+              // 서버가 링크마다 key 를 요구한다. 사용자 링크엔 따로 이름이 없어 순서로 붙인다.
+              key: `link-${i + 1}`,
               href: l.href,
               label: l.label.length > 0 ? l.label : undefined,
             })),

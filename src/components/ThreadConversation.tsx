@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { OPINION_BY_SID_QUERY, OPINION_ITEM_FRAGMENT } from '@/graphql/queries/opinion.ts'
 import { OpinionItem } from '@/components/OpinionItem.tsx'
 import { PendingOpinionItem } from '@/components/PendingOpinion.tsx'
+import { BackToLink } from '@/components/BackToList.tsx'
 import { OpinionComposer } from '@/components/OpinionComposer.tsx'
 import { ThreadReactionBar } from '@/components/ThreadReactionBar.tsx'
 import { useOpinionList } from '@/hooks/useOpinionList.ts'
@@ -206,13 +207,9 @@ function OpinionSection({
             </span>
           ) : null}
         </h3>
-        <Link
-          to={listContext.keep(targetPath)}
-          state={listContext.state}
-          className="text-sm text-neutral-500 hover:text-brand-600 no-underline"
-        >
-          ← 대화록 전체 보기
-        </Link>
+        <BackToLink to={listContext.keep(targetPath)} state={listContext.state}>
+          대화록 전체
+        </BackToLink>
       </div>
 
       {notice && (

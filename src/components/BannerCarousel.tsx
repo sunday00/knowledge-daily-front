@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import type { Banner } from '@/hooks/useBanners.ts'
 import { SafeImage } from '@/components/SafeImage.tsx'
 
 const AUTOPLAY_MS = 5000
@@ -8,8 +7,31 @@ const SWIPE_PX = 40
 // 이미지 크기 정보가 없을 때의 배너 비율 (가로:세로)
 const DEFAULT_RATIO = '3 / 1'
 
+type SlideAttach = { src: unknown; elements: { name: string; size: number[] }[] }
+
+/** 캐러셀 한 장. 배너(Banner)와 캠페인(Campaign)을 이 모양으로 바꿔 함께 넣는다. */
+export type CarouselSlide = {
+  /** 종류가 달라도 겹치지 않게 'banner:' 처럼 앞에 붙인 값 */
+  key: string
+  title: string
+  subTitle?: string | null
+  /** 이미지 위에 제목/부제를 얹을지. 이미지가 없으면 항상 글자로 보인다. */
+  showTitle: boolean
+  /** 누르면 갈 주소. 사이트 안 주소는 라우터로, 바깥 주소는 새 탭으로 */
+  href?: string
+  /** 대표 이미지 */
+  attach?: SlideAttach | null
+  /** 이미지가 없을 때의 배경 (CSS background). 없으면 브랜드색 */
+  background?: string
+  sortKey: number
+}
+
+/** 첨부 중 sortKey 가 가장 앞인 것 */
+export const firstAttach = <T extends { sortKey: number; attach: SlideAttach }>(attaches: T[]) =>
+  [...attaches].sort((a, z) => a.sortKey - z.sortKey)[0]?.attach
+
 type Props = {
-  banners: Banner[]
+  banners: CarouselSlide[]
   /** 스크린리더용 이름 */
   label: string
   className?: string
@@ -72,15 +94,23 @@ export function BannerCarousel({ banners, label, className = '' }: Props) {
       >
         {banners.map((b, i) => (
           <li
-            key={b._id}
+            key={b.key}
             aria-roledescription="slide"
             aria-label={`${i + 1} / ${count}`}
             aria-hidden={i !== current}
             className="h-full w-full shrink-0"
           >
-            <BannerLink href={b.links[0]?.href} title={b.title} focusable={i === current}>
-              <BannerImage banner={b} eager={i === 0} />
-              {b.isTitleExpose && (
+            <BannerLink href={b.href} title={b.title} focusable={i === current}>
+              {b.attach ? (
+                <BannerImage slide={b} eager={i === 0} />
+              ) : (
+                // 이미지가 없으면 색 배경에 제목을 크게
+                <span
+                  className="absolute inset-0 bg-gradient-to-br from-brand-500 to-brand-700"
+                  style={b.background ? { background: b.background } : undefined}
+                />
+              )}
+              {(b.showTitle || !b.attach) && (
                 <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-6 pb-8 pt-12 text-white sm:px-10 sm:pb-12 sm:pt-16">
                   <span className="block text-2xl font-bold leading-tight sm:text-4xl">
                     {b.title}
@@ -102,7 +132,7 @@ export function BannerCarousel({ banners, label, className = '' }: Props) {
           <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5">
             {banners.map((b, i) => (
               <button
-                key={b._id}
+                key={b.key}
                 type="button"
                 aria-label={`${i + 1}번째 배너 보기`}
                 aria-current={i === current || undefined}
@@ -119,7 +149,7 @@ export function BannerCarousel({ banners, label, className = '' }: Props) {
   )
 }
 
-/** links[0] 으로 이동. 사이트 안 주소는 라우터로, 바깥 주소는 새 탭으로 연다. */
+/** href 로 이동. 사이트 안 주소는 라우터로, 바깥 주소는 새 탭으로 연다. */
 function BannerLink({
   href,
   title,
@@ -155,8 +185,8 @@ function BannerLink({
   )
 }
 
-function BannerImage({ banner, eager }: { banner: Banner; eager: boolean }) {
-  const attach = firstAttach(banner)
+function BannerImage({ slide, eager }: { slide: CarouselSlide; eager: boolean }) {
+  const attach = slide.attach
   const src = (attach?.src ?? {}) as Record<string, string>
   // 크기 이름별 가로폭으로 srcSet 을 만들어 화면 폭에 맞는 이미지를 받게 한다.
   const srcSet = attach?.elements
@@ -169,7 +199,7 @@ function BannerImage({ banner, eager }: { banner: Banner; eager: boolean }) {
       src={src.full ?? src.preview ?? Object.values(src)[0]}
       srcSet={srcSet || undefined}
       sizes="(min-width: 1024px) 976px, 100vw"
-      alt={banner.title}
+      alt={slide.title}
       loading={eager ? 'eager' : 'lazy'}
       draggable={false}
       className="h-full w-full object-cover"
@@ -198,11 +228,9 @@ function ArrowButton({
   )
 }
 
-const firstAttach = (b: Banner) => [...b.attaches].sort((a, z) => a.sortKey - z.sortKey)[0]?.attach
-
 /** 대표 이미지의 원본(full) 비율. 없으면 null */
-function imageRatio(b: Banner): string | null {
-  const els = firstAttach(b)?.elements ?? []
+function imageRatio(b: CarouselSlide): string | null {
+  const els = b.attach?.elements ?? []
   const [w, h] = (els.find((el) => el.name === 'full') ?? els[0])?.size ?? []
   return w && h ? `${w} / ${h}` : null
 }

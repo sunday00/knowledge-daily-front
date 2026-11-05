@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { NOTICE_ONE_QUERY } from '@/graphql/queries/notice.ts'
 import type { NoticeOneQuery } from '@/graphql/__generated__/graphql.ts'
@@ -19,6 +18,7 @@ import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
 import { AdjacentNav } from '@/components/AdjacentNav.tsx'
+import { BackToList } from '@/components/BackToList.tsx'
 
 export type NoticeOneItem = NoticeOneQuery['NoticeQuery']['noticeOne']['item']
 
@@ -44,8 +44,6 @@ export function NoticeOneView({
   id: string
   children?: (item: NoticeOneItem) => ReactNode
 }) {
-  const location = useLocation()
-  const from = (location.state as { from?: string } | null)?.from
   const category = useCategoryParam(NOTICE_CATEGORIES)
   const { data, loading, error } = useQuery(NOTICE_ONE_QUERY, {
     // 분류 탭에서 들어왔으면 이전/다음(pn)을 그 분류 안에서 찾는다.
@@ -65,9 +63,7 @@ export function NoticeOneView({
     <div className={`space-y-8 ${item && hasNoticeComponent(item, 'Opinion') ? 'pb-32' : ''}`}>
       <article className="space-y-4">
         {/* 목록에서 왔으면 보던 페이지(?page=)로 돌아간다. */}
-        <Link to={from ?? NOTICE_PATH} className="text-sm no-underline">
-          ← {NOTICE_TITLE}
-        </Link>
+        <BackToList fallback={NOTICE_PATH}>{NOTICE_TITLE} 목록</BackToList>
 
         {loading && !res && <LoadingSpinner />}
         {/* 없는 공지면 서버가 item null 오류를 돌려준다. 게시 기간이 아닌 공지도 같은 안내. */}

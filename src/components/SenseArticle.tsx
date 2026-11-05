@@ -9,6 +9,8 @@ import { SenseCounts } from '@/components/SenseCounts.tsx'
 import { TagChips } from '@/components/TagChips.tsx'
 import { MarkdownView } from '@/components/MarkdownView.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { BackToList } from '@/components/BackToList.tsx'
+import { senseListPath } from '@/lib/senseListReturn.ts'
 
 export type SenseOneItem = SenseOneQuery['SenseQuery']['senseOne']['item']
 
@@ -29,23 +31,38 @@ export function SenseOneView({
   })
   const res = data?.SenseQuery.senseOne
 
+  // 카드를 누른 목록(홈 / 내 Knowledge / 태그 등)으로 돌아간다.
+  const back = <BackToList fallback={senseListPath()}>상식 목록</BackToList>
+  const message = (node: ReactNode) => (
+    <div className="space-y-4">
+      {back}
+      {node}
+    </div>
+  )
+
   if (loading && !res) return <LoadingSpinner />
-  if (error) return <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>
+  if (error) {
+    return message(<p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>)
+  }
   if (!res) return null
-  if (res.success === 4)
-    return <p className="text-neutral-500">존재하지 않거나 삭제된 항목입니다.</p>
+  if (res.success === 4) {
+    return message(<p className="text-neutral-500">존재하지 않거나 삭제된 항목입니다.</p>)
+  }
   if (res.success !== 1) {
-    return (
+    return message(
       <p className="text-red-600 dark:text-red-400">
         {res.message ?? '서버가 실패를 반환했습니다.'}
-      </p>
+      </p>,
     )
   }
 
   // pb-32: 하단 고정 입력창에 마지막 항목이 가리지 않도록 여백
   return (
     <div className="space-y-8 pb-32">
-      <SenseArticle sense={res.item} />
+      <div className="space-y-4">
+        {back}
+        <SenseArticle sense={res.item} />
+      </div>
       {children(res.item)}
     </div>
   )

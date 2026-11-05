@@ -1,6 +1,6 @@
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
-const PAGE_PARAM = 'page'
+export const PAGE_PARAM = 'page'
 /** 한 번에 보여줄 페이지 번호 수 */
 const WINDOW = 5
 

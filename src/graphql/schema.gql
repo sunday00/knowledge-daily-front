@@ -2,6 +2,111 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type ApplicableCampaign implements IAttach & ICreatedAt & StandardEntity {
+  _id: String!
+
+  """당첨자발표일. 없으면 뭔가 발표하지 않는 이벤트로 간주"""
+  announceAt: DateTime
+  applicableSubType: ApplicableCampaignSubType!
+
+  """현재 참여자 수 (중복 신청은 1명). 응답 시 채움"""
+  appliedCnt: Int!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+
+  """지원자 수 제한. 없으면 무제한. 0이면 지원형 캠페인이 아님."""
+  available: Int
+
+  """1인 지원제한 수. 없으면 무제한. 0이면 지원형 캠페인이 아님."""
+  availableEach: Int
+
+  """부모 캠페인 아이디"""
+  campaign: String!
+
+  """참가비용포인트"""
+  cost: Int!
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """지원가능종료일. 없으면 캠페인 종료일"""
+  endAt: DateTime
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+
+  """참가포인트 있는 경우 포인트 소비내역에 표시될 문구. 없으면 단순 (이벤트참가)로 표기"""
+  logLabel: String
+
+  """나의 신청, 당첨 여부. 응답 시 로그인 유저 기준으로 채움 (비로그인 NONE)"""
+  me: CampaignApplyStatus!
+  pinn: Boolean!
+  sortKey: Int!
+
+  """지원가능일. 없으면 캠페인 시작일"""
+  startAt: DateTime
+  status: StandardStatus!
+  version: String!
+  winnerSetting: ApplicationCampaignWinnerSetting!
+}
+
+enum ApplicableCampaignSubType {
+  """추첨 포인트 이벤트"""
+  LOTTERY_POINT
+
+  """추첨 경품 이벤트"""
+  LOTTERY_REWARD
+}
+
+type ApplicationCampaignRewardItem {
+  """system 상 직렬화 인식 키. ex) rank1 | check1 | 0 ..."""
+  key: String!
+
+  """경품수량. rewardTitle 이 포인트|point 이면 필수, 없으면 미표시하고 내부정책"""
+  rewardAmount: Float
+
+  """수상명. ex) 1등, 1위, 우수상, 당첨, 베스트 ... 등"""
+  rewardLabel: String
+
+  """경품명"""
+  rewardProduct: String!
+  sortKey: Int!
+}
+
+input ApplicationCampaignRewardItemInput {
+  """system 상 직렬화 인식 키. ex) rank1 | check1 | 0 ..."""
+  key: String!
+
+  """경품수량. rewardTitle 이 포인트|point 이면 필수, 없으면 미표시하고 내부정책"""
+  rewardAmount: Float
+
+  """수상명. ex) 1등, 1위, 우수상, 당첨, 베스트 ... 등"""
+  rewardLabel: String
+
+  """경품명"""
+  rewardProduct: String!
+  sortKey: Int!
+}
+
+type ApplicationCampaignWinnerSetting {
+  rewards: [ApplicationCampaignRewardItem!]!
+
+  """예비당첨자. 없으면 예비당첨자 비존재"""
+  sub: Int
+  win: Int!
+  winType: CampaignWinType!
+}
+
+input ApplicationCampaignWinnerSettingInput {
+  rewards: [ApplicationCampaignRewardItemInput!]!
+
+  """예비당첨자. 없으면 예비당첨자 비존재"""
+  sub: Int
+  win: Int!
+  winType: CampaignWinType!
+}
+
 type Archive implements CompactEntity & IAttach & ICreatedAt & IUser {
   _id: String!
 
@@ -1440,8 +1545,293 @@ type BooleanResponse {
   success: Int!
 }
 
-"""targetEntity 에 따라 Opinion | Thread | Sense | Article | Ask | Notice"""
-union CommentableTarget = Article | Ask | Notice | Opinion | Sense | Thread
+type Campaign implements IAttach & ICreatedAt & IOpinion & IReaction & StandardEntity {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+
+  """
+  이 캠페인에서 쓸 기능. 관리자 선택. admin front - admin api - user front 간 약속값 (ex: opinion, reaction)
+  """
+  components: [String!]!
+
+  """본문 (markdown)"""
+  content: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """종료. 기한 없으면 먼 미래(9999-12-31T00:00:00.000Z 등). 지나도 목록에는 노출"""
+  endAt: DateTime!
+
+  """노출 위치. admin front - admin api - user front 간 약속값"""
+  exposedOn: [String!]!
+  flags: [String!]!
+
+  """하위 캠페인 아이템 (ApplicableCampaign | ReadableCampaign). sortKey 오름차순"""
+  items: [CampaignItemUnion!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+  pinn: Boolean!
+
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
+  sortKey: Int!
+
+  """시작. 바로 시작이면 과거 아무 시각으로(1970-01-01T00:00:00.000Z)"""
+  startAt: DateTime!
+  status: StandardStatus!
+  subTitle: String
+  title: String!
+  version: String!
+}
+
+input CampaignApplySagaInput {
+  """하위 참여형 캠페인(ApplicableCampaign) id"""
+  applicableId: String!
+}
+
+enum CampaignApplyStatus {
+  """지원"""
+  APPLY
+
+  """미지원"""
+  NONE
+
+  """예비 당첨"""
+  SUB
+
+  """당첨"""
+  WIN
+}
+
+input CampaignInput {
+  """
+  이 캠페인에서 쓸 기능. 관리자 선택. admin front - admin api - user front 간 약속값 (ex: opinion, reaction)
+  """
+  components: [String!]!
+
+  """본문 (markdown)"""
+  content: String!
+
+  """종료. 기한 없으면 먼 미래(9999-12-31T00:00:00.000Z 등). 지나도 목록에는 노출"""
+  endAt: DateTime!
+
+  """노출 위치. admin front - admin api - user front 간 약속값"""
+  exposedOn: [String!]!
+
+  """시작. 바로 시작이면 과거 아무 시각으로(1970-01-01T00:00:00.000Z)"""
+  startAt: DateTime!
+  subTitle: String
+  title: String!
+}
+
+"""
+캠페인 하위 아이템. __typename 으로 종류, applicableSubType / readableSubType 으로 세부 용도 구분
+"""
+union CampaignItemUnion = ApplicableCampaign | ReadableCampaign
+
+input CampaignListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: CampaignSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: CampaignSearchInputSortType
+}
+
+type CampaignListResponse {
+  hasNext: Boolean
+  items: [Campaign!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type CampaignMutNamespace {
+  campaignApply(input: CampaignApplySagaInput!): IdResultResponse!
+}
+
+input CampaignOneByQry {
+  _id: String!
+}
+
+type CampaignQryNamespace {
+  campaignOne(input: CampaignOneByQry!): CampaignResponse!
+
+  """
+  진행 중이 항상 먼저. 그 안에서 sort: 이름순 { title: 1 }, 만료임박순 { endAt: 1 }. 시작 전은 제외, 종료는 포함
+  """
+  campaignStandardList(input: CampaignListByQry): CampaignListResponse!
+}
+
+type CampaignResponse {
+  item: Campaign!
+  message: String
+  success: Int!
+}
+
+input CampaignSearchInput {
+  _id: RangeString
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+
+  """
+  이 캠페인에서 쓸 기능. 관리자 선택. admin front - admin api - user front 간 약속값 (ex: opinion, reaction)
+  """
+  components: [String!]
+
+  """본문 (markdown)"""
+  content: RangeString
+  createdAt: RangeDate
+  deletedAt: RangeDate
+
+  """종료. 기한 없으면 먼 미래(9999-12-31T00:00:00.000Z 등). 지나도 목록에는 노출"""
+  endAt: RangeDate
+
+  """노출 위치. admin front - admin api - user front 간 약속값"""
+  exposedOn: RangeString
+  flags: [String!]
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+  pinn: Boolean
+  sortKey: RangeInt
+
+  """시작. 바로 시작이면 과거 아무 시각으로(1970-01-01T00:00:00.000Z)"""
+  startAt: RangeDate
+  status: RangeStandardStatus
+  subTitle: RangeString
+  title: RangeString
+  version: RangeString
+}
+
+input CampaignSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  attaches: Int
+
+  """1: asc, -1: desc"""
+  components: Int
+
+  """1: asc, -1: desc"""
+  content: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  endAt: Int
+
+  """1: asc, -1: desc"""
+  exposedOn: Int
+
+  """1: asc, -1: desc"""
+  flags: Int
+
+  """1: asc, -1: desc"""
+  links: Int
+
+  """1: asc, -1: desc"""
+  opinionsCnt: Int
+
+  """1: asc, -1: desc"""
+  pinn: Int
+
+  """1: asc, -1: desc"""
+  sortKey: Int
+
+  """1: asc, -1: desc"""
+  startAt: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  subTitle: Int
+
+  """1: asc, -1: desc"""
+  title: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+enum CampaignWinType {
+  """당첨자 모두 같은 혜택 (순위 없음)"""
+  EQ
+
+  """순위별 혜택 (1등, 2등 ...)"""
+  RANK
+}
+
+type ClickEventSetting {
+  """어느 키를 눌러야 포인트를 얻는건지 시스템 인식 키"""
+  linkKey: String!
+
+  """
+  기간당 1인 횟수 제한. 비어 있으면 기간 제한 없음. ex) [{ duration: 1, unit: "DD", cnt: 3 }] = 하루 3회
+  """
+  maxes: [DeployFreePointDataItem!]!
+
+  """click reward"""
+  point: Int!
+}
+
+input ClickEventSettingInput {
+  """어느 키를 눌러야 포인트를 얻는건지 시스템 인식 키"""
+  linkKey: String!
+
+  """
+  기간당 1인 횟수 제한. 비어 있으면 기간 제한 없음. ex) [{ duration: 1, unit: "DD", cnt: 3 }] = 하루 3회
+  """
+  maxes: [DeployFreePointDataItemInput!]!
+
+  """click reward"""
+  point: Int!
+}
+
+"""
+targetEntity 에 따라 Opinion | Thread | Sense | Article | Ask | Notice | Campaign
+"""
+union CommentableTarget = Article | Ask | Campaign | Notice | Opinion | Sense | Thread
 
 interface CompactEntity implements ICreatedAt {
   _id: String!
@@ -1870,11 +2260,17 @@ input KakaoLoginInput {
 
 type Link {
   href: String!
+
+  """link name to find and use by client side dev"""
+  key: String!
   label: String
 }
 
 input LinkInput {
   href: String!
+
+  """link name to find and use by client side dev"""
+  key: String!
   label: String
 }
 
@@ -1897,6 +2293,7 @@ type Mutation {
   AuthMutation: AuthMutNamespace!
   BannerMutation: BannerMutNamespace!
   BoardMutation: BoardMutNamespace!
+  CampaignMutation: CampaignMutNamespace!
   DocumentMutation: DocumentMutNamespace!
   EmbedMutation: EmbedMutNamespace!
   NoticeMutation: NoticeMutNamespace!
@@ -2578,6 +2975,14 @@ input OpinionUpdateInput {
   version: String
 }
 
+input PointClickSagaInput {
+  """클릭한 링크 key. clickLinkEvent.linkKey 와 같아야 보상"""
+  linkKey: String!
+
+  """하위 읽기형 캠페인(ReadableCampaign) id"""
+  readableId: String!
+}
+
 type PointHistory implements CompactEntity & ICreatedAt & IUser {
   _id: String!
 
@@ -2724,7 +3129,10 @@ input PointHistorySearchInputSortType {
 }
 
 type PointMutNamespace {
-  _pointMutNotImplementedThing: SimpleJsonRes!
+  """
+  하위 읽기형 캠페인 링크 클릭 보상 (clickLinkEvent). item true = 지급 접수, false = 지급 사유 비활성. 횟수 초과 등은 에러
+  """
+  clickPoint(input: PointClickSagaInput!): BooleanResponse!
 }
 
 type PointQryNamespace {
@@ -2753,6 +3161,7 @@ type Query {
   AuthQuery: AuthQryNamespace!
   BannerQuery: BannerQryNamespace!
   BoardQuery: BoardQryNamespace!
+  CampaignQuery: CampaignQryNamespace!
   DocumentQuery: DocumentQryNamespace!
   EmbedQuery: EmbedQryNamespace!
   NoticeQuery: NoticeQryNamespace!
@@ -3032,6 +3441,44 @@ type ReactionTopTargetListResponse {
 
   """총 data rows"""
   total: Int
+}
+
+type ReadableCampaign implements IAttach & ICreatedAt & StandardEntity {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+
+  """부모 캠페인 아이디"""
+  campaign: String!
+
+  """링크 클릭 포인트 이벤트. 없으면 클릭 보상 없음"""
+  clickLinkEvent: ClickEventSetting
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """포인트 획득 기간 종료. 없으면 캠페인 종료일"""
+  endAt: DateTime
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+  pinn: Boolean!
+  readableSubType: ReadableCampaignSubType!
+  sortKey: Int!
+
+  """포인트 획득 기간 시작. 없으면 캠페인 시작일"""
+  startAt: DateTime
+  status: StandardStatus!
+  version: String!
+}
+
+enum ReadableCampaignSubType {
+  """자사 안내 / 홍보"""
+  IN_HOUSE
+
+  """제휴"""
+  PARTNERSHIP
 }
 
 type Ref {
@@ -3728,6 +4175,7 @@ enum VBlockTargetEntity {
 enum VCommentTargetEntity {
   Article
   Ask
+  Campaign
   Notice
   Opinion
   Sense

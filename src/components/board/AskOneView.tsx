@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { ASK_ONE_QUERY } from '@/graphql/queries/board.ts'
 import type { AskOneQuery } from '@/graphql/__generated__/graphql.ts'
@@ -10,6 +9,7 @@ import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
 import { AdjacentNav } from '@/components/AdjacentNav.tsx'
+import { BackToList } from '@/components/BackToList.tsx'
 
 export type AskOneItem = AskOneQuery['BoardQuery']['askOne']['item']
 
@@ -33,8 +33,6 @@ export function AskOneView({
   const board = findBoardBySlug(slug)
   // 분류 탭에서 들어왔으면 이전/다음(pn)을 그 분류 안에서 찾는다.
   const category = useCategoryParam(board?.categories)
-  // 목록에서 왔으면 보던 페이지(?page=)로 돌아간다.
-  const from = (useLocation().state as { from?: string } | null)?.from
   const { data, loading, error } = useQuery(ASK_ONE_QUERY, {
     variables: { input: { _id: id, category } },
     fetchPolicy: 'cache-and-network',
@@ -54,9 +52,7 @@ export function AskOneView({
     // pb-32: 대화록이 있으면 하단 고정 입력창에 마지막 항목이 가리지 않도록 여백
     <div className={`space-y-8 ${item && hasComponent(item, 'Opinion') ? 'pb-32' : ''}`}>
       <article className="space-y-4">
-        <Link to={from ?? boardPath(board)} className="text-sm no-underline">
-          ← {board.label || board.title}
-        </Link>
+        <BackToList fallback={boardPath(board)}>{board.label || board.title} 목록</BackToList>
 
         {loading && !res && <LoadingSpinner />}
         {/* 없는 글이면 서버가 item null 오류를 돌려준다. */}

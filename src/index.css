@@ -23,3 +23,28 @@ html.dark body {
   background-color: #0a0a0a;
   color: #f3f4f6;
 }
+
+/* 공용 모달(components/Modal.tsx) 열릴 때 살짝 떠오르기 */
+dialog.modal[open] {
+  animation: modal-in 0.18s ease-out;
+}
+dialog.modal[open]::backdrop {
+  animation: modal-backdrop-in 0.18s ease-out;
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.modal[open],
+  dialog.modal[open]::backdrop {
+    animation: none;
+  }
+}

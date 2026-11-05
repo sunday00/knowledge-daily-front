@@ -7,6 +7,8 @@ import { useEmbedActions, useMyEmbed, type EmbedIssued } from '@/actions/embedAp
 import { CopyButton } from '@/components/CopyButton.tsx'
 import { SafeImage } from '@/components/SafeImage.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { Modal, ModalButton } from '@/components/Modal.tsx'
+import { BackIcon } from '@/components/BackIcon.tsx'
 
 const BACK_TO = '/user/settings?tab=paid'
 
@@ -119,6 +121,7 @@ function Manage({ embed, actions }: { embed: MyEmbed; actions: Actions }) {
   const saved = embed.allowedDomains.join('\n')
   const [domains, setDomains] = useState(saved)
   const [notice, setNotice] = useState<string | null>(null)
+  const [confirmReissue, setConfirmReissue] = useState(false)
   // 서버 값이 바뀌면(저장 후 등) 입력칸도 맞춘다.
   useEffect(() => setDomains(saved), [saved])
 
@@ -130,11 +133,8 @@ function Manage({ embed, actions }: { embed: MyEmbed; actions: Actions }) {
   }
 
   const handleReissue = () => {
-    if (actions.busy) return
-    const ok = window.confirm(
-      '새 코드를 발급하면 예전 코드로 붙여 둔 이미지는 바로 보이지 않게 됩니다. 계속할까요?',
-    )
-    if (ok) void actions.reissue()
+    setConfirmReissue(false)
+    if (!actions.busy) void actions.reissue()
   }
 
   const handleRenew = () => {
@@ -204,12 +204,29 @@ function Manage({ embed, actions }: { embed: MyEmbed; actions: Actions }) {
         </p>
         <button
           type="button"
-          onClick={handleReissue}
+          onClick={() => setConfirmReissue(true)}
           disabled={actions.busy}
           className="inline-flex items-center gap-2 rounded-md border border-amber-400 bg-amber-50 px-3 py-1.5 font-semibold text-amber-800 transition-colors hover:bg-amber-100 disabled:opacity-60 dark:border-amber-600 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50"
         >
           <WarningIcon />새 코드 발급
         </button>
+        <Modal
+          open={confirmReissue}
+          onClose={() => setConfirmReissue(false)}
+          tone="warning"
+          title="새 코드를 발급할까요?"
+          footer={
+            <>
+              <ModalButton onClick={() => setConfirmReissue(false)}>취소</ModalButton>
+              <ModalButton variant="danger" onClick={handleReissue} autoFocus>
+                새 코드 발급
+              </ModalButton>
+            </>
+          }
+        >
+          예전 코드로 붙여 둔 이미지는 바로 보이지 않게 됩니다.
+          <br />새 이미지 태그로 바꿔 붙여야 합니다.
+        </Modal>
       </div>
 
       <ErrorText error={actions.error} />
@@ -276,26 +293,6 @@ function CopyRow({
         <CopyButton text={value} />
       </div>
     </div>
-  )
-}
-
-/** 되돌아가기 아이콘 */
-function BackIcon() {
-  return (
-    <svg
-      aria-hidden
-      viewBox="0 0 24 24"
-      width={16}
-      height={16}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M9 14 4 9l5-5" />
-      <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
-    </svg>
   )
 }
 
