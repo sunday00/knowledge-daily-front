@@ -7,7 +7,7 @@ import {
 import { TargetThreads } from '@/components/TargetThreads.tsx'
 import { ThreadConversation } from '@/components/ThreadConversation.tsx'
 
-/** /campaign/:type/:id — 캠페인 + (opinion 이면) 대화록 */
+/** /campaign/:id — 캠페인 + (opinion 이면) 대화록 */
 export function CampaignDetailPage() {
   return (
     <CampaignOneView>
@@ -18,7 +18,7 @@ export function CampaignDetailPage() {
   )
 }
 
-/** /campaign/:type/:id/threads/:threadId — 캠페인 + 한 대화(thread)의 의견 목록 */
+/** /campaign/:id/threads/:threadId — 캠페인 + 한 대화(thread)의 의견 목록 */
 export function CampaignThreadPage() {
   const { threadId = '' } = useParams<{ threadId: string }>()
 

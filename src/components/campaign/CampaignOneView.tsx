@@ -1,17 +1,22 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useState, type FormEvent, type ReactNode } from 'react'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { CAMPAIGN_ONE_QUERY } from '@/graphql/queries/campaign.ts'
 import type { CampaignOneQuery } from '@/graphql/__generated__/graphql.ts'
 import { hasComponent } from '@/lib/components.ts'
 import {
+  CAMPAIGN_CONTENT_FLAG,
+  CAMPAIGN_ITEM_CARD_FLAG,
   CAMPAIGN_PATH,
   CAMPAIGN_TITLE,
+  campaignItemLabel,
+  campaignItemLabels,
   campaignPath,
-  campaignTypeLabel,
+  filterAttachByFlag,
+  findAttachByFlag,
   findBannerAttach,
   isClosedCampaign,
-  isIntroCampaign,
+  isItemOpen,
   maxText,
   periodText,
 } from '@/lib/campaign.ts'
@@ -19,16 +24,19 @@ import { formatDateTime } from '@/lib/formatDate.ts'
 import type { OpinionTarget } from '@/lib/opinionTarget.ts'
 import { MarkdownView } from '@/components/MarkdownView.tsx'
 import { ReactionBar } from '@/components/ReactionBar.tsx'
-import { SafeImage } from '@/components/SafeImage.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import { useCampaignApply, type ApplyState } from '@/actions/campaignApply.ts'
-import { useClickPoint } from '@/actions/clickPoint.ts'
+import { useClickPoint, type ClickNotice } from '@/actions/clickPoint.ts'
 import { Modal, ModalButton, ModalSpinner } from '@/components/Modal.tsx'
 import { BackToList } from '@/components/BackToList.tsx'
+import { CampaignImage } from '@/components/campaign/CampaignImage.tsx'
 
 export type CampaignOneItem = CampaignOneQuery['CampaignQuery']['campaignOne']['item']
-type ApplyLimit = NonNullable<CampaignOneItem['applyLimit']>
+type CampaignChild = CampaignOneItem['items'][number]
+type ApplicableItem = Extract<CampaignChild, { __typename: 'ApplicableCampaign' }>
+type ReadableItem = Extract<CampaignChild, { __typename: 'ReadableCampaign' }>
+type CampaignLink = CampaignOneItem['links'][number]
 
 const NOT_FOUND = 'CAMPAIGN_NOT_FOUND'
 
@@ -44,13 +52,13 @@ export const campaignTarget = (item: CampaignOneItem): OpinionTarget => ({
 })
 
 /**
- * 캠페인 한 건: 유형, 제목/부제, 기간, (있으면) 첨부 배너, 본문(마크다운), 참여 안내, (reaction 이면) 리액션 줄.
+ * 캠페인 한 건 (/campaign/:id).
+ * 헤더(아이템 유형, 진행 상태, 제목/부제, 기간) → 배너 → 안내 이미지(content) → 본문 → 링크
+ * → 하위 아이템(참여형 응모 / 읽기형 보기 보상) → (reaction 이면) 리액션 줄.
  * 그 아래 내용(대화록 등)은 children 으로.
  */
 export function CampaignOneView({ children }: { children?: (item: CampaignOneItem) => ReactNode }) {
-  const { type = '', id = '' } = useParams<{ type: string; id: string }>()
-  const navigate = useNavigate()
-  const { pathname } = useLocation()
+  const { id = '' } = useParams<{ id: string }>()
   const { data, loading, error } = useQuery(CAMPAIGN_ONE_QUERY, {
     variables: { input: { _id: id } },
     fetchPolicy: 'cache-and-network',
@@ -59,15 +67,6 @@ export function CampaignOneView({ children }: { children?: (item: CampaignOneIte
   })
   const res = data?.CampaignQuery.campaignOne
   const item = res?.success ? res.item : null
-
-  // 주소의 유형이 실제와 다르면(유형이 바뀌었거나 잘못 들어옴) 맞는 주소로 바꾼다.
-  const canonical = item && campaignPath(item)
-  useEffect(() => {
-    if (!canonical || canonical.split('/')[2] === type) return
-    // /campaign/:type/:id 뒤(대화 주소 등)는 그대로 둔다.
-    const rest = pathname.split('/').slice(4).join('/')
-    navigate(rest ? `${canonical}/${rest}` : canonical, { replace: true })
-  }, [canonical, type, pathname, navigate])
 
   return (
     // pb-32: 대화록이 있으면 하단 고정 입력창에 마지막 항목이 가리지 않도록 여백
@@ -83,15 +82,16 @@ export function CampaignOneView({ children }: { children?: (item: CampaignOneIte
         {item && (
           <>
             <CampaignHeader item={item} />
-            <CampaignBanner item={item} />
+            <CampaignTopImages item={item} />
             <MarkdownView>{item.content}</MarkdownView>
-            <CampaignLinks item={item} />
-            {/* 참여형만. 소개 캠페인(1인 0회)은 참여·보상이 없다. */}
-            {item.applyLimit &&
-              item.applyLimit.available !== 0 &&
-              !isIntroCampaign(item.applyLimit) && (
-                <ApplyInfo item={item} limit={item.applyLimit} />
-              )}
+            <ParentLinks item={item} />
+            {item.items.map((child) =>
+              child.__typename === 'ApplicableCampaign' ? (
+                <ApplicableBlock key={child._id} parent={item} item={child} />
+              ) : (
+                <ReadableBlock key={child._id} parent={item} item={child} />
+              ),
+            )}
             {hasCampaignComponent(item, 'Reaction') && (
               <ReactionBar target={{ entity: 'Campaign', id: item._id }} />
             )}
@@ -104,23 +104,22 @@ export function CampaignOneView({ children }: { children?: (item: CampaignOneIte
   )
 }
 
+const badge = 'rounded px-1.5 py-0.5'
+const brandBadge = `${badge} bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200`
+const endedBadge = `${badge} bg-neutral-100 text-neutral-500 dark:bg-neutral-800`
+const liveBadge = `${badge} bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400`
+
 function CampaignHeader({ item }: { item: CampaignOneItem }) {
   const ended = isClosedCampaign(item)
   return (
     <header className="space-y-2 border-b border-neutral-200 dark:border-neutral-800 pb-4">
       <div className="flex flex-wrap items-center gap-2 text-sm">
-        <span className="rounded px-1.5 py-0.5 bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200">
-          {campaignTypeLabel(item.type)}
-        </span>
-        {ended ? (
-          <span className="rounded px-1.5 py-0.5 bg-neutral-100 text-neutral-500 dark:bg-neutral-800">
-            종료
+        {campaignItemLabels(item.items).map((label) => (
+          <span key={label} className={brandBadge}>
+            {label}
           </span>
-        ) : (
-          <span className="rounded px-1.5 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-            진행 중
-          </span>
-        )}
+        ))}
+        <span className={ended ? endedBadge : liveBadge}>{ended ? '종료' : '진행 중'}</span>
       </div>
       <h2 className="text-2xl font-semibold break-words">{item.title}</h2>
       {item.subTitle && (
@@ -134,23 +133,86 @@ function CampaignHeader({ item }: { item: CampaignOneItem }) {
   )
 }
 
-/** 첨부 중 배너(flag) 이미지. 없으면 아무것도 안 그린다. */
-function CampaignBanner({ item }: { item: CampaignOneItem }) {
-  const attach = findBannerAttach(item.attaches)?.attach
-  if (!attach) return null
-  const src = (attach.src ?? {}) as Record<string, string>
-  const srcSet = attach.elements
-    .filter((el) => src[el.name] && el.size[0])
-    .map((el) => `${src[el.name]} ${el.size[0]}w`)
-    .join(', ')
+/** 상단 배너(banner) + 안내 이미지(content, 세로로 긴 기간·참여 방법·경품 안내). 본문 위에 전체 폭으로 */
+function CampaignTopImages({ item }: { item: CampaignOneItem }) {
+  const banner = findBannerAttach(item.attaches)?.attach
+  const contents = filterAttachByFlag(item.attaches, CAMPAIGN_CONTENT_FLAG)
+  if (!banner && contents.length === 0) return null
+  const gray = isClosedCampaign(item) ? 'grayscale' : ''
   return (
-    <SafeImage
-      src={src.full ?? src.preview ?? Object.values(src)[0]}
-      srcSet={srcSet || undefined}
-      sizes="(min-width: 1024px) 976px, 100vw"
-      alt={item.title}
-      className={`w-full rounded-lg ${isClosedCampaign(item) ? 'grayscale' : ''}`}
-    />
+    <div className="space-y-4">
+      {banner && (
+        <CampaignImage attach={banner} alt={item.title} eager className={`rounded-lg ${gray}`} />
+      )}
+      {contents.map(({ attach }, i) => (
+        <CampaignImage
+          key={attach._id}
+          attach={attach}
+          alt={`${item.title} 안내${contents.length > 1 ? ` ${i + 1}` : ''}`}
+          className={`rounded-lg ${gray}`}
+        />
+      ))}
+    </div>
+  )
+}
+
+/** 하위 아이템 블록 공통 틀: 카드 이미지(card) → 유형·제목줄 → 내용 */
+function ItemBlock({
+  parent,
+  item,
+  open,
+  children,
+}: {
+  parent: CampaignOneItem
+  item: CampaignChild
+  open: boolean
+  children: ReactNode
+}) {
+  const card = findAttachByFlag(item.attaches, CAMPAIGN_ITEM_CARD_FLAG)?.attach
+  const label = campaignItemLabel(item)
+  // 아이템에 따로 기간이 있으면 보여 준다. 없으면 상위 기간과 같다.
+  const ownPeriod = item.startAt != null || item.endAt != null
+  return (
+    <section
+      aria-label={label}
+      className="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800"
+    >
+      {card && (
+        <CampaignImage
+          attach={card}
+          alt={`${parent.title} ${label}`}
+          sizes="(min-width: 1024px) 976px, 100vw"
+          className={open ? '' : 'grayscale'}
+        />
+      )}
+      <div className="space-y-4 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className={brandBadge}>{label}</span>
+          {!open && <span className={endedBadge}>지금은 참여할 수 없어요</span>}
+          {ownPeriod && (
+            <span className="text-neutral-500">
+              {periodText(item.startAt ?? parent.startAt, item.endAt ?? parent.endAt)}
+            </span>
+          )}
+        </div>
+        {children}
+      </div>
+    </section>
+  )
+}
+
+/** 정보 표 (참여 조건 등) */
+function InfoRows({ rows }: { rows: [string, ReactNode][] }) {
+  if (rows.length === 0) return null
+  return (
+    <dl className="rounded-md border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-800 text-sm">
+      {rows.map(([label, value]) => (
+        <div key={label} className="flex gap-4 px-4 py-2.5">
+          <dt className="w-24 shrink-0 text-neutral-500">{label}</dt>
+          <dd className="min-w-0">{value}</dd>
+        </div>
+      ))}
+    </dl>
   )
 }
 
@@ -160,58 +222,83 @@ const MY_STATUS: Record<string, string> = {
   SUB: '예비 당첨',
 }
 
-/** 참여형 캠페인의 참여 조건 + 응모하기 */
-function ApplyInfo({ item, limit }: { item: CampaignOneItem; limit: ApplyLimit }) {
-  const rows: [string, ReactNode][] = [
-    ['참여 기간', periodText(limit.startAt, limit.endAt)],
-    ['참여 인원', limit.available == null ? '제한 없음' : `${limit.available.toLocaleString()}명`],
-    ['참여 포인트', limit.cost > 0 ? `${limit.cost.toLocaleString()}P` : '무료'],
-    [
-      '당첨 인원',
-      `${limit.win.toLocaleString()}명${limit.sub ? ` (예비 ${limit.sub.toLocaleString()}명)` : ''}`,
-    ],
-  ]
-  rows.push([
-    '1인 참여',
-    limit.availableEach == null ? '제한 없음' : `${limit.availableEach.toLocaleString()}회`,
-  ])
-  if (item.maxes.length > 0) rows.push(['참여 간격', item.maxes.map(maxText).join(', ')])
-  if (limit.announceAt) rows.push(['당첨 발표', formatDateTime(limit.announceAt)])
-  const mine = MY_STATUS[limit.me]
-  if (mine) rows.push(['내 참여', mine])
-
+/** 경품 목록. RANK 면 수상명(1등 등) 순서, 포인트 추첨이면 포인트 금액 */
+function Rewards({ item }: { item: ApplicableItem }) {
+  const rewards = [...item.winnerSetting.rewards].sort((a, z) => a.sortKey - z.sortKey)
+  if (rewards.length === 0) return null
+  const point = item.applicableSubType === 'LOTTERY_POINT'
   return (
-    <section className="space-y-3">
-      <dl className="rounded-md border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-800 text-sm">
-        {rows.map(([label, value]) => (
-          <div key={label} className="flex gap-4 px-4 py-2.5">
-            <dt className="w-24 shrink-0 text-neutral-500">{label}</dt>
-            <dd>{value}</dd>
-          </div>
-        ))}
-      </dl>
-      <ApplyButton item={item} limit={limit} />
-    </section>
+    <ul className="space-y-0.5">
+      {rewards.map((r) => (
+        <li key={r.key}>
+          {r.rewardLabel && <span className="mr-1.5 font-medium">{r.rewardLabel}</span>}
+          {point && r.rewardAmount != null
+            ? `${r.rewardAmount.toLocaleString()}P`
+            : r.rewardProduct}
+          {!point && r.rewardAmount != null && (
+            <span className="text-neutral-500"> × {r.rewardAmount.toLocaleString()}</span>
+          )}
+        </li>
+      ))}
+    </ul>
   )
 }
 
-const inPeriod = (from: unknown, to: unknown, now = Date.now()) =>
-  (from == null || Date.parse(from as string) <= now) &&
-  (to == null || now <= Date.parse(to as string))
+/** 참여형 아이템: 조건 표 + 응모하기 */
+function ApplicableBlock({ parent, item }: { parent: CampaignOneItem; item: ApplicableItem }) {
+  // 지원자 수 / 1인 횟수가 0 이면 참여 불가
+  const blocked = item.available === 0 || item.availableEach === 0
+  const open = isItemOpen(item, parent) && !blocked
+  const { win, sub } = item.winnerSetting
 
-/** 응모하기. 로그인, 응모 기간, 내 참여 여부를 보고 누를 수 있게 한다. (자세한 검증은 서버) */
-function ApplyButton({ item, limit }: { item: CampaignOneItem; limit: ApplyLimit }) {
+  const rows: [string, ReactNode][] = [
+    ['참여 포인트', item.cost > 0 ? `${item.cost.toLocaleString()}P` : '무료'],
+    [
+      '1인 참여',
+      item.availableEach == null ? '제한 없음' : `${item.availableEach.toLocaleString()}회`,
+    ],
+    [
+      '참여 인원',
+      `${item.appliedCnt.toLocaleString()}명${
+        item.available == null ? '' : ` / ${item.available.toLocaleString()}명`
+      }`,
+    ],
+    ['당첨 인원', `${win.toLocaleString()}명${sub ? ` (예비 ${sub.toLocaleString()}명)` : ''}`],
+  ]
+  if (item.winnerSetting.rewards.length > 0) rows.push(['경품', <Rewards item={item} />])
+  if (item.announceAt) rows.push(['당첨 발표', formatDateTime(item.announceAt)])
+  const mine = MY_STATUS[item.me]
+  if (mine) rows.push(['내 참여', mine])
+
+  return (
+    <ItemBlock parent={parent} item={item} open={open}>
+      <InfoRows rows={rows} />
+      {item.links.length > 0 && <LinkButtons links={item.links} />}
+      {!blocked && <ApplyButton parent={parent} item={item} open={open} />}
+    </ItemBlock>
+  )
+}
+
+/** 응모하기. 로그인, 응모 가능 여부, 내 참여 여부를 보고 누를 수 있게 한다. (자세한 검증은 서버) */
+function ApplyButton({
+  parent,
+  item,
+  open,
+}: {
+  parent: CampaignOneItem
+  item: ApplicableItem
+  open: boolean
+}) {
   const { user } = useAuth()
   const { pathname } = useLocation()
   const { apply, state, busy, reset } = useCampaignApply()
   const [confirming, setConfirming] = useState(false)
 
-  // 응모 기간이 따로 없으면 캠페인 기간
-  const open =
-    !isClosedCampaign(item) && inPeriod(limit.startAt ?? item.startAt, limit.endAt ?? item.endAt)
   // 한 번 참여해 봤는지. 1인 1회일 때만 버튼을 막고, 나머지는 응모해 보고 서버 사유로 안내한다.
-  const triedOnce = limit.me !== 'NONE'
-  const applied = triedOnce && limit.availableEach === 1
+  const triedOnce = item.me !== 'NONE'
+  const applied = triedOnce && item.availableEach === 1
+  // 처음 참여하는 사람은 지원자 수가 차면 막는다. (이미 참여한 사람은 횟수 안에서 더 응모할 수 있다)
+  const full = !triedOnce && item.available != null && item.appliedCnt >= item.available
 
   const handleSubmit = (e: FormEvent) => {
     // 바로 응모하지 않는다. 확인 → (결과 받을 연결 → 응모 → 결과) 순서는 useCampaignApply
@@ -221,7 +308,7 @@ function ApplyButton({ item, limit }: { item: CampaignOneItem; limit: ApplyLimit
 
   const handleConfirm = () => {
     setConfirming(false)
-    void apply(item._id, limit.cost)
+    void apply(item._id, item.cost)
   }
 
   if (!user) {
@@ -240,22 +327,24 @@ function ApplyButton({ item, limit }: { item: CampaignOneItem; limit: ApplyLimit
     <form onSubmit={handleSubmit}>
       <button
         type="submit"
-        disabled={busy || applied || !open}
+        disabled={busy || applied || full || !open}
         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-brand-600 hover:bg-brand-700 text-white font-semibold disabled:opacity-60 disabled:hover:bg-brand-600"
       >
         {applied
           ? '응모 완료'
           : !open
             ? '응모 기간이 아닙니다'
-            : `${triedOnce ? '한 번 더 응모하기' : '응모하기'}${
-                limit.cost > 0 ? ` (${limit.cost.toLocaleString()}P)` : ''
-              }`}
+            : full
+              ? '응모 마감'
+              : `${triedOnce ? '한 번 더 응모하기' : '응모하기'}${
+                  item.cost > 0 ? ` (${item.cost.toLocaleString()}P)` : ''
+                }`}
       </button>
 
       <ApplyConfirmModal
         open={confirming}
-        title={item.title}
-        cost={limit.cost}
+        title={`${parent.title} · ${campaignItemLabel(item)}`}
+        cost={item.cost}
         onCancel={() => setConfirming(false)}
         onConfirm={handleConfirm}
       />
@@ -345,33 +434,88 @@ function ApplyProgressModal({ state, onClose }: { state: ApplyState; onClose: ()
   )
 }
 
+/** 링크 하나에 걸린 클릭 보상 (보상을 주는 읽기형 아이템 + 포인트) */
+type Reward = { readableId: string; point: number }
+
+/** 이 링크를 누르면 보상을 주는 읽기형 아이템. 지금 동작하는 것만 */
+function rewardFor(
+  parent: CampaignOneItem,
+  link: CampaignLink,
+  only?: ReadableItem,
+): Reward | null {
+  const readables = only
+    ? [only]
+    : parent.items.filter((c): c is ReadableItem => c.__typename === 'ReadableCampaign')
+  const r = readables.find((c) => c.clickLinkEvent?.linkKey === link.key && isItemOpen(c, parent))
+  return r?.clickLinkEvent ? { readableId: r._id, point: r.clickLinkEvent.point } : null
+}
+
+/** 상위 캠페인 링크 (더 알아보기 등). 읽기형 아이템의 보상 링크면 +P 를 붙인다. */
+function ParentLinks({ item }: { item: CampaignOneItem }) {
+  if (item.links.length === 0) return null
+  return <LinkButtons links={item.links} rewardOf={(link) => rewardFor(item, link)} />
+}
+
+/** 읽기형 아이템: 보기 보상 안내 + 그 아이템의 링크 */
+function ReadableBlock({ parent, item }: { parent: CampaignOneItem; item: ReadableItem }) {
+  const open = isItemOpen(item, parent)
+  const event = item.clickLinkEvent
+  // 보상도, 카드 이미지도, 링크도 없는 소개 아이템은 보여 줄 게 없다. (상위 본문이 소개를 맡는다)
+  const hasCard = !!findAttachByFlag(item.attaches, CAMPAIGN_ITEM_CARD_FLAG)
+  if (!event && !hasCard && item.links.length === 0) return null
+  const rows: [string, ReactNode][] = []
+  if (event) {
+    rows.push(['보상', `${event.point.toLocaleString()}P`])
+    if (event.maxes.length > 0) rows.push(['참여 간격', event.maxes.map(maxText).join(', ')])
+    // 보상 링크가 상위 링크에 있으면 그쪽을 누르라고 알린다.
+    const atParent = parent.links.find((l) => l.key === event.linkKey)
+    if (atParent && !item.links.some((l) => l.key === event.linkKey)) {
+      rows.push(['방법', `위의 '${atParent.label || atParent.key}' 를 누르면 받을 수 있어요.`])
+    }
+  }
+
+  // 보상이 없는 소개 아이템이면 카드 이미지·링크만
+  return (
+    <ItemBlock parent={parent} item={item} open={open || !event}>
+      <InfoRows rows={rows} />
+      {item.links.length > 0 && (
+        <LinkButtons links={item.links} rewardOf={(link) => rewardFor(parent, link, item)} />
+      )}
+    </ItemBlock>
+  )
+}
+
 /**
- * 캠페인 링크 (더 알아보기 등). 포인트 링크(point > 0)면 누를 때 클릭 보상을 보낸다.
+ * 링크 버튼들. 보상 링크면 누를 때 클릭 보상을 보낸다.
  * 보상 응답은 기다리지 않고 바로 이동한다. 바깥 주소는 새 탭으로 열려 결과 안내가 이 화면에 남는다.
  */
-function CampaignLinks({ item }: { item: CampaignOneItem }) {
+function LinkButtons({
+  links,
+  rewardOf,
+}: {
+  links: CampaignLink[]
+  rewardOf?: (link: CampaignLink) => Reward | null
+}) {
   const { user } = useAuth()
   const { click, notice } = useClickPoint()
-  if (item.links.length === 0) return null
-  // 소개 캠페인, 닫힌 캠페인은 보상이 없다.
-  const rewardable = !isIntroCampaign(item.applyLimit) && !isClosedCampaign(item)
+  const rewards = links.map((l) => rewardOf?.(l) ?? null)
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
-        {item.links.map((link) => {
-          const point = rewardable && link.point && link.point > 0 ? link.point : 0
+        {links.map((link, i) => {
+          const reward = rewards[i]
           const onClick = () => {
-            if (user && point > 0) click(item._id, link.key, point)
+            if (user && reward) click(reward.readableId, link.key, reward.point)
           }
           const className =
             'inline-flex items-center gap-2 rounded-md border border-brand-500 px-4 py-2 font-semibold text-brand-700 dark:text-indigo-300 no-underline transition-colors hover:bg-brand-50 dark:hover:bg-brand-500/10'
           const content = (
             <>
               {link.label || link.key}
-              {point > 0 && (
+              {reward && (
                 <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                  +{point.toLocaleString()}P
+                  +{reward.point.toLocaleString()}P
                 </span>
               )}
             </>
@@ -395,17 +539,22 @@ function CampaignLinks({ item }: { item: CampaignOneItem }) {
           )
         })}
       </div>
-      {!user && rewardable && item.links.some((l) => (l.point ?? 0) > 0) && (
+      {!user && rewards.some(Boolean) && (
         <p className="text-xs text-neutral-500">로그인하고 누르면 포인트를 받을 수 있어요.</p>
       )}
-      {notice && (
-        <p
-          role="status"
-          className={`text-sm ${notice.ok ? 'text-green-700 dark:text-green-400' : 'text-neutral-500'}`}
-        >
-          {notice.message}
-        </p>
-      )}
+      <ClickNoticeText notice={notice} />
     </div>
+  )
+}
+
+function ClickNoticeText({ notice }: { notice: ClickNotice }) {
+  if (!notice) return null
+  return (
+    <p
+      role="status"
+      className={`text-sm ${notice.ok ? 'text-green-700 dark:text-green-400' : 'text-neutral-500'}`}
+    >
+      {notice.message}
+    </p>
   )
 }

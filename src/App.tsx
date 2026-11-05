@@ -73,7 +73,7 @@ export default function App() {
           />
           <Route path={CAMPAIGN_PATH} element={<CampaignListPage />} />
           <Route
-            path="/campaign/:type/:id"
+            path="/campaign/:id"
             element={
               <Suspense fallback={pageFallback}>
                 <CampaignDetailPage />
@@ -81,7 +81,7 @@ export default function App() {
             }
           />
           <Route
-            path="/campaign/:type/:id/threads/:threadId"
+            path="/campaign/:id/threads/:threadId"
             element={
               <Suspense fallback={pageFallback}>
                 <CampaignThreadPage />

@@ -2,6 +2,111 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type ApplicableCampaign implements IAttach & ICreatedAt & StandardEntity {
+  _id: String!
+
+  """당첨자발표일. 없으면 뭔가 발표하지 않는 이벤트로 간주"""
+  announceAt: DateTime
+  applicableSubType: ApplicableCampaignSubType!
+
+  """현재 참여자 수 (중복 신청은 1명). 응답 시 채움"""
+  appliedCnt: Int!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+
+  """지원자 수 제한. 없으면 무제한. 0이면 지원형 캠페인이 아님."""
+  available: Int
+
+  """1인 지원제한 수. 없으면 무제한. 0이면 지원형 캠페인이 아님."""
+  availableEach: Int
+
+  """부모 캠페인 아이디"""
+  campaign: String!
+
+  """참가비용포인트"""
+  cost: Int!
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """지원가능종료일. 없으면 캠페인 종료일"""
+  endAt: DateTime
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+
+  """참가포인트 있는 경우 포인트 소비내역에 표시될 문구. 없으면 단순 (이벤트참가)로 표기"""
+  logLabel: String
+
+  """나의 신청, 당첨 여부. 응답 시 로그인 유저 기준으로 채움 (비로그인 NONE)"""
+  me: CampaignApplyStatus!
+  pinn: Boolean!
+  sortKey: Int!
+
+  """지원가능일. 없으면 캠페인 시작일"""
+  startAt: DateTime
+  status: StandardStatus!
+  version: String!
+  winnerSetting: ApplicationCampaignWinnerSetting!
+}
+
+enum ApplicableCampaignSubType {
+  """추첨 포인트 이벤트"""
+  LOTTERY_POINT
+
+  """추첨 경품 이벤트"""
+  LOTTERY_REWARD
+}
+
+type ApplicationCampaignRewardItem {
+  """system 상 직렬화 인식 키. ex) rank1 | check1 | 0 ..."""
+  key: String!
+
+  """경품수량. rewardTitle 이 포인트|point 이면 필수, 없으면 미표시하고 내부정책"""
+  rewardAmount: Float
+
+  """수상명. ex) 1등, 1위, 우수상, 당첨, 베스트 ... 등"""
+  rewardLabel: String
+
+  """경품명"""
+  rewardProduct: String!
+  sortKey: Int!
+}
+
+input ApplicationCampaignRewardItemInput {
+  """system 상 직렬화 인식 키. ex) rank1 | check1 | 0 ..."""
+  key: String!
+
+  """경품수량. rewardTitle 이 포인트|point 이면 필수, 없으면 미표시하고 내부정책"""
+  rewardAmount: Float
+
+  """수상명. ex) 1등, 1위, 우수상, 당첨, 베스트 ... 등"""
+  rewardLabel: String
+
+  """경품명"""
+  rewardProduct: String!
+  sortKey: Int!
+}
+
+type ApplicationCampaignWinnerSetting {
+  rewards: [ApplicationCampaignRewardItem!]!
+
+  """예비당첨자. 없으면 예비당첨자 비존재"""
+  sub: Int
+  win: Int!
+  winType: CampaignWinType!
+}
+
+input ApplicationCampaignWinnerSettingInput {
+  rewards: [ApplicationCampaignRewardItemInput!]!
+
+  """예비당첨자. 없으면 예비당첨자 비존재"""
+  sub: Int
+  win: Int!
+  winType: CampaignWinType!
+}
+
 type Archive implements CompactEntity & IAttach & ICreatedAt & IUser {
   _id: String!
 
@@ -1443,9 +1548,6 @@ type BooleanResponse {
 type Campaign implements IAttach & ICreatedAt & IOpinion & IReaction & StandardEntity {
   _id: String!
 
-  """지원형 이벤트인경우 지원제한/비용. me 는 저장하지 않고 응답 시 로그인 유저 기준으로 채움"""
-  applyLimit: CampaignApplyLimit
-
   """첨부 미디어 목록"""
   attaches: [AttachItem!]!
 
@@ -1466,13 +1568,11 @@ type Campaign implements IAttach & ICreatedAt & IOpinion & IReaction & StandardE
   exposedOn: [String!]!
   flags: [String!]!
 
+  """하위 캠페인 아이템 (ApplicableCampaign | ReadableCampaign). sortKey 오름차순"""
+  items: [CampaignItemUnion!]!
+
   """url address to move other pages"""
   links: [Link!]!
-
-  """
-  기간당 1인 참여 횟수 제한 (중복 신청 / 포인트 링크 클릭 공통). 비어 있으면 기간 제한 없음. ex) [{ duration: 1, unit: "DD", cnt: 3 }] = 하루 3회
-  """
-  maxes: [DeployFreePointDataItem!]!
 
   """[threadCnt/opinionCnt]"""
   opinionsCnt: [Int!]
@@ -1487,72 +1587,12 @@ type Campaign implements IAttach & ICreatedAt & IOpinion & IReaction & StandardE
   status: StandardStatus!
   subTitle: String
   title: String!
-  type: CampaignType!
   version: String!
 }
 
-type CampaignApplyLimit {
-  """당첨자발표일. 없으면 뭔가 발표하지 않는 이벤트로 간주"""
-  announceAt: DateTime
-
-  """지원자 수 제한. 없으면 무제한. 0이면 지원형 캠페인이 아님."""
-  available: Int
-
-  """1인 지원제한 수. 없으면 무제한. 0이면 지원형 캠페인이 아님."""
-  availableEach: Int
-
-  """참가비용포인트"""
-  cost: Int!
-
-  """지원가능종료일. 없으면 캠페인 종료일"""
-  endAt: DateTime
-
-  """참가포인트 있는 경우 포인트 소비내역에 표시될 문구. 없으면 단순 (이벤트참가)로 표기"""
-  historyLabel: String
-
-  """나의 신청, 당첨 여부"""
-  me: CampaignApplyStatus!
-
-  """지원가능일. 없으면 캠페인 시작일"""
-  startAt: DateTime
-
-  """예비당첨자. 없으면 예비당첨자 비존재"""
-  sub: Int
-  win: Int!
-}
-
-input CampaignApplyLimitInput {
-  """당첨자발표일. 없으면 뭔가 발표하지 않는 이벤트로 간주"""
-  announceAt: DateTime
-
-  """지원자 수 제한. 없으면 무제한. 0이면 지원형 캠페인이 아님."""
-  available: Int
-
-  """1인 지원제한 수. 없으면 무제한. 0이면 지원형 캠페인이 아님."""
-  availableEach: Int
-
-  """참가비용포인트"""
-  cost: Int!
-
-  """지원가능종료일. 없으면 캠페인 종료일"""
-  endAt: DateTime
-
-  """참가포인트 있는 경우 포인트 소비내역에 표시될 문구. 없으면 단순 (이벤트참가)로 표기"""
-  historyLabel: String
-
-  """나의 신청, 당첨 여부"""
-  me: CampaignApplyStatus!
-
-  """지원가능일. 없으면 캠페인 시작일"""
-  startAt: DateTime
-
-  """예비당첨자. 없으면 예비당첨자 비존재"""
-  sub: Int
-  win: Int!
-}
-
 input CampaignApplySagaInput {
-  campaignId: String!
+  """하위 참여형 캠페인(ApplicableCampaign) id"""
+  applicableId: String!
 }
 
 enum CampaignApplyStatus {
@@ -1570,9 +1610,6 @@ enum CampaignApplyStatus {
 }
 
 input CampaignInput {
-  """지원형 이벤트인경우 지원제한/비용. me 는 저장하지 않고 응답 시 로그인 유저 기준으로 채움"""
-  applyLimit: CampaignApplyLimitInput
-
   """
   이 캠페인에서 쓸 기능. 관리자 선택. admin front - admin api - user front 간 약속값 (ex: opinion, reaction)
   """
@@ -1587,17 +1624,16 @@ input CampaignInput {
   """노출 위치. admin front - admin api - user front 간 약속값"""
   exposedOn: [String!]!
 
-  """
-  기간당 1인 참여 횟수 제한 (중복 신청 / 포인트 링크 클릭 공통). 비어 있으면 기간 제한 없음. ex) [{ duration: 1, unit: "DD", cnt: 3 }] = 하루 3회
-  """
-  maxes: [DeployFreePointDataItemInput!]!
-
   """시작. 바로 시작이면 과거 아무 시각으로(1970-01-01T00:00:00.000Z)"""
   startAt: DateTime!
   subTitle: String
   title: String!
-  type: CampaignType!
 }
+
+"""
+캠페인 하위 아이템. __typename 으로 종류, applicableSubType / readableSubType 으로 세부 용도 구분
+"""
+union CampaignItemUnion = ApplicableCampaign | ReadableCampaign
 
 input CampaignListByQry {
   """커서"""
@@ -1616,83 +1652,9 @@ input CampaignListByQry {
   sort: CampaignSearchInputSortType
 }
 
-type CampaignMutNamespace {
-  campaignApply(input: CampaignApplySagaInput!): IdResultResponse!
-}
-
-input CampaignOneByQry {
-  _id: String!
-}
-
-type CampaignQryNamespace {
-  campaignOne(input: CampaignOneByQry!): CampaignResponse!
-
-  """
-  진행 중이 항상 먼저. 그 안에서 sort: 이름순 { title: 1 }, 유형별 { type: 1 }, 만료임박순 { endAt: 1 }. 시작 전은 제외, 종료는 포함
-  """
-  campaignStandardList(input: CampaignListByQry): CampaignResItemListResponse!
-}
-
-type CampaignResItem implements IAttach & ICreatedAt & IOpinion & IReaction & StandardEntity {
-  _id: String!
-
-  """현재 참여자 수. 참여형이 아니면 null, 아무도 참여 안 했으면 0"""
-  appliedCnt: Int
-
-  """지원형 이벤트인경우 지원제한/비용. me 는 저장하지 않고 응답 시 로그인 유저 기준으로 채움"""
-  applyLimit: CampaignApplyLimit
-
-  """첨부 미디어 목록"""
-  attaches: [AttachItem!]!
-
-  """
-  이 캠페인에서 쓸 기능. 관리자 선택. admin front - admin api - user front 간 약속값 (ex: opinion, reaction)
-  """
-  components: [String!]!
-
-  """본문 (markdown)"""
-  content: String!
-  createdAt: DateTime!
-  deletedAt: DateTime
-
-  """종료. 기한 없으면 먼 미래(9999-12-31T00:00:00.000Z 등). 지나도 목록에는 노출"""
-  endAt: DateTime!
-
-  """노출 위치. admin front - admin api - user front 간 약속값"""
-  exposedOn: [String!]!
-  flags: [String!]!
-
-  """url address to move other pages"""
-  links: [Link!]!
-
-  """
-  기간당 1인 참여 횟수 제한 (중복 신청 / 포인트 링크 클릭 공통). 비어 있으면 기간 제한 없음. ex) [{ duration: 1, unit: "DD", cnt: 3 }] = 하루 3회
-  """
-  maxes: [DeployFreePointDataItem!]!
-
-  """내 참여 여부. 참여형이 아니면 null, 비로그인은 false"""
-  myApplied: Boolean
-
-  """[threadCnt/opinionCnt]"""
-  opinionsCnt: [Int!]
-  pinn: Boolean!
-
-  """reaction 이름별 갯수"""
-  reactionsCnt: [ReactionCnt!]
-  sortKey: Int!
-
-  """시작. 바로 시작이면 과거 아무 시각으로(1970-01-01T00:00:00.000Z)"""
-  startAt: DateTime!
-  status: StandardStatus!
-  subTitle: String
-  title: String!
-  type: CampaignType!
-  version: String!
-}
-
-type CampaignResItemListResponse {
+type CampaignListResponse {
   hasNext: Boolean
-  items: [CampaignResItem!]!
+  items: [Campaign!]!
 
   """마지막 페이지"""
   maxPage: Int
@@ -1711,6 +1673,23 @@ type CampaignResItemListResponse {
   total: Int
 }
 
+type CampaignMutNamespace {
+  campaignApply(input: CampaignApplySagaInput!): IdResultResponse!
+}
+
+input CampaignOneByQry {
+  _id: String!
+}
+
+type CampaignQryNamespace {
+  campaignOne(input: CampaignOneByQry!): CampaignResponse!
+
+  """
+  진행 중이 항상 먼저. 그 안에서 sort: 이름순 { title: 1 }, 만료임박순 { endAt: 1 }. 시작 전은 제외, 종료는 포함
+  """
+  campaignStandardList(input: CampaignListByQry): CampaignListResponse!
+}
+
 type CampaignResponse {
   item: Campaign!
   message: String
@@ -1719,9 +1698,6 @@ type CampaignResponse {
 
 input CampaignSearchInput {
   _id: RangeString
-
-  """지원형 이벤트인경우 지원제한/비용. me 는 저장하지 않고 응답 시 로그인 유저 기준으로 채움"""
-  applyLimit: CampaignApplyLimitInput
 
   """첨부 미디어 목록"""
   attaches: [AttachItemInput!]
@@ -1749,11 +1725,6 @@ input CampaignSearchInput {
   """url address to move other pages"""
   links: [LinkInput!]
 
-  """
-  기간당 1인 참여 횟수 제한 (중복 신청 / 포인트 링크 클릭 공통). 비어 있으면 기간 제한 없음. ex) [{ duration: 1, unit: "DD", cnt: 3 }] = 하루 3회
-  """
-  maxes: [DeployFreePointDataItemInput!]
-
   """[threadCnt/opinionCnt]"""
   opinionsCnt: [Int!]
   pinn: Boolean
@@ -1764,16 +1735,12 @@ input CampaignSearchInput {
   status: RangeStandardStatus
   subTitle: RangeString
   title: RangeString
-  type: RangeCampaignType
   version: RangeString
 }
 
 input CampaignSearchInputSortType {
   """1: asc, -1: desc"""
   _id: Int
-
-  """1: asc, -1: desc"""
-  applyLimit: Int
 
   """1: asc, -1: desc"""
   attaches: Int
@@ -1803,9 +1770,6 @@ input CampaignSearchInputSortType {
   links: Int
 
   """1: asc, -1: desc"""
-  maxes: Int
-
-  """1: asc, -1: desc"""
   opinionsCnt: Int
 
   """1: asc, -1: desc"""
@@ -1827,27 +1791,41 @@ input CampaignSearchInputSortType {
   title: Int
 
   """1: asc, -1: desc"""
-  type: Int
-
-  """1: asc, -1: desc"""
   version: Int
 }
 
-enum CampaignType {
-  """광고"""
-  AD
+enum CampaignWinType {
+  """당첨자 모두 같은 혜택 (순위 없음)"""
+  EQ
 
-  """쿠폰 안내"""
-  COUPON
+  """순위별 혜택 (1등, 2등 ...)"""
+  RANK
+}
 
-  """기간 한정 이벤트"""
-  EVENT
+type ClickEventSetting {
+  """어느 키를 눌러야 포인트를 얻는건지 시스템 인식 키"""
+  linkKey: String!
 
-  """제휴"""
-  PARTNERSHIP
+  """
+  기간당 1인 횟수 제한. 비어 있으면 기간 제한 없음. ex) [{ duration: 1, unit: "DD", cnt: 3 }] = 하루 3회
+  """
+  maxes: [DeployFreePointDataItem!]!
 
-  """프로모션 코드 안내"""
-  PROMOTION_CODE
+  """click reward"""
+  point: Int!
+}
+
+input ClickEventSettingInput {
+  """어느 키를 눌러야 포인트를 얻는건지 시스템 인식 키"""
+  linkKey: String!
+
+  """
+  기간당 1인 횟수 제한. 비어 있으면 기간 제한 없음. ex) [{ duration: 1, unit: "DD", cnt: 3 }] = 하루 3회
+  """
+  maxes: [DeployFreePointDataItemInput!]!
+
+  """click reward"""
+  point: Int!
 }
 
 """
@@ -2286,9 +2264,6 @@ type Link {
   """link name to find and use by client side dev"""
   key: String!
   label: String
-
-  """click reward if exists"""
-  point: Int
 }
 
 input LinkInput {
@@ -2297,9 +2272,6 @@ input LinkInput {
   """link name to find and use by client side dev"""
   key: String!
   label: String
-
-  """click reward if exists"""
-  point: Int
 }
 
 type MeResponseItem {
@@ -3004,10 +2976,11 @@ input OpinionUpdateInput {
 }
 
 input PointClickSagaInput {
-  campaignId: String!
-
-  """클릭한 링크의 Link.key (ex: more)"""
+  """클릭한 링크 key. clickLinkEvent.linkKey 와 같아야 보상"""
   linkKey: String!
+
+  """하위 읽기형 캠페인(ReadableCampaign) id"""
+  readableId: String!
 }
 
 type PointHistory implements CompactEntity & ICreatedAt & IUser {
@@ -3157,7 +3130,7 @@ input PointHistorySearchInputSortType {
 
 type PointMutNamespace {
   """
-  캠페인 포인트 링크(Link.point > 0) 클릭 보상. item true = 지급 접수, false = 지급 사유 비활성. 횟수 초과 등은 에러
+  하위 읽기형 캠페인 링크 클릭 보상 (clickLinkEvent). item true = 지급 접수, false = 지급 사유 비활성. 횟수 초과 등은 에러
   """
   clickPoint(input: PointClickSagaInput!): BooleanResponse!
 }
@@ -3225,18 +3198,6 @@ input RangeArchiveAvailableImgType {
   lte: ArchiveAvailableImgType
   mul: [ArchiveAvailableImgType!]
   not: ArchiveAvailableImgType
-}
-
-"\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
-input RangeCampaignType {
-  contains: CampaignType
-  eq: CampaignType
-  gt: CampaignType
-  gte: CampaignType
-  lt: CampaignType
-  lte: CampaignType
-  mul: [CampaignType!]
-  not: CampaignType
 }
 
 "\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
@@ -3480,6 +3441,44 @@ type ReactionTopTargetListResponse {
 
   """총 data rows"""
   total: Int
+}
+
+type ReadableCampaign implements IAttach & ICreatedAt & StandardEntity {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+
+  """부모 캠페인 아이디"""
+  campaign: String!
+
+  """링크 클릭 포인트 이벤트. 없으면 클릭 보상 없음"""
+  clickLinkEvent: ClickEventSetting
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """포인트 획득 기간 종료. 없으면 캠페인 종료일"""
+  endAt: DateTime
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+  pinn: Boolean!
+  readableSubType: ReadableCampaignSubType!
+  sortKey: Int!
+
+  """포인트 획득 기간 시작. 없으면 캠페인 시작일"""
+  startAt: DateTime
+  status: StandardStatus!
+  version: String!
+}
+
+enum ReadableCampaignSubType {
+  """자사 안내 / 홍보"""
+  IN_HOUSE
+
+  """제휴"""
+  PARTNERSHIP
 }
 
 type Ref {

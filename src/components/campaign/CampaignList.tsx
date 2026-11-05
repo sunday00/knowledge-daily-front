@@ -6,7 +6,7 @@ import type { CampaignListByQry, CampaignListQuery } from '@/graphql/__generated
 import {
   campaignColor,
   campaignPath,
-  campaignTypeLabel,
+  campaignItemLabels,
   findBannerAttach,
   isClosedCampaign,
   periodText,
@@ -191,6 +191,8 @@ function SearchForm({ keyword }: { keyword: string }) {
 
 function CampaignCard({ item, closed }: { item: CampaignListItem; closed: boolean }) {
   const banner = findBannerAttach(item.attaches)?.attach
+  // 참여형 아이템 중 하나라도 내가 참여했으면 (참여 인원은 아이템마다 달라 카드엔 안 둔다)
+  const applied = item.items.some((c) => c.__typename === 'ApplicableCampaign' && c.me !== 'NONE')
   const location = useLocation()
 
   return (
@@ -219,9 +221,14 @@ function CampaignCard({ item, closed }: { item: CampaignListItem; closed: boolea
 
         <div className="space-y-1.5 px-4 py-3">
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <span className="rounded px-1.5 py-0.5 bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200">
-              {campaignTypeLabel(item.type)}
-            </span>
+            {campaignItemLabels(item.items).map((label) => (
+              <span
+                key={label}
+                className="rounded px-1.5 py-0.5 bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200"
+              >
+                {label}
+              </span>
+            ))}
             {closed ? (
               <span className="rounded px-1.5 py-0.5 bg-neutral-100 text-neutral-500 dark:bg-neutral-800">
                 종료
@@ -231,7 +238,7 @@ function CampaignCard({ item, closed }: { item: CampaignListItem; closed: boolea
                 진행 중
               </span>
             )}
-            {item.myApplied && (
+            {applied && (
               <span className="rounded px-1.5 py-0.5 bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
                 참여함
               </span>
@@ -245,17 +252,7 @@ function CampaignCard({ item, closed }: { item: CampaignListItem; closed: boolea
               {item.subTitle}
             </p>
           )}
-          <p className="flex flex-wrap gap-x-3 text-xs text-neutral-500">
-            <span>{periodText(item.startAt, item.endAt)}</span>
-            {item.appliedCnt != null && (
-              <span>
-                참여 {item.appliedCnt.toLocaleString()}
-                {item.applyLimit?.available != null &&
-                  ` / ${item.applyLimit.available.toLocaleString()}`}
-                명
-              </span>
-            )}
-          </p>
+          <p className="text-xs text-neutral-500">{periodText(item.startAt, item.endAt)}</p>
         </div>
       </Link>
     </li>

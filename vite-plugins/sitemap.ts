@@ -84,7 +84,7 @@ function boardEntries(configs: SharedConfigs): Entry[] {
   }))
 }
 
-type CampaignRow = { _id: string; type: string; status: string; endAt: string }
+type CampaignRow = { _id: string; status: string; endAt: string }
 
 const CAMPAIGN_PAGE_SIZE = 100
 const CAMPAIGN_MAX_PAGES = 20
@@ -92,7 +92,7 @@ const CAMPAIGN_MAX_PAGES = 20
 const NO_END_FROM = Date.UTC(2200, 0, 1)
 
 /**
- * 이벤트 상세 주소 (진행 중 + 끝난 것). 주소 규칙은 src/lib/campaign.ts campaignPath 와 같다.
+ * 이벤트 상세 주소 (진행 중 + 끝난 것). 주소 규칙은 src/lib/campaign.ts campaignPath 와 같다. (/campaign/:id)
  * 진행 중이면 자주, 끝났거나 닫혔으면(CLOSE) 드물게 다시 보도록 한다. 못 받으면 빼고 만든다.
  */
 async function fetchCampaignEntries(
@@ -107,7 +107,7 @@ async function fetchCampaignEntries(
         CampaignQuery: { campaignStandardList: { items: CampaignRow[]; maxPage?: number | null } }
       }>(
         endpoint,
-        `{ CampaignQuery { campaignStandardList(input: { size: ${CAMPAIGN_PAGE_SIZE}, page: ${page}, search: { status: { mul: [ACTIVE, CLOSE] } } }) { maxPage items { _id type status endAt } } } }`,
+        `{ CampaignQuery { campaignStandardList(input: { size: ${CAMPAIGN_PAGE_SIZE}, page: ${page}, search: { status: { mul: [ACTIVE, CLOSE] } } }) { maxPage items { _id status endAt } } } }`,
         version,
       )
       const { items, maxPage } = data.CampaignQuery.campaignStandardList
@@ -123,7 +123,7 @@ async function fetchCampaignEntries(
     const end = Date.parse(c.endAt)
     const closed = c.status === 'CLOSE' || (end < NO_END_FROM && end < now)
     return {
-      path: `/campaign/${slugify(c.type)}/${c._id}`,
+      path: `/campaign/${c._id}`,
       changefreq: closed ? 'monthly' : 'weekly',
       priority: closed ? 0.2 : 0.5,
     }

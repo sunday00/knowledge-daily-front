@@ -1,23 +1,31 @@
-import { slugify } from '@/lib/slugify.ts'
-
-/** 캠페인 유형 (서버 CampaignType) */
-export const CAMPAIGN_TYPE_LABEL: Record<string, string> = {
-  EVENT: '이벤트',
-  PROMOTION_CODE: '프로모션 코드',
-  COUPON: '쿠폰',
-  PARTNERSHIP: '제휴',
-  AD: '광고',
-}
-
-export const campaignTypeLabel = (type: string) => CAMPAIGN_TYPE_LABEL[type] ?? type
-
 /** 캠페인(이벤트) 목록 주소 */
 export const CAMPAIGN_PATH = '/campaign'
 export const CAMPAIGN_TITLE = '이벤트'
 
-/** 캠페인 상세 주소. 유형은 주소용으로 바꾼다. (PROMOTION_CODE → promotion-code) */
-export const campaignPath = (c: { type: string; _id: string }) =>
-  `/campaign/${slugify(c.type)}/${c._id}`
+/** 캠페인 상세 주소 */
+export const campaignPath = (c: { _id: string }) => `${CAMPAIGN_PATH}/${c._id}`
+
+/**
+ * 하위 아이템 유형 라벨.
+ * 참여형(ApplicableCampaign): LOTTERY_REWARD 경품 응모, LOTTERY_POINT 포인트 추첨
+ * 읽기형(ReadableCampaign): IN_HOUSE 보기 보상(클릭 보상 없으면 안내), PARTNERSHIP 제휴
+ */
+export function campaignItemLabel(
+  item:
+    | { __typename?: 'ApplicableCampaign'; applicableSubType: string }
+    | { __typename?: 'ReadableCampaign'; readableSubType: string; clickLinkEvent?: unknown },
+): string {
+  if ('applicableSubType' in item) {
+    return item.applicableSubType === 'LOTTERY_POINT' ? '포인트 추첨' : '경품 응모'
+  }
+  if (item.readableSubType === 'PARTNERSHIP') return '제휴'
+  return item.clickLinkEvent ? '보기 보상' : '안내'
+}
+
+/** 목록 카드 배지: 하위 아이템 라벨을 순서대로, 겹치면 한 번만 */
+export const campaignItemLabels = (items: Parameters<typeof campaignItemLabel>[0][]) => [
+  ...new Set(items.map(campaignItemLabel)),
+]
 
 // 서버 약속: 바로 시작이면 1970-01-01, 기한 없으면 9999-12-31 처럼 먼 날짜를 넣는다.
 // 끝은 2200년 이후면 모두 무기한으로 본다.
@@ -60,12 +68,30 @@ export const isClosedCampaign = (
   now = Date.now(),
 ) => c.status === 'CLOSE' || now < (parse(c.startAt) ?? 0) || isEnded(c.endAt, now)
 
-// 첨부 중 배너 이미지의 flag (admin front - admin api - user front 간 약속값)
+// 첨부 이미지 flag (admin front - admin api - user front 간 약속값)
+/** 상위 배너 1024x400. 홈 캐러셀 / 목록 카드 / 상세 상단 */
 export const CAMPAIGN_BANNER_FLAG = 'banner'
+/** 상위 안내 이미지 (1024 폭, 세로로 긴 기간·참여 방법·경품 안내). 상세 본문 위 */
+export const CAMPAIGN_CONTENT_FLAG = 'content'
+/** 하위 아이템 카드 1024x576. 각 응모 / 보기 보상 블록 상단 */
+export const CAMPAIGN_ITEM_CARD_FLAG = 'card'
 
-/** 첨부 중 배너(flag)인 것. 대소문자는 가리지 않는다. 없으면 undefined */
-export const findBannerAttach = <T extends { flag?: string | null }>(attaches: readonly T[]) =>
-  attaches.find((a) => a.flag?.toLowerCase() === CAMPAIGN_BANNER_FLAG)
+/** 첨부 중 flag 가 맞는 것들 (sortKey 순). 대소문자는 가리지 않는다. */
+export const filterAttachByFlag = <T extends { flag?: string | null; sortKey: number }>(
+  attaches: readonly T[],
+  flag: string,
+) => attaches.filter((a) => a.flag?.toLowerCase() === flag).sort((a, z) => a.sortKey - z.sortKey)
+
+/** 첨부 중 flag 가 맞는 첫 번째. 없으면 undefined */
+export const findAttachByFlag = <T extends { flag?: string | null; sortKey: number }>(
+  attaches: readonly T[],
+  flag: string,
+): T | undefined => filterAttachByFlag(attaches, flag)[0]
+
+/** 상위 배너(flag=banner) 첨부 */
+export const findBannerAttach = <T extends { flag?: string | null; sortKey: number }>(
+  attaches: readonly T[],
+) => findAttachByFlag(attaches, CAMPAIGN_BANNER_FLAG)
 
 /** 배너 이미지가 없는 캠페인의 배경색. 같은 캠페인은 늘 같은 색이 나오게 _id 로 정한다. */
 export function campaignColor(id: string): string {
@@ -88,8 +114,21 @@ const MAX_UNIT_TEXT: Record<string, string> = {
 export const maxText = (m: { duration: number; unit: string; cnt: number }) =>
   `${m.duration}${MAX_UNIT_TEXT[m.unit] ?? m.unit}에 ${m.cnt.toLocaleString()}회`
 
+/** 하위 아이템 기간. 아이템에 없으면 상위 캠페인 기간 */
+export const itemPeriod = (
+  item: { startAt?: unknown; endAt?: unknown },
+  parent: { startAt: unknown; endAt: unknown },
+) => ({ startAt: item.startAt ?? parent.startAt, endAt: item.endAt ?? parent.endAt })
+
 /**
- * 1인 참여 횟수 (신청 / 링크 클릭 공통). null 무제한, 0 소개 캠페인(참여·보상 없음), n 회.
+ * 하위 아이템이 지금 동작하는지 (응모 / 클릭 보상).
+ * 상위가 닫히지 않았고, 아이템이 ACTIVE 이고, 아이템 기간(없으면 상위 기간) 안.
  */
-export const isIntroCampaign = (limit?: { availableEach?: number | null } | null) =>
-  limit?.availableEach === 0
+export const isItemOpen = (
+  item: { status: string; startAt?: unknown; endAt?: unknown },
+  parent: { status: string; startAt: unknown; endAt: unknown },
+  now = Date.now(),
+) =>
+  !isClosedCampaign(parent, now) &&
+  item.status === 'ACTIVE' &&
+  !isClosedCampaign({ status: 'ACTIVE', ...itemPeriod(item, parent) }, now)

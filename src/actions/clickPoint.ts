@@ -7,8 +7,8 @@ const ERROR_TEXT: Record<string, string> = {
   CAMPAIGN_NOT_FOUND: '이벤트를 찾을 수 없어 포인트가 지급되지 않습니다.',
   CAMPAIGN_CLICK_CLOSED: '이벤트 기간이 아니라 포인트가 지급되지 않습니다.',
   CAMPAIGN_CLICK_NOT_REWARDED: '포인트가 지급되는 링크가 아닙니다.',
-  CAMPAIGN_CLICK_EACH_LIMIT: '이 링크로 받을 수 있는 포인트를 모두 받았습니다.',
   CAMPAIGN_CLICK_TOO_OFTEN: '잠시 후 다시 누르면 포인트를 받을 수 있습니다.',
+  CAMPAIGN_NOT_ACTIVE: '이벤트가 잠시 중단되어 포인트가 지급되지 않습니다.',
 }
 // 적립은 console 이 나중에 한다. 이만큼 뒤에 다시 받아 포인트(x-user-point)를 맞춘다.
 const POINT_REFRESH_MS = 3000
@@ -27,9 +27,10 @@ export function useClickPoint() {
     context: { expectedErrorCodes: Object.keys(ERROR_TEXT) },
   })
 
-  const click = (campaignId: string, linkKey: string, point: number) => {
+  /** readableId: 클릭 보상이 걸린 하위 읽기형 아이템 _id */
+  const click = (readableId: string, linkKey: string, point: number) => {
     setNotice(null)
-    mutate({ variables: { input: { campaignId, linkKey } } })
+    mutate({ variables: { input: { readableId, linkKey } } })
       .then(({ data }) => {
         const res = data?.PointMutation.clickPoint
         // false = 지급 사유 비활성. 조용히 넘어간다.
