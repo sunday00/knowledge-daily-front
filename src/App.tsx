@@ -7,6 +7,8 @@ import UserSettingsPage from './pages/user/UserSettingsPage'
 import UserSettingsEditPage from './pages/user/UserSettingsEditPage'
 import NotifyInterestEditPage from './pages/user/NotifyInterestEditPage'
 import EmbedApplyPage from './pages/user/EmbedApplyPage'
+import PointHistoryPage from './pages/user/PointHistoryPage'
+import { POINT_HISTORY_PATH } from './lib/userPoint'
 import { EMBED_APPLY_PATH } from './components/paid/PaidServices'
 import KakaoCallbackPage from './pages/auth/KakaoCallbackPage'
 import MySensePage from './pages/sense/MySensePage'
@@ -94,6 +96,7 @@ export default function App() {
           <Route path="/user/settings/edit" element={<UserSettingsEditPage />} />
           <Route path="/user/settings/interest/edit" element={<NotifyInterestEditPage />} />
           <Route path={EMBED_APPLY_PATH} element={<EmbedApplyPage />} />
+          <Route path={POINT_HISTORY_PATH} element={<PointHistoryPage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
           <Route path="/sense/my-sense" element={<MySensePage />} />
           <Route path="/tags/:tag?" element={<TagsPage />} />
