@@ -2300,6 +2300,7 @@ type Mutation {
   NotifyMutation: NotifyMutNamespace!
   OpinionMutation: OpinionMutNamespace!
   PointMutation: PointMutNamespace!
+  PromotionMutation: PromotionMutNamespace!
   ReactionMutation: ReactionMutNamespace!
   SenseMutation: SenseMutNamespace!
   UserMutation: UserMutNamespace!
@@ -3155,6 +3156,207 @@ input PointReasonDetailInput {
   counterLabel: String
 }
 
+type PromotionCode implements CompactEntity & ICreatedAt {
+  _id: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """형제 / 시리즈 프로모션 코드 id. 여기 포함된 프로모션에 이미 참여한 유저는 이번 프로모션에도 참여한 것으로 간주"""
+  excludes: [String!]!
+
+  """제한사항"""
+  limit: PromotionCodeLimit!
+
+  """코드 적용 시 지급 포인트"""
+  point: Int!
+  status: StandardStatus!
+
+  """
+  프로모션 코드 template. 고정문자열, 하이픈(-), 쌍중괄호 {{ }} 이용하여 저장. ex)) DAILY-{{usid}}-2026 
+  """
+  template: String!
+
+  """template 에 지정된 변수의 규칙"""
+  templateRules: [PromotionCodeTemplateRule!]!
+
+  """프로모션 이름. 관리자 식별용 + 포인트 내역의 사유 대상 표시명(counterLabel)"""
+  title: String!
+  version: String!
+}
+
+type PromotionCodeDynamicDateInterval {
+  duration: Int!
+
+  """YYYY | MM | DD | HH | mm | ss"""
+  unit: String!
+}
+
+input PromotionCodeDynamicDateIntervalInput {
+  duration: Int!
+
+  """YYYY | MM | DD | HH | mm | ss"""
+  unit: String!
+}
+
+type PromotionCodeDynamicDateLimit {
+  firstLast: PromotionCodeDynamicDateOrder!
+
+  """대상 doc createdAt 부터 이 기간 이내. maxes 와 같은 duration / unit"""
+  interval: PromotionCodeDynamicDateInterval!
+
+  """@PromotionDateTargetable 붙은 entity 만"""
+  targetEntity: VPromotionDateTargetEntity!
+
+  """대상 entity 에서 내 userId 가 들어있는 필드. ex) user"""
+  targetField: String!
+}
+
+input PromotionCodeDynamicDateLimitInput {
+  firstLast: PromotionCodeDynamicDateOrder!
+
+  """대상 doc createdAt 부터 이 기간 이내. maxes 와 같은 duration / unit"""
+  interval: PromotionCodeDynamicDateIntervalInput!
+
+  """@PromotionDateTargetable 붙은 entity 만"""
+  targetEntity: VPromotionDateTargetEntity!
+
+  """대상 entity 에서 내 userId 가 들어있는 필드. ex) user"""
+  targetField: String!
+}
+
+enum PromotionCodeDynamicDateOrder {
+  """대상 entity 중 내 것의 첫 doc 기준"""
+  FIRST
+
+  """대상 entity 중 내 것의 마지막 doc 기준"""
+  LAST
+}
+
+input PromotionCodeInput {
+  """형제 / 시리즈 프로모션 코드 id. 여기 포함된 프로모션에 이미 참여한 유저는 이번 프로모션에도 참여한 것으로 간주"""
+  excludes: [String!]!
+
+  """제한사항"""
+  limit: PromotionCodeLimitInput!
+
+  """코드 적용 시 지급 포인트"""
+  point: Int!
+
+  """
+  프로모션 코드 template. 고정문자열, 하이픈(-), 쌍중괄호 {{ }} 이용하여 저장. ex)) DAILY-{{usid}}-2026 
+  """
+  template: String!
+
+  """template 에 지정된 변수의 규칙"""
+  templateRules: [PromotionCodeTemplateRuleInput!]!
+
+  """프로모션 이름. 관리자 식별용 + 포인트 내역의 사유 대상 표시명(counterLabel)"""
+  title: String!
+}
+
+type PromotionCodeLimit {
+  """코드 1당 다른 유저가 사용가능 한 수. 보통 1코드 1유저. null 무제한, 0 사용 불가. userSid 는 영향 없음"""
+  cntDuplicable: Int
+
+  """유저 1인당 적용가능 수. 보통 1인 1회. null 무제한, 0 사용 불가"""
+  cntEachUser: Int
+
+  """선착순인 경우 코드 수 제한. 1인 1표가 아닌 경우 총 코드 입력 수로 제한. null 무제한, 0 사용 불가"""
+  cntTotalApply: Int
+
+  """선착순인 경우 인원 제한. null 무제한, 0 사용 불가"""
+  cntTotalUser: Int
+
+  """
+  특수 날짜제한. 
+  - startAt ~ endAt 기간 중 
+  - 마지막(혹은 첫) 
+  - entity.field 가 내 userId 
+  - createdAt 기준으로 n일 이내 
+  입력한 프로모션코드를 인정하는 개념
+  """
+  dynamicDateLimit: PromotionCodeDynamicDateLimit
+  endAt: DateTime!
+  startAt: DateTime!
+}
+
+input PromotionCodeLimitInput {
+  """코드 1당 다른 유저가 사용가능 한 수. 보통 1코드 1유저. null 무제한, 0 사용 불가. userSid 는 영향 없음"""
+  cntDuplicable: Int
+
+  """유저 1인당 적용가능 수. 보통 1인 1회. null 무제한, 0 사용 불가"""
+  cntEachUser: Int
+
+  """선착순인 경우 코드 수 제한. 1인 1표가 아닌 경우 총 코드 입력 수로 제한. null 무제한, 0 사용 불가"""
+  cntTotalApply: Int
+
+  """선착순인 경우 인원 제한. null 무제한, 0 사용 불가"""
+  cntTotalUser: Int
+
+  """
+  특수 날짜제한. 
+  - startAt ~ endAt 기간 중 
+  - 마지막(혹은 첫) 
+  - entity.field 가 내 userId 
+  - createdAt 기준으로 n일 이내 
+  입력한 프로모션코드를 인정하는 개념
+  """
+  dynamicDateLimit: PromotionCodeDynamicDateLimitInput
+  endAt: DateTime!
+  startAt: DateTime!
+}
+
+type PromotionCodeTemplateRule {
+  """template 지정된 변수 명"""
+  key: String!
+
+  """
+  필수. REG 인 경우 해당하는 패턴. DECIMAL / USER_SID 인 경우엔 0으로 원하는 글자수만큼 채우기. ex) 000 이면 세자리
+  """
+  patt: String!
+  rule: PromotionCodeTemplateRuleType!
+}
+
+input PromotionCodeTemplateRuleInput {
+  """template 지정된 변수 명"""
+  key: String!
+
+  """
+  필수. REG 인 경우 해당하는 패턴. DECIMAL / USER_SID 인 경우엔 0으로 원하는 글자수만큼 채우기. ex) 000 이면 세자리
+  """
+  patt: String!
+  rule: PromotionCodeTemplateRuleType!
+}
+
+enum PromotionCodeTemplateRuleType {
+  """숫자형. user 입력은 len 만큼 앞에 0으로 채워야 함."""
+  DECIMAL
+
+  """정규식"""
+  REG
+
+  """
+  user sid. patt 의 0 개수 = 자릿수, 유저는 sid 를 앞 0 으로 채워 입력. sid 가 자릿수보다 길면 대상 아님
+  """
+  USER_SID
+}
+
+input PromotionCodeUseSagaInput {
+  """입력한 프로모션 코드. 대소문자 구분, 앞뒤 공백 제거"""
+  code: String!
+}
+
+type PromotionMutNamespace {
+  """
+  프로모션 코드 입력. item true = 포인트 지급 접수, false = 지급 사유 비활성. 미일치 / 기간 외 / 횟수 초과 등은 에러
+  """
+  promotionCodeUse(input: PromotionCodeUseSagaInput!): BooleanResponse!
+}
+
+type PromotionQryNamespace {
+  _promotionQryNotImplementedThing: SimpleJsonRes!
+}
+
 type Query {
   ArchiveQuery: ArchiveQryNamespace!
   AttachQuery: AttachQryNamespace!
@@ -3168,6 +3370,7 @@ type Query {
   NotifyQuery: NotifyQryNamespace!
   OpinionQuery: OpinionQryNamespace!
   PointQuery: PointQryNamespace!
+  PromotionQuery: PromotionQryNamespace!
   ReactionQuery: ReactionQryNamespace!
   SenseQuery: SenseQryNamespace!
   SystemQuery: SystemQryNamespace!
@@ -4180,6 +4383,11 @@ enum VCommentTargetEntity {
   Opinion
   Sense
   Thread
+}
+
+"""프로모션 코드 특수 날짜제한(dynamicDateLimit) 대상 엔티티 종류"""
+enum VPromotionDateTargetEntity {
+  User
 }
 
 type VillainMutNamespace {
