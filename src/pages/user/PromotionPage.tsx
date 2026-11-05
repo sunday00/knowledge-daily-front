@@ -77,6 +77,8 @@ function PromotionCodeForm() {
       </label>
       <p id="promotion-code-hint" className="text-xs text-neutral-500">
         영문은 자동으로 대문자로 입력됩니다. Caps Lock 이 켜진 것이 아니니 그대로 입력하세요.
+        <br />
+        일치하지 않는 코드를 10번 입력하면 1시간 동안 입력이 제한됩니다.
       </p>
       <div className="flex gap-2">
         <input

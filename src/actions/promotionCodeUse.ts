@@ -9,6 +9,9 @@ const ERROR_TEXT: Record<string, string> = {
   PROMOTION_CODE_USED_UP: '다른 분이 이미 사용한 프로모션 코드입니다.',
   PROMOTION_CODE_FULL: '준비된 수량이 모두 소진되었습니다.',
   PROMOTION_CODE_NOT_ELIGIBLE: '이 프로모션 코드의 사용 대상이 아닙니다.',
+  // 일치하지 않는 코드를 여러 번 넣으면 서버가 잠시 입력을 막는다
+  TOO_MANY_FAILS:
+    '잘못된 코드를 10번 입력해 1시간 동안 입력이 제한됩니다. 잠시 후 다시 시도해 주세요.',
 }
 // 적립은 console 이 나중에 한다. 이만큼 뒤에 다시 받아 포인트(x-user-point)를 맞춘다.
 const POINT_REFRESH_MS = 3000
