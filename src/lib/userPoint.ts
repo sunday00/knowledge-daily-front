@@ -31,3 +31,6 @@ export function useUserPoint(): number | null {
     () => point,
   )
 }
+
+/** 내 포인트 내역 주소 (nav 포인트를 누르면 간다) */
+export const POINT_HISTORY_PATH = '/user/point'
