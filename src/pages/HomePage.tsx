@@ -10,6 +10,7 @@ import { ChatIcon } from '../components/ChatIcon'
 import { BannerCarousel } from '../components/BannerCarousel'
 import { BANNER_SPOT, bannerSlide, useBanners } from '../hooks/useBanners'
 import { useCampaignBanners } from '../hooks/useCampaignBanners'
+import { useIsolatedPageBanners } from '../hooks/useIsolatedPageBanners'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { NoticeTicker } from '../components/notice/NoticeTicker'
 import { NOTICE_SPOT } from '../lib/notice'
@@ -27,14 +28,17 @@ export default function HomePage() {
 
   const { bySpot: banners, loading: bannersLoading } = useBanners('HOME_')
   const { bySpot: campaigns, loading: campaignsLoading } = useCampaignBanners('HOME_')
-  // 상단은 배너 + 캠페인을 섞어 sortKey 순 (같으면 배너 먼저)
+  const { slides: pages, loading: pagesLoading } = useIsolatedPageBanners(BANNER_SPOT.HOME_TOP_MID)
+  // 상단은 배너 + 캠페인 + 독립 페이지를 섞어 sortKey 순 (같으면 배너 → 캠페인 → 페이지)
+  // 독립 페이지의 sortKey 는 배너 첨부의 sortKey
   const topBanners = [
     ...(banners.get(BANNER_SPOT.HOME_TOP_MID) ?? []).map(bannerSlide),
     ...(campaigns.get(BANNER_SPOT.HOME_TOP_MID) ?? []),
+    ...pages,
   ].sort((a, z) => a.sortKey - z.sortKey)
   const bottomBanners = (banners.get(BANNER_SPOT.HOME_BOTTOM_MID) ?? []).map(bannerSlide)
   // 배너는 있는지 받아 봐야 알므로, 받는 동안만 자리에 스피너를 둔다.
-  const topSpinner = (bannersLoading || campaignsLoading) && (
+  const topSpinner = (bannersLoading || campaignsLoading || pagesLoading) && (
     <LoadingSpinner size="sm" label="배너 불러오는 중..." />
   )
   const bottomSpinner = bannersLoading && <LoadingSpinner size="sm" label="배너 불러오는 중..." />

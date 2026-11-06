@@ -26,6 +26,7 @@ import { Footer } from './components/Footer'
 import { ScrollTopButton } from './components/ScrollTopButton'
 import { documentPath } from './lib/documents'
 import { CAMPAIGN_PATH } from './lib/campaign'
+import { ISOLATED_PAGE_PATH } from './lib/isolatedPage'
 import CampaignListPage from './pages/campaign/CampaignListPage'
 import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
@@ -44,6 +45,13 @@ const CampaignDetailPage = lazy(() =>
 )
 const CampaignThreadPage = lazy(() =>
   import('./pages/campaign/CampaignPages').then((m) => ({ default: m.CampaignThreadPage })),
+)
+// 독립 페이지도 마크다운이라 들어갈 때만 불러온다.
+const IsolatedPageDetailPage = lazy(() =>
+  import('./pages/isolated/IsolatedPages').then((m) => ({ default: m.IsolatedPageDetailPage })),
+)
+const IsolatedPageThreadPage = lazy(() =>
+  import('./pages/isolated/IsolatedPages').then((m) => ({ default: m.IsolatedPageThreadPage })),
 )
 
 // 예전 태그 주소(/sense/tag/:tag)는 태그 메뉴로 보낸다.
@@ -89,6 +97,22 @@ export default function App() {
             element={
               <Suspense fallback={pageFallback}>
                 <CampaignThreadPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path={`${ISOLATED_PAGE_PATH}/:slug`}
+            element={
+              <Suspense fallback={pageFallback}>
+                <IsolatedPageDetailPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path={`${ISOLATED_PAGE_PATH}/:slug/threads/:threadId`}
+            element={
+              <Suspense fallback={pageFallback}>
+                <IsolatedPageThreadPage />
               </Suspense>
             }
           />
