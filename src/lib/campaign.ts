@@ -132,3 +132,25 @@ export const isItemOpen = (
   !isClosedCampaign(parent, now) &&
   item.status === 'ACTIVE' &&
   !isClosedCampaign({ status: 'ACTIVE', ...itemPeriod(item, parent) }, now)
+
+/**
+ * '진행 중' 으로 보일지. 상위 기간(startAt~endAt)은 노출 기간이라 결과 발표용으로 남겨 두는 기간도 포함한다.
+ * 그래서 상위가 열려 있어도 하위 아이템이 전부 끝났으면(기간 종료, 또는 ACTIVE 가 아님 — 결과 발표 등) 진행 중이 아니다.
+ * 아이템이 없으면 상위 기간만 본다.
+ */
+export const isCampaignInProgress = (
+  c: {
+    status: string
+    startAt: unknown
+    endAt: unknown
+    items: { status: string; startAt?: unknown; endAt?: unknown }[]
+  },
+  now = Date.now(),
+) =>
+  !isClosedCampaign(c, now) &&
+  (c.items.length === 0 ||
+    c.items.some((item) => item.status === 'ACTIVE' && !isEnded(itemPeriod(item, c).endAt, now)))
+
+/** 결과가 발표된 참여형 아이템이 있는지 */
+export const hasCampaignResult = (c: { items: { status?: string }[] }) =>
+  c.items.some((item) => item.status === 'RESULT')

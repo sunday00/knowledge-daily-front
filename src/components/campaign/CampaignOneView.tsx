@@ -15,6 +15,8 @@ import {
   filterAttachByFlag,
   findAttachByFlag,
   findBannerAttach,
+  hasCampaignResult,
+  isCampaignInProgress,
   isClosedCampaign,
   isItemOpen,
   maxText,
@@ -108,9 +110,10 @@ const badge = 'rounded px-1.5 py-0.5'
 const brandBadge = `${badge} bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200`
 const endedBadge = `${badge} bg-neutral-100 text-neutral-500 dark:bg-neutral-800`
 const liveBadge = `${badge} bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400`
+const resultBadge = `${badge} bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300`
 
 function CampaignHeader({ item }: { item: CampaignOneItem }) {
-  const ended = isClosedCampaign(item)
+  const live = isCampaignInProgress(item)
   return (
     <header className="space-y-2 border-b border-neutral-200 dark:border-neutral-800 pb-4">
       <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -119,7 +122,9 @@ function CampaignHeader({ item }: { item: CampaignOneItem }) {
             {label}
           </span>
         ))}
-        <span className={ended ? endedBadge : liveBadge}>{ended ? '종료' : '진행 중'}</span>
+        {hasCampaignResult(item) && <span className={resultBadge}>결과 발표</span>}
+        {/* 노출 기간이 남아도 하위 아이템 기간이 다 끝났으면 진행 중이 아니다 */}
+        <span className={live ? liveBadge : endedBadge}>{live ? '진행 중' : '종료'}</span>
       </div>
       <h2 className="text-2xl font-semibold break-words">{item.title}</h2>
       {item.subTitle && (
@@ -188,7 +193,11 @@ function ItemBlock({
       <div className="space-y-4 p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className={brandBadge}>{label}</span>
-          {!open && <span className={endedBadge}>지금은 참여할 수 없어요</span>}
+          {item.status === 'RESULT' ? (
+            <span className={resultBadge}>결과 발표</span>
+          ) : (
+            !open && <span className={endedBadge}>지금은 참여할 수 없어요</span>
+          )}
           {ownPeriod && (
             <span className="text-neutral-500">
               {periodText(item.startAt ?? parent.startAt, item.endAt ?? parent.endAt)}
@@ -238,6 +247,10 @@ function Rewards({ item }: { item: ApplicableItem }) {
           {!point && r.rewardAmount != null && (
             <span className="text-neutral-500"> × {r.rewardAmount.toLocaleString()}</span>
           )}
+          {/* 순위형은 순위마다 tie 명 (없으면 1명) */}
+          {item.winnerSetting.winType === 'RANK' && (
+            <span className="text-neutral-500"> · {(r.tie ?? 1).toLocaleString()}명</span>
+          )}
         </li>
       ))}
     </ul>
@@ -269,13 +282,137 @@ function ApplicableBlock({ parent, item }: { parent: CampaignOneItem; item: Appl
   if (item.announceAt) rows.push(['당첨 발표', formatDateTime(item.announceAt)])
   const mine = MY_STATUS[item.me]
   if (mine) rows.push(['내 참여', mine])
+  const result = item.status === 'RESULT'
 
   return (
     <ItemBlock parent={parent} item={item} open={open}>
       <InfoRows rows={rows} />
       {item.links.length > 0 && <LinkButtons links={item.links} />}
-      {!blocked && <ApplyButton parent={parent} item={item} open={open} />}
+      {/* 결과 발표 후엔 응모 대신 당첨 결과 */}
+      {result ? (
+        <WinnerResult item={item} />
+      ) : (
+        !blocked && <ApplyButton parent={parent} item={item} open={open} />
+      )}
     </ItemBlock>
+  )
+}
+
+type Winner = ApplicableItem['winners'][number]
+
+/** 예비 순번. 서버 subRank(decimal 문자열)가 정수면 그대로, 아니면 목록 순서로 */
+const subRankOf = (w: Winner, subs: Winner[], i = subs.findIndex((s) => s._id === w._id)) => {
+  const n = Number(w.subRank)
+  return Number.isInteger(n) && n > 0 ? n : i + 1
+}
+
+/** 당첨 결과 (status RESULT). 경품(순위)별 당첨자 → 예비 당첨자. 내 이름은 강조 */
+function WinnerResult({ item }: { item: ApplicableItem }) {
+  const { user } = useAuth()
+  const winners = item.winners.filter((w) => w.applyStatus === 'WIN')
+  // 예비 당첨은 서버가 순번(subRank) 순으로 준다
+  const subs = item.winners.filter((w) => w.applyStatus === 'SUB')
+
+  // 당첨자를 경품(winRank = reward key)별로. 경품에 없는 key 는 '당첨' 하나로 모은다.
+  const rewards = [...item.winnerSetting.rewards].sort((a, z) => a.sortKey - z.sortKey)
+  const groups = rewards
+    .map((r) => ({
+      key: r.key,
+      label: r.rewardLabel || '당첨',
+      product: r.rewardProduct,
+      winners: winners.filter((w) => w.winRank === r.key),
+    }))
+    .filter((g) => g.winners.length > 0)
+  const known = new Set(rewards.map((r) => r.key))
+  const etc = winners.filter((w) => !w.winRank || !known.has(w.winRank))
+  if (etc.length > 0) groups.push({ key: '', label: '당첨', product: '', winners: etc })
+
+  // 내 결과: 당첨자 목록에 내가 있는지로 본다. (목록에 없으면 내 신청 상태 me 로)
+  const myWin = user && item.winners.find((w) => w.user?._id === user.userId)
+  const myStatus = myWin?.applyStatus ?? item.me
+  const myReward = myWin?.winRank ? rewards.find((r) => r.key === myWin.winRank) : undefined
+  const myResult =
+    myStatus === 'WIN'
+      ? `축하합니다! ${myReward?.rewardLabel ? `${myReward.rewardLabel}에 ` : ''}당첨되었습니다.${
+          myReward?.rewardProduct ? ` (${myReward.rewardProduct})` : ''
+        }`
+      : myStatus === 'SUB'
+        ? `예비 당첨되었습니다.${myWin ? ` (예비 ${subRankOf(myWin, subs)}번)` : ''}`
+        : null
+
+  return (
+    <div className="space-y-3">
+      <h4 className="font-semibold">당첨 결과</h4>
+      {myResult && (
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+          {myResult}
+        </p>
+      )}
+      {groups.length === 0 && subs.length === 0 ? (
+        <p className="text-sm text-neutral-500">당첨자가 없습니다.</p>
+      ) : (
+        <dl className="rounded-md border border-neutral-200 dark:border-neutral-800 divide-y divide-neutral-200 dark:divide-neutral-800 text-sm">
+          {groups.map((g) => (
+            <WinnerRow
+              key={`win:${g.key}`}
+              label={g.label}
+              sub={g.product}
+              winners={g.winners}
+              me={user?.userId}
+            />
+          ))}
+          {subs.length > 0 && (
+            <WinnerRow label="예비 당첨" winners={subs} me={user?.userId} ordered />
+          )}
+        </dl>
+      )}
+    </div>
+  )
+}
+
+function WinnerRow({
+  label,
+  sub,
+  winners,
+  me,
+  ordered,
+}: {
+  label: string
+  sub?: string
+  winners: Winner[]
+  me?: string
+  ordered?: boolean
+}) {
+  return (
+    <div className="flex gap-4 px-4 py-2.5">
+      <dt className="w-24 shrink-0 text-neutral-500">
+        {label}
+        {sub && <span className="block text-xs">{sub}</span>}
+      </dt>
+      <dd className="min-w-0">
+        <ul className="flex flex-wrap gap-x-3 gap-y-1">
+          {winners.map((w, i) => {
+            const mine = !!me && w.user?._id === me
+            return (
+              <li
+                key={w._id}
+                className={
+                  mine
+                    ? 'rounded bg-amber-100 px-1.5 font-semibold text-amber-800 ring-1 ring-amber-300 dark:bg-amber-900/40 dark:text-amber-200 dark:ring-amber-700'
+                    : undefined
+                }
+              >
+                {ordered && (
+                  <span className="mr-1 text-neutral-500">{subRankOf(w, winners, i)}.</span>
+                )}
+                {w.user?.nickname ?? '(알 수 없음)'}
+                {mine && <span className="ml-1 text-xs">(나)</span>}
+              </li>
+            )
+          })}
+        </ul>
+      </dd>
+    </div>
   )
 }
 
