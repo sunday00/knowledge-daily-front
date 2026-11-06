@@ -1,9 +1,11 @@
-import { useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { useUploadAttach, type UploadedAttach } from '@/actions/uploadAttach.ts'
 import { SafeImage } from '@/components/SafeImage.tsx'
+import { MyAttachPickerModal } from '@/components/attach/MyAttachPicker.tsx'
+import { attachSrcOf, attachThumbOf, type MyAttach } from '@/hooks/useMyAttaches.ts'
 
 export const ATTACH_MAX_COUNT = 10
-const ATTACH_MAX_BYTES = 20 * 1024 * 1024 // 20MB
+export const ATTACH_MAX_BYTES = 20 * 1024 * 1024 // 20MB
 
 /** 폼의 첨부 한 장. 고르면 바로 업로드하고, 끝나면 id 가 생긴다. */
 export type AttachDraft = {
@@ -63,6 +65,7 @@ export function AttachInput({
 }) {
   const upload = useUploadAttach()
   const inputRef = useRef<HTMLInputElement>(null)
+  const [picking, setPicking] = useState(false)
   // 화면을 떠나면 로컬 미리보기 주소를 정리한다.
   const itemsRef = useRef(items)
   itemsRef.current = items
@@ -109,6 +112,27 @@ export function AttachInput({
     if (target.preview.startsWith('blob:')) URL.revokeObjectURL(target.preview)
     setItems((prev) => prev.filter((a) => a.key !== target.key))
     onRemoved?.(target)
+  }
+
+  // 기존 사진에서 고르기: 이미 붙은 사진이면 본문에만 다시 넣고, 아니면 첨부에 더한 뒤 본문에 넣는다.
+  const addExisting = (a: MyAttach) => {
+    const src = attachSrcOf(a)
+    const existing = items.find((d) => d.id === a._id)
+    if (existing) {
+      onPick?.(existing)
+      return
+    }
+    if (items.length >= ATTACH_MAX_COUNT) return
+    const draft: AttachDraft = {
+      key: a._id,
+      id: a._id,
+      name: a.originalName,
+      preview: attachThumbOf(a),
+      status: 'done',
+      src,
+    }
+    setItems((prev) => [...prev, draft])
+    onUploaded?.({ id: a._id, name: a.originalName, src })
   }
 
   const full = items.length >= ATTACH_MAX_COUNT
@@ -186,6 +210,21 @@ export function AttachInput({
           <li>
             <button
               type="button"
+              onClick={() => setPicking(true)}
+              disabled={disabled}
+              className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-neutral-300 dark:border-neutral-700 text-sm text-neutral-500 transition-colors hover:border-brand-500 hover:text-brand-600 dark:hover:text-indigo-300 disabled:opacity-60"
+            >
+              <span aria-hidden className="text-xl">
+                🖼
+              </span>
+              기존 사진
+            </button>
+          </li>
+        )}
+        {!full && (
+          <li>
+            <button
+              type="button"
               onClick={() => inputRef.current?.click()}
               disabled={disabled}
               className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-neutral-300 dark:border-neutral-700 text-sm text-neutral-500 transition-colors hover:border-brand-500 hover:text-brand-600 dark:hover:text-indigo-300 disabled:opacity-60"
@@ -198,6 +237,13 @@ export function AttachInput({
           </li>
         )}
       </ul>
+
+      <MyAttachPickerModal
+        open={picking}
+        onClose={() => setPicking(false)}
+        onPick={addExisting}
+        pickedIds={new Set(items.flatMap((d) => (d.id ? [d.id] : [])))}
+      />
 
       <input
         ref={inputRef}
