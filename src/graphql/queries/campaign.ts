@@ -101,9 +101,21 @@ export const CAMPAIGN_ONE_QUERY = graphql(`
                 rewards {
                   key
                   sortKey
+                  tie
                   rewardLabel
                   rewardProduct
                   rewardAmount
+                }
+              }
+              # 결과 발표(status RESULT) 일 때만 채워진다. 서버가 당첨(rewards 순) → 예비 당첨(subRank 순)으로 준다
+              winners {
+                _id
+                applyStatus
+                winRank
+                subRank
+                user {
+                  _id
+                  nickname
                 }
               }
               links {
@@ -196,14 +208,21 @@ export const CAMPAIGN_LIST_QUERY = graphql(`
           }
           items {
             __typename
+            # 진행 중 판단(아이템 기간이 전부 끝났는지) · 결과 발표 배지
             ... on ApplicableCampaign {
               _id
               applicableSubType
+              status
+              startAt
+              endAt
               me
             }
             ... on ReadableCampaign {
               _id
               readableSubType
+              status
+              startAt
+              endAt
               clickLinkEvent {
                 point
               }

@@ -49,6 +49,11 @@ type ApplicableCampaign implements IAttach & ICreatedAt & StandardEntity {
   status: StandardStatus!
   version: String!
   winnerSetting: ApplicationCampaignWinnerSetting!
+
+  """
+  당첨 / 예비 당첨 신청 기록. status 가 RESULT(당첨자 확정) 일 때만, 아니면 []. 당첨(winnerSetting.rewards sortKey 순) -> 예비 당첨(subRank 순)
+  """
+  winners: [CampaignUserPivot!]!
 }
 
 enum ApplicableCampaignSubType {
@@ -63,7 +68,7 @@ type ApplicationCampaignRewardItem {
   """system 상 직렬화 인식 키. ex) rank1 | check1 | 0 ..."""
   key: String!
 
-  """경품수량. rewardTitle 이 포인트|point 이면 필수, 없으면 미표시하고 내부정책"""
+  """경품수량. ApplicableCampaignSubType 이 LOTTERY_POINT 이면 필수, 없으면 미표시하고 내부정책"""
   rewardAmount: Float
 
   """수상명. ex) 1등, 1위, 우수상, 당첨, 베스트 ... 등"""
@@ -72,13 +77,16 @@ type ApplicationCampaignRewardItem {
   """경품명"""
   rewardProduct: String!
   sortKey: Int!
+
+  """동순위 당첨자 수. 보통은 1 (프론트 영역)"""
+  tie: Int
 }
 
 input ApplicationCampaignRewardItemInput {
   """system 상 직렬화 인식 키. ex) rank1 | check1 | 0 ..."""
   key: String!
 
-  """경품수량. rewardTitle 이 포인트|point 이면 필수, 없으면 미표시하고 내부정책"""
+  """경품수량. ApplicableCampaignSubType 이 LOTTERY_POINT 이면 필수, 없으면 미표시하고 내부정책"""
   rewardAmount: Float
 
   """수상명. ex) 1등, 1위, 우수상, 당첨, 베스트 ... 등"""
@@ -87,6 +95,9 @@ input ApplicationCampaignRewardItemInput {
   """경품명"""
   rewardProduct: String!
   sortKey: Int!
+
+  """동순위 당첨자 수. 보통은 1 (프론트 영역)"""
+  tie: Int
 }
 
 type ApplicationCampaignWinnerSetting {
@@ -1792,6 +1803,57 @@ input CampaignSearchInputSortType {
 
   """1: asc, -1: desc"""
   version: Int
+}
+
+type CampaignUserPivot implements CompactEntity & ICreatedAt & IUser {
+  _id: String!
+
+  """하위 참여형 캠페인(ApplicableCampaign) id"""
+  applicable: String!
+
+  """신청 시각들 (오래된 순)"""
+  appliedAts: [DateTime!]!
+
+  """신청 횟수. 중복 신청 가능한 캠페인이면 2 이상"""
+  applyCnt: Int!
+  applyStatus: CampaignApplyStatus!
+
+  """조건이 필요한 이벤트의 조건 만족 여부 기록. 신청 시 빈 배열"""
+  conditions: [JsonType!]!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  status: StandardStatus!
+
+  """예비 당첨 순서. decimal. 예비 당첨 아니면 null"""
+  subRank: String
+
+  """user"""
+  user: User
+  version: String!
+
+  """당첨 상품. winnerSetting.rewards 의 key (몇 등 / 무슨 상인지). 당첨 아니면 null"""
+  winRank: String
+}
+
+input CampaignUserPivotInput {
+  """하위 참여형 캠페인(ApplicableCampaign) id"""
+  applicable: String!
+
+  """신청 시각들 (오래된 순)"""
+  appliedAts: [DateTime!]!
+
+  """신청 횟수. 중복 신청 가능한 캠페인이면 2 이상"""
+  applyCnt: Int!
+  applyStatus: CampaignApplyStatus!
+
+  """조건이 필요한 이벤트의 조건 만족 여부 기록. 신청 시 빈 배열"""
+  conditions: [JsonType!]!
+
+  """예비 당첨 순서. decimal. 예비 당첨 아니면 null"""
+  subRank: String
+
+  """당첨 상품. winnerSetting.rewards 의 key (몇 등 / 무슨 상인지). 당첨 아니면 null"""
+  winRank: String
 }
 
 enum CampaignWinType {
@@ -4010,6 +4072,9 @@ enum StandardStatus {
 
   """동작도 중단되고 사용자에 가림 🚫 😎"""
   INACTIVE
+
+  """동작은 중단되고 노출만 됨. 참여형 등의 기록에서 마지막 결과발표까지 됨 🚫 😳"""
+  RESULT
 }
 
 input SuspectCreateInput {

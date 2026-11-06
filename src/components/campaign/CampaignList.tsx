@@ -8,6 +8,8 @@ import {
   campaignPath,
   campaignItemLabels,
   findBannerAttach,
+  hasCampaignResult,
+  isCampaignInProgress,
   isClosedCampaign,
   periodText,
 } from '@/lib/campaign.ts'
@@ -44,6 +46,8 @@ function listInput(tab: Tab, keyword: string, page: number): CampaignListByQry {
   return {
     size: PAGE_SIZE,
     page,
+    // 활성은 마감 임박순 (서버는 sortKey 를 먼저 보고 그다음 이 정렬)
+    ...(tab === 'active' && { sort: { endAt: 1 } }),
     search: {
       status: { eq: tab === 'active' ? 'ACTIVE' : 'CLOSE' },
       ...(contains && {
@@ -229,13 +233,19 @@ function CampaignCard({ item, closed }: { item: CampaignListItem; closed: boolea
                 {label}
               </span>
             ))}
-            {closed ? (
-              <span className="rounded px-1.5 py-0.5 bg-neutral-100 text-neutral-500 dark:bg-neutral-800">
-                종료
+            {hasCampaignResult(item) && (
+              <span className="rounded px-1.5 py-0.5 bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                결과 발표
               </span>
-            ) : (
+            )}
+            {/* 노출 기간이 남아도 하위 아이템 기간이 다 끝났으면 진행 중이 아니다 */}
+            {!closed && isCampaignInProgress(item) ? (
               <span className="rounded px-1.5 py-0.5 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                 진행 중
+              </span>
+            ) : (
+              <span className="rounded px-1.5 py-0.5 bg-neutral-100 text-neutral-500 dark:bg-neutral-800">
+                종료
               </span>
             )}
             {applied && (
