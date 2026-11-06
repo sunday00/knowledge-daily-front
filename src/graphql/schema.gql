@@ -56,6 +56,40 @@ type ApplicableCampaign implements IAttach & ICreatedAt & StandardEntity {
   winners: [CampaignUserPivot!]!
 }
 
+input ApplicableCampaignInput {
+  """당첨자발표일. 없으면 뭔가 발표하지 않는 이벤트로 간주"""
+  announceAt: DateTime
+  applicableSubType: ApplicableCampaignSubType!
+
+  """현재 참여자 수 (중복 신청은 1명). 응답 시 채움"""
+  appliedCnt: Int!
+
+  """지원자 수 제한. 없으면 무제한. 0이면 지원형 캠페인이 아님."""
+  available: Int
+
+  """1인 지원제한 수. 없으면 무제한. 0이면 지원형 캠페인이 아님."""
+  availableEach: Int
+
+  """부모 캠페인 아이디"""
+  campaign: String!
+
+  """참가비용포인트"""
+  cost: Int!
+
+  """지원가능종료일. 없으면 캠페인 종료일"""
+  endAt: DateTime
+
+  """참가포인트 있는 경우 포인트 소비내역에 표시될 문구. 없으면 단순 (이벤트참가)로 표기"""
+  logLabel: String
+
+  """나의 신청, 당첨 여부. 응답 시 로그인 유저 기준으로 채움 (비로그인 NONE)"""
+  me: CampaignApplyStatus!
+
+  """지원가능일. 없으면 캠페인 시작일"""
+  startAt: DateTime
+  winnerSetting: ApplicationCampaignWinnerSettingInput!
+}
+
 enum ApplicableCampaignSubType {
   """추첨 포인트 이벤트"""
   LOTTERY_POINT
@@ -1891,9 +1925,9 @@ input ClickEventSettingInput {
 }
 
 """
-targetEntity 에 따라 Opinion | Thread | Sense | Article | Ask | Notice | Campaign
+targetEntity 에 따라 Opinion | Thread | Sense | Article | Ask | Notice | Campaign | IsolatedPage
 """
-union CommentableTarget = Article | Ask | Campaign | Notice | Opinion | Sense | Thread
+union CommentableTarget = Article | Ask | Campaign | IsolatedPage | Notice | Opinion | Sense | Thread
 
 interface CompactEntity implements ICreatedAt {
   _id: String!
@@ -2278,6 +2312,11 @@ interface ICreatedAt {
   createdAt: DateTime!
 }
 
+interface IIsolatedPageItem {
+  sortKey: Int!
+  status: StandardStatus!
+}
+
 interface IOpinion {
   """[threadCnt/opinionCnt]"""
   opinionsCnt: [Int!]
@@ -2310,6 +2349,197 @@ type IdResultResponse {
   item: IdResult!
   message: String
   success: Int!
+}
+
+type IsolatedPage implements IAttach & ICreatedAt & IReaction & StandardEntity {
+  _id: String!
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+  components: [String!]
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """노출 위치 (자유 문자열). 목록 search.exposedOn 으로 검색"""
+  exposedOn: [String!]!
+  flags: [String!]!
+  items: [IIsolatedPageItem!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+  pinn: Boolean!
+
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
+
+  """고유 경로. front url 에서 페이지 식별"""
+  slug: String!
+  sortKey: Int!
+  status: StandardStatus!
+  subTitle: String
+  title: String!
+  version: String!
+}
+
+type IsolatedPageApplicableItem implements IIsolatedPageItem {
+  campaign: ApplicableCampaign!
+  sortKey: Int!
+  status: StandardStatus!
+}
+
+type IsolatedPageAttachItem implements IAttach & IIsolatedPageItem {
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+  content: String!
+  sortKey: Int!
+  status: StandardStatus!
+}
+
+input IsolatedPageListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: IsolatedPageSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: IsolatedPageSearchInputSortType
+}
+
+type IsolatedPageListResponse {
+  hasNext: Boolean
+  items: [IsolatedPage!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type IsolatedPageMutNamespace {
+  _isolatedPageMutNotImplementedThing: SimpleJsonRes!
+}
+
+input IsolatedPageOneBySlugQry {
+  """페이지 고유 경로"""
+  slug: String!
+}
+
+type IsolatedPageQryNamespace {
+  isolatedPageOne(input: IsolatedPageOneBySlugQry!): IsolatedPageResponse!
+  isolatedPageStandardList(input: IsolatedPageListByQry): IsolatedPageListResponse!
+}
+
+type IsolatedPageResponse {
+  item: IsolatedPage!
+  message: String
+  success: Int!
+}
+
+input IsolatedPageSearchInput {
+  _id: RangeString
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  components: [String!]
+  createdAt: RangeDate
+  deletedAt: RangeDate
+
+  """노출 위치. 이 값을 exposedOn 에 포함한 페이지"""
+  exposedOn: RangeString
+  flags: [String!]
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+  pinn: Boolean
+
+  """고유 경로. front url 에서 페이지 식별"""
+  slug: RangeString
+  sortKey: RangeInt
+  status: RangeStandardStatus
+  subTitle: RangeString
+  title: RangeString
+  version: RangeString
+}
+
+input IsolatedPageSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  attaches: Int
+
+  """1: asc, -1: desc"""
+  components: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  exposedOn: Int
+
+  """1: asc, -1: desc"""
+  flags: Int
+
+  """1: asc, -1: desc"""
+  links: Int
+
+  """1: asc, -1: desc"""
+  pinn: Int
+
+  """1: asc, -1: desc"""
+  slug: Int
+
+  """1: asc, -1: desc"""
+  sortKey: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  subTitle: Int
+
+  """1: asc, -1: desc"""
+  title: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+type IsolatedPageSenseItem implements IIsolatedPageItem {
+  senses: [Sense!]!
+  sortKey: Int!
+  status: StandardStatus!
+}
+
+type IsolatedPageTextItem implements IIsolatedPageItem {
+  content: String!
+  href: String
+  sortKey: Int!
+  status: StandardStatus!
 }
 
 """As flexible object"""
@@ -2358,6 +2588,7 @@ type Mutation {
   CampaignMutation: CampaignMutNamespace!
   DocumentMutation: DocumentMutNamespace!
   EmbedMutation: EmbedMutNamespace!
+  IsolatedPageMutation: IsolatedPageMutNamespace!
   NoticeMutation: NoticeMutNamespace!
   NotifyMutation: NotifyMutNamespace!
   OpinionMutation: OpinionMutNamespace!
@@ -3428,6 +3659,7 @@ type Query {
   CampaignQuery: CampaignQryNamespace!
   DocumentQuery: DocumentQryNamespace!
   EmbedQuery: EmbedQryNamespace!
+  IsolatedPageQuery: IsolatedPageQryNamespace!
   NoticeQuery: NoticeQryNamespace!
   NotifyQuery: NotifyQryNamespace!
   OpinionQuery: OpinionQryNamespace!
@@ -4444,6 +4676,7 @@ enum VCommentTargetEntity {
   Article
   Ask
   Campaign
+  IsolatedPage
   Notice
   Opinion
   Sense

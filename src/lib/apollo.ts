@@ -25,6 +25,7 @@ const QUERY_NAMESPACES = [
   'CampaignQryNamespace',
   'DocumentQryNamespace',
   'EmbedQryNamespace',
+  'IsolatedPageQryNamespace',
   'NotifyQryNamespace',
   'OpinionQryNamespace',
   'PointQryNamespace',

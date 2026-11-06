@@ -36,7 +36,7 @@ import { CampaignImage } from '@/components/campaign/CampaignImage.tsx'
 
 export type CampaignOneItem = CampaignOneQuery['CampaignQuery']['campaignOne']['item']
 type CampaignChild = CampaignOneItem['items'][number]
-type ApplicableItem = Extract<CampaignChild, { __typename: 'ApplicableCampaign' }>
+export type ApplicableItem = Extract<CampaignChild, { __typename: 'ApplicableCampaign' }>
 type ReadableItem = Extract<CampaignChild, { __typename: 'ReadableCampaign' }>
 type CampaignLink = CampaignOneItem['links'][number]
 
@@ -257,8 +257,14 @@ function Rewards({ item }: { item: ApplicableItem }) {
   )
 }
 
-/** 참여형 아이템: 조건 표 + 응모하기 */
-function ApplicableBlock({ parent, item }: { parent: CampaignOneItem; item: ApplicableItem }) {
+/** 참여형 아이템: 조건 표 + 응모하기. 독립 페이지에서도 쓴다. */
+export function ApplicableBlock({
+  parent,
+  item,
+}: {
+  parent: CampaignOneItem
+  item: ApplicableItem
+}) {
   // 지원자 수 / 1인 횟수가 0 이면 참여 불가
   const blocked = item.available === 0 || item.availableEach === 0
   const open = isItemOpen(item, parent) && !blocked
@@ -626,7 +632,7 @@ function ReadableBlock({ parent, item }: { parent: CampaignOneItem; item: Readab
  * 링크 버튼들. 보상 링크면 누를 때 클릭 보상을 보낸다.
  * 보상 응답은 기다리지 않고 바로 이동한다. 바깥 주소는 새 탭으로 열려 결과 안내가 이 화면에 남는다.
  */
-function LinkButtons({
+export function LinkButtons({
   links,
   rewardOf,
 }: {
