@@ -880,6 +880,10 @@ type Attach implements ICreatedAt & StandardEntity {
   version: String!
 }
 
+input AttachDeRelateMyInput {
+  _id: String!
+}
+
 type AttachElement {
   name: String!
   size: [Int!]!
@@ -888,6 +892,13 @@ type AttachElement {
 input AttachElementInput {
   name: String!
   size: [Int!]!
+}
+
+input AttachFlagsUpdateInput {
+  _id: String!
+
+  """최종 flags. 통째 교체 (NFC, trim, 빈 값 / 중복 제거)"""
+  flags: [String!]!
 }
 
 input AttachInput {
@@ -962,6 +973,23 @@ input AttachListByQry {
   sort: AttachSearchInputSortType
 }
 
+input AttachListMyQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: AttachMySearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: AttachMySearchInputSortType
+}
+
 type AttachListResponse {
   hasNext: Boolean
   items: [Attach!]!
@@ -984,11 +1012,107 @@ type AttachListResponse {
 }
 
 type AttachMutNamespace {
+  """내 첨부의 flags 통째 교체 (추가 / 변경 / 제거). 내 것이 아니거나 없으면 ATTACH_NOT_FOUND"""
+  attachFlagsUpdate(input: AttachFlagsUpdateInput!): BooleanResponse!
+
   """"""
   attachPresign(input: AttachPresignInput!): AttachPresignedResItemResponse!
 
   """"""
   attachUploaded(input: AttachUploadedInput!): AttachUploadedResItemResponse!
+
+  """
+  내 미디어 목록에서 빼기. 파일은 그대로 두고 user 만 끊음 (flags 에 original_uploader_{내 id} 기록). 내 것이 아니거나 없으면 ATTACH_NOT_FOUND
+  """
+  deRelateMyAttach(input: AttachDeRelateMyInput!): BooleanResponse!
+}
+
+input AttachMySearchInput {
+  _id: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  createdAt: RangeDate
+  deletedAt: RangeDate
+  elements: [AttachElementInput!]
+  flags: [String!]
+  folder: RangeString
+
+  """검색어. flags / originalName / elements.name 부분일치"""
+  keyword: RangeString
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+  originalExt: RangeString
+  originalName: RangeString
+  pinn: Boolean
+  sortKey: RangeInt
+  src: JsonType
+  status: RangeStandardStatus
+  storedExt: RangeString
+  storedName: RangeString
+  type: RangeString
+  user: RangeString
+  version: RangeString
+}
+
+input AttachMySearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  elements: Int
+
+  """1: asc, -1: desc"""
+  flags: Int
+
+  """1: asc, -1: desc"""
+  folder: Int
+
+  """1: asc, -1: desc"""
+  keyword: Int
+
+  """1: asc, -1: desc"""
+  links: Int
+
+  """1: asc, -1: desc"""
+  originalExt: Int
+
+  """1: asc, -1: desc"""
+  originalName: Int
+
+  """1: asc, -1: desc"""
+  pinn: Int
+
+  """1: asc, -1: desc"""
+  sortKey: Int
+
+  """1: asc, -1: desc"""
+  src: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  storedExt: Int
+
+  """1: asc, -1: desc"""
+  storedName: Int
+
+  """1: asc, -1: desc"""
+  type: Int
+
+  """1: asc, -1: desc"""
+  user: Int
+
+  """1: asc, -1: desc"""
+  version: Int
 }
 
 input AttachPresignInput {
@@ -1020,6 +1144,10 @@ type AttachPresignedResItemResponse {
 }
 
 type AttachQryNamespace {
+  """
+  내 첨부 (업로드 완료만). search.keyword 로 flags / originalName / elements.name 부분일치 검색 (대소문자 무시)
+  """
+  attachMyList(input: AttachListMyQry): AttachListResponse!
   attachStandardList(input: AttachListByQry): AttachListResponse!
 }
 

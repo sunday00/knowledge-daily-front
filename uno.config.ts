@@ -7,6 +7,11 @@ export default defineConfig({
     colors: {
       brand: {
         50: '#eef2ff',
+        // 다크 모드 글자용 밝은 단계 (indigo 계열). 없으면 dark:text-brand-200 등이 만들어지지 않아 기본(700)으로 남는다
+        100: '#e0e7ff',
+        200: '#c7d2fe',
+        300: '#a5b4fc',
+        400: '#818cf8',
         500: '#6366f1',
         600: '#4f46e5',
         700: '#4338ca',

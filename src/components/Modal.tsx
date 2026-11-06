@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 export type ModalTone = 'default' | 'success' | 'danger' | 'warning'
 
@@ -7,7 +8,7 @@ type Props = {
   /** 닫기(Esc, 바깥 누르기, 닫기 버튼) 요청. dismissible 이 false 면 부르지 않는다. */
   onClose: () => void
   title: ReactNode
-  /** 제목 위 큰 아이콘. tone 에 맞는 기본 아이콘을 쓰려면 생략 */
+  /** 제목 위 큰 아이콘. tone 에 맞는 기본 아이콘을 쓰려면 생략, 없애려면 null */
   icon?: ReactNode
   tone?: ModalTone
   children?: ReactNode
@@ -15,6 +16,8 @@ type Props = {
   footer?: ReactNode
   /** false 면 Esc·바깥 누르기로 닫히지 않는다. (처리 중일 때) */
   dismissible?: boolean
+  /** 넓은 모달 (사진 고르기 등 목록용). 내용은 왼쪽 정렬 */
+  wide?: boolean
 }
 
 const TONE_ICON_CLASS: Record<ModalTone, string> = {
@@ -27,6 +30,8 @@ const TONE_ICON_CLASS: Record<ModalTone, string> = {
 /**
  * 공용 모달. 모든 모달은 이걸 써서 모양과 동작(포커스 가두기, Esc, 바깥 누르기)을 맞춘다.
  * 브라우저 <dialog>(showModal)를 써서 뒤 화면은 눌리지 않고 스크린리더도 모달로 읽는다.
+ * body 로 portal 해서, 폼 안에서 열어도 모달 속 <form> 이 바깥 폼에 끼지 않는다 (DOM 중첩 / 엔터 제출 섞임 방지).
+ * 다만 React 이벤트는 portal 을 넘어 부모로 올라가므로, 모달 속 폼은 submit 전파를 직접 막는다.
  */
 export function Modal({
   open,
@@ -37,6 +42,7 @@ export function Modal({
   children,
   footer,
   dismissible = true,
+  wide = false,
 }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
@@ -52,9 +58,10 @@ export function Modal({
     if (!open && dialog.open) dialog.close()
   }, [open])
 
-  const iconNode = icon ?? DEFAULT_ICON[tone]
+  // null 이면 아이콘 없이
+  const iconNode = icon === undefined ? DEFAULT_ICON[tone] : icon
 
-  return (
+  return createPortal(
     <dialog
       ref={ref}
       aria-labelledby={titleId}
@@ -67,10 +74,10 @@ export function Modal({
       onClick={(e) => {
         if (dismissible && e.target === e.currentTarget) onClose()
       }}
-      className="modal w-[min(26rem,calc(100vw-2rem))] rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-0 text-neutral-800 dark:text-neutral-100 shadow-2xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+      className={`modal ${wide ? 'w-[min(48rem,calc(100vw-2rem))]' : 'w-[min(26rem,calc(100vw-2rem))]'} rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-0 text-neutral-800 dark:text-neutral-100 shadow-2xl backdrop:bg-black/50 backdrop:backdrop-blur-sm`}
     >
       {open && (
-        <div className="space-y-4 p-6 text-center">
+        <div className={`space-y-4 p-6 ${wide ? '' : 'text-center'}`}>
           {iconNode && (
             <div
               aria-hidden
@@ -79,7 +86,7 @@ export function Modal({
               {iconNode}
             </div>
           )}
-          <h2 id={titleId} className="text-lg font-semibold">
+          <h2 id={titleId} className={`text-lg font-semibold ${wide ? 'text-center' : ''}`}>
             {title}
           </h2>
           {children && (
@@ -88,7 +95,8 @@ export function Modal({
           {footer && <div className="flex justify-center gap-2 pt-2">{footer}</div>}
         </div>
       )}
-    </dialog>
+    </dialog>,
+    document.body,
   )
 }
 
