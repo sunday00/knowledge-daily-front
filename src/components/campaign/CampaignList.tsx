@@ -32,9 +32,6 @@ const TABS = [
 ] as const
 type Tab = (typeof TABS)[number]['key']
 
-/** 정규식 특수문자를 글자 그대로 찾도록 (서버 contains 는 정규식) */
-const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
 /**
  * 탭과 검색어로 목록 조건을 만든다. 서버가 status 를 기간으로 유추한다.
  * - 활성(ACTIVE): ACTIVE 이고 아직 안 끝난 것
@@ -43,7 +40,8 @@ const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
  * (complex 는 JSON 값이라 쿼리 변수로 보내야 한다. 지금처럼 variables 로)
  */
 function listInput(tab: Tab, keyword: string, page: number): CampaignListByQry {
-  const contains = keyword ? escapeRegex(keyword) : null
+  // 서버 contains 가 trim + 정규식 escape 를 하므로 입력 그대로 보낸다 (여기서 escape 하면 두 번 escape 됨)
+  const contains = keyword || null
   return {
     size: PAGE_SIZE,
     page,
