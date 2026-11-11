@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { useAuth } from '@/auth/AuthProvider.tsx'
@@ -12,12 +12,16 @@ import {
   quizPath,
 } from '@/lib/quiz.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue.ts'
 import { Pagination, PAGE_PARAM, usePageParam } from '@/components/Pagination.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { TagChips } from '@/components/TagChips.tsx'
 import { QuizMyStatusBadge } from '@/components/quiz/QuizMyStatusBadge.tsx'
+import { SearchInput } from '@/components/SearchInput.tsx'
 
 type QuizListItem = QuizListQuery['QuizQuery']['quizList']['items'][number]
+
+const SEARCH_DEBOUNCE_MS = 300
 
 const PAGE_SIZE = 20
 
@@ -101,36 +105,48 @@ export default function QuizListPage() {
   )
 }
 
-/** 제목 / 태그로 검색. 검색하면 페이지는 1로 (campaign 목록 SearchForm 과 같은 방식) */
+/**
+ * 제목·태그 검색. 입력을 멈추면(디바운스) 바로 검색하고, Enter 는 기다리지 않고 바로.
+ * 페이지는 1로. 입력 중엔 기록이 쌓이지 않게 주소를 replace 로 바꾼다.
+ */
 function SearchForm({ keyword }: { keyword: string }) {
   const [params, setParams] = useSearchParams()
   const [value, setValue] = useState(keyword)
-  // 뒤로가기 / 상식 자세히에서 들어오는 등 주소가 바뀌면 입력칸도 맞춘다.
-  useEffect(() => setValue(keyword), [keyword])
+  const debounced = useDebouncedValue(value.trim(), SEARCH_DEBOUNCE_MS)
+
+  // 뒤로가기 / 상식 자세히에서 들어오는 등 주소가 바뀌면 입력칸도 맞춘다. (입력 중 끝 공백은 둔다)
+  useEffect(() => setValue((v) => (v.trim() === keyword ? v : keyword)), [keyword])
+
+  // 최신 주소 값은 ref 로 읽어, 주소가 바뀔 때가 아니라 입력이 멈췄을 때만 검색한다.
+  const latest = useRef({ params, keyword })
+  latest.current = { params, keyword }
+
+  const apply = (q: string) => {
+    const { params: current, keyword: applied } = latest.current
+    if (q === applied) return
+    const next = new URLSearchParams(current)
+    next.delete(PAGE_PARAM)
+    if (q) next.set(QUIZ_KEYWORD_PARAM, q)
+    else next.delete(QUIZ_KEYWORD_PARAM)
+    setParams(next, { replace: true })
+  }
+
+  useEffect(() => apply(debounced), [debounced])
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
-    const next = new URLSearchParams(params)
-    next.delete(PAGE_PARAM)
-    const q = value.trim()
-    if (q) next.set(QUIZ_KEYWORD_PARAM, q)
-    else next.delete(QUIZ_KEYWORD_PARAM)
-    setParams(next)
+    apply(value.trim())
   }
 
   return (
-    <form role="search" onSubmit={handleSubmit} className="flex gap-2">
-      <input
-        type="search"
+    <form role="search" onSubmit={handleSubmit}>
+      <SearchInput
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="퀴즈 제목, 태그로 검색"
         aria-label="퀴즈 검색"
-        className="min-w-0 flex-1 rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-sm outline-none focus:border-brand-500"
+        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-9 pr-3 py-1.5 text-sm outline-none focus:border-brand-500"
       />
-      <button type="submit" className="btn text-sm">
-        검색
-      </button>
     </form>
   )
 }
@@ -149,7 +165,7 @@ function QuizCard({ item, mine }: { item: QuizListItem; mine: boolean }) {
           </Link>
         </h3>
         <div className="flex shrink-0 items-center gap-1.5">
-          <QuizMyStatusBadge status={item.me} />
+          <QuizMyStatusBadge status={item.me?.status} />
           <span className="rounded px-1.5 py-0.5 text-xs bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-200">
             {item.quizItemsCnt.toLocaleString()}문항
           </span>

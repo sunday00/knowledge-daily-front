@@ -3,10 +3,18 @@ import { REACTION_CREATE_MUTATION } from '@/graphql/mutations/reaction.ts'
 import { reportError } from '@/lib/errorReporter.ts'
 import type { ReactionCode } from '@/lib/reactions.ts'
 
-/** 리액션 대상. 상식 본문은 Sense, 문의/요청 글은 Ask, 게시글은 Article, 공지는 Notice, 대화록 카드는 Thread, 의견 카드는 Opinion */
+/** 리액션 대상. 상식 본문은 Sense, 문의/요청 글은 Ask, 게시글은 Article, 공지는 Notice, 퀴즈는 Quiz, 대화록 카드는 Thread, 의견 카드는 Opinion */
 export type ReactionTarget = {
   entity:
-    'Sense' | 'Ask' | 'Article' | 'Notice' | 'Campaign' | 'IsolatedPage' | 'Opinion' | 'Thread'
+    | 'Sense'
+    | 'Ask'
+    | 'Article'
+    | 'Notice'
+    | 'Campaign'
+    | 'IsolatedPage'
+    | 'Quiz'
+    | 'Opinion'
+    | 'Thread'
   id: string
 }
 

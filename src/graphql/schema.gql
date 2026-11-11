@@ -3810,8 +3810,10 @@ type Quiz implements CompactEntity & ICreatedAt & IOpinion & IReaction & ITag & 
   """긴 소개글"""
   description: String
 
-  """내 풀이 상태. 전부 맞힌 적 있으면 ALL_CORRECT, 풀어만 봤으면 TRIED, 기록 없음 / 비로그인은 null"""
-  me: QuizMyStatus
+  """
+  내 기록(최고 기록 한 건: 답 / 맞힌 수 / 시도 횟수) + 상태(지금 문항 수 기준 ALL_CORRECT / TRIED). 기록 없음 / 비로그인은 null
+  """
+  me: QuizMe
 
   """[threadCnt/opinionCnt]"""
   opinionsCnt: [Int!]
@@ -3836,12 +3838,49 @@ type Quiz implements CompactEntity & ICreatedAt & IOpinion & IReaction & ITag & 
   villainStatus: VillainStatus
 }
 
+type QuizAnswer implements CompactEntity & ICreatedAt & IUser {
+  _id: String!
+
+  """문항별 답"""
+  answers: [QuizAnswerItem!]!
+
+  """맞힌 문항 수 (최고 기록)"""
+  correctCnt: Int!
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """퀴즈 id"""
+  quiz: String!
+  status: StandardStatus!
+
+  """시도 횟수"""
+  tryCnt: Int!
+
+  """user"""
+  user: User
+  version: String!
+}
+
 input QuizAnswerCreateInput {
   """문항별 답"""
   answers: [QuizAnswerItemInput!]!
 
   """퀴즈 id"""
   quiz: String!
+}
+
+input QuizAnswerInput {
+  """문항별 답"""
+  answers: [QuizAnswerItemInput!]!
+
+  """맞힌 문항 수 (최고 기록)"""
+  correctCnt: Int!
+
+  """퀴즈 id"""
+  quiz: String!
+
+  """시도 횟수"""
+  tryCnt: Int!
 }
 
 type QuizAnswerItem {
@@ -3864,6 +3903,12 @@ input QuizAnswerItemInput {
 
   """문항(QuizItem) id"""
   quizItem: String!
+}
+
+type QuizAnswerResponse {
+  item: QuizAnswer!
+  message: String
+  success: Int!
 }
 
 input QuizCreateInput {
@@ -4153,9 +4198,28 @@ type QuizListResponse {
   total: Int
 }
 
+type QuizMe {
+  _id: String!
+
+  """문항별 답"""
+  answers: [QuizAnswerItem!]!
+
+  """맞힌 문항 수 (최고 기록)"""
+  correctCnt: Int!
+  createdAt: DateTime!
+
+  """최고 맞힌 수가 지금 문항 수 이상이면 ALL_CORRECT, 아니면 TRIED"""
+  status: QuizMyStatus!
+
+  """시도 횟수"""
+  tryCnt: Int!
+}
+
 type QuizMutNamespace {
-  """퀴즈 풀이 기록 저장 (공개 퀴즈만). 맞힌 수는 문항별 correct 로 계산"""
-  quizAnswerCreate(input: QuizAnswerCreateInput!): IdResultResponse!
+  """
+  퀴즈 풀이 저장 (공개 퀴즈만). 유저 + 퀴즈당 한 건: 최고 이상이면 답 교체, 아니면 시도 횟수만 증가. 항상 최고 기록 반환
+  """
+  quizAnswerCreate(input: QuizAnswerCreateInput!): QuizAnswerResponse!
 
   """퀴즈 생성. 처음엔 항상 DRAFT. 문항은 quizItemsCreate 로 따로"""
   quizCreate(input: QuizCreateInput!): IdResultResponse!

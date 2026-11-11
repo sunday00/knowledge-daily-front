@@ -5,6 +5,7 @@ import { SafeImage } from '@/components/SafeImage.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll.ts'
 import { aliasesOf, attachThumbOf, useMyAttaches, type MyAttach } from '@/hooks/useMyAttaches.ts'
+import { SearchInput as SearchField } from '@/components/SearchInput.tsx'
 
 /**
  * 기존 사진에서 고르기. 내 이미지를 최신순으로 보여 주고, 검색(별칭 / 파일 이름)과 아래로 내려 이어 받기.
@@ -69,15 +70,14 @@ export function useSearchKeyword() {
 export function SearchInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div role="search">
-      <input
-        type="search"
+      <SearchField
         value={value}
         onChange={(e) => onChange(e.target.value)}
         // 엔터로 바깥 폼(글쓰기)이 제출되지 않게
         onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
         placeholder="별칭이나 파일 이름으로 검색"
         aria-label="내 이미지 검색"
-        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
+        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-9 pr-3 py-2 text-sm"
       />
     </div>
   )

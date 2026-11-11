@@ -11,6 +11,7 @@ import {
   isCorrectAnswer,
   quizBuildPath,
   quizEditPath,
+  quizPath,
   senseDraftsOf,
   type QuizSenseCardData,
 } from '@/lib/quiz.ts'
@@ -19,8 +20,17 @@ import { QuizSenseCard } from '@/components/quiz/QuizSenseCard.tsx'
 import { QuizMyStatusBadge } from '@/components/quiz/QuizMyStatusBadge.tsx'
 import { TagChips } from '@/components/TagChips.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { ReactionBar } from '@/components/ReactionBar.tsx'
+import { TargetThreads } from '@/components/TargetThreads.tsx'
+import { ThreadConversation } from '@/components/ThreadConversation.tsx'
+import type { OpinionTarget } from '@/lib/opinionTarget.ts'
 
 type Quiz = QuizOneQuery['QuizQuery']['quizOne']['item']
+
+/** 내 풀이 기록 (유저 + 퀴즈당 한 건, 늘 최고 기록 + 시도 횟수). 기록 없음·비로그인은 null */
+type QuizBestAnswer = NonNullable<Quiz['me']>
+
+const bestAnswerOf = (quiz: Quiz): QuizBestAnswer | null => quiz.me ?? null
 type QuizItem = Quiz['quizItems'][number]
 
 const primaryBtn =
@@ -50,6 +60,10 @@ export default function QuizPlayPage() {
   const [index, setIndex] = useState(0)
   // 문제별로 낸 답. 아직 안 냈으면 undefined
   const [answers, setAnswers] = useState<(string | undefined)[]>([])
+  // 풀었던 적 있으면 처음엔 내 최고 기록 안내를 띄우고, 결과 보기 / 다시 풀기 중에 고르면 넘어간다.
+  const [started, setStarted] = useState(false)
+  // 지금 결과가 내 최고 기록을 불러온 것인지 (다시 저장하지 않는다)
+  const [fromPast, setFromPast] = useState(false)
   const record = useSaveQuizAnswer(id)
 
   if (loading && !data) return <LoadingSpinner />
@@ -81,6 +95,19 @@ export default function QuizPlayPage() {
   const retry = () => {
     setAnswers([])
     setIndex(0)
+    setFromPast(false)
+    setStarted(true)
+  }
+
+  const bestAnswer = recordable ? bestAnswerOf(quiz) : null
+  // 최고 기록의 답을 지금 문항 순서로. 그 뒤로 바뀌었거나 새로 생긴 문항은 빈 답(오답)
+  const showPast = () => {
+    if (!bestAnswer) return
+    const byItem = new Map(bestAnswer.answers.map((a) => [a.quizItem, a.answer]))
+    setAnswers(items.map((item) => byItem.get(item._id) ?? ''))
+    setIndex(items.length)
+    setFromPast(true)
+    setStarted(true)
   }
 
   return (
@@ -91,6 +118,8 @@ export default function QuizPlayPage() {
         <p className="text-neutral-500">아직 문항이 없습니다.</p>
       ) : sensesLoading ? (
         <LoadingSpinner />
+      ) : bestAnswer && !started ? (
+        <PastSummary last={bestAnswer} total={items.length} onShow={showPast} onRetry={retry} />
       ) : index < items.length ? (
         <QuizQuestion
           // 문제가 바뀌면 입력 상태를 새로
@@ -115,20 +144,94 @@ export default function QuizPlayPage() {
           answers={answers}
           onRetry={retry}
           record={
-            !user
-              ? { kind: 'guest' }
-              : !recordable
-                ? { kind: 'none' }
-                : record.saving
-                  ? { kind: 'saving' }
-                  : record.error
-                    ? { kind: 'error', message: record.error }
-                    : record.saved
-                      ? { kind: 'saved' }
-                      : { kind: 'none' }
+            fromPast && bestAnswer
+              ? { kind: 'past', at: bestAnswer.createdAt }
+              : !user
+                ? { kind: 'guest' }
+                : !recordable
+                  ? { kind: 'none' }
+                  : record.saving
+                    ? { kind: 'saving' }
+                    : record.error
+                      ? { kind: 'error', message: record.error }
+                      : record.best
+                        ? { kind: 'saved', best: record.best, total: items.length }
+                        : { kind: 'none' }
           }
+          // 공개된 퀴즈만 반응·댓글 (만드는 중인 퀴즈 미리 풀기엔 없음)
+          social={quiz.status === 'ACTIVE' ? quizTarget(quiz) : null}
         />
       )}
+    </section>
+  )
+}
+
+/** 풀었던 적 있는 퀴즈에 들어오면: 내 최고 기록 요약 + 결과 보기 / 다시 풀기 */
+function PastSummary({
+  last,
+  total,
+  onShow,
+  onRetry,
+}: {
+  last: QuizBestAnswer
+  total: number
+  onShow: () => void
+  onRetry: () => void
+}) {
+  return (
+    <div className="space-y-4 rounded-lg bg-neutral-50 dark:bg-neutral-900 p-6 text-center">
+      <p className="text-sm text-neutral-500">이미 풀어 본 퀴즈입니다. 내 최고 기록</p>
+      <p className="text-2xl font-bold tabular-nums">
+        {last.correctCnt} <span className="text-base text-neutral-400">/ {total}</span>
+      </p>
+      <p className="text-xs text-neutral-500">
+        {last.tryCnt.toLocaleString()}번 시도 · 최고 기록 {formatDateTime(last.createdAt)}
+      </p>
+      <div className="flex justify-center gap-2">
+        <button type="button" className="btn" onClick={onShow}>
+          결과 보기
+        </button>
+        <button type="button" className={primaryBtn} onClick={onRetry}>
+          다시 풀기
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/** 퀴즈에 대화록(댓글)을 달 때의 원글 */
+const quizTarget = (quiz: { _id: string }): OpinionTarget => ({
+  entity: 'Quiz',
+  id: quiz._id,
+  path: quizPath(quiz._id),
+})
+
+/** /quiz/:id/threads/:threadId — 퀴즈 정보(작게) + 한 대화(thread)의 의견 목록 */
+export function QuizThreadPage() {
+  const { id = '', threadId = '' } = useParams<{ id: string; threadId: string }>()
+  const { user } = useAuth()
+  const { data, loading, error } = useQuery(QUIZ_ONE_QUERY, {
+    variables: { input: { _id: id } },
+    fetchPolicy: 'cache-and-network',
+    skip: !id,
+  })
+  const res = data?.QuizQuery.quizOne
+  const quiz = res?.success && res.item.status === 'ACTIVE' ? res.item : null
+
+  if (loading && !data) return <LoadingSpinner />
+  if (error) return <p className="text-red-600 dark:text-red-400">조회 실패: {error.message}</p>
+  if (!quiz) return <p className="text-neutral-500">{res?.message ?? '퀴즈를 찾을 수 없습니다.'}</p>
+
+  return (
+    // pb-32: 하단 고정 입력창에 마지막 항목이 가리지 않도록 여백
+    <section className="space-y-5 pb-32">
+      <QuizHeader quiz={quiz} mine={!!user && quiz.user?._id === user.userId} />
+      <div className="flex justify-end">
+        <Link to={quizPath(quiz._id)} className={`${primaryBtn} text-sm no-underline`}>
+          퀴즈 풀기
+        </Link>
+      </div>
+      <ThreadConversation target={quizTarget(quiz)} threadId={threadId} />
     </section>
   )
 }
@@ -140,7 +243,7 @@ function QuizHeader({ quiz, mine }: { quiz: Quiz; mine: boolean }) {
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <h2 className="text-base font-semibold">{quiz.title}</h2>
-          <QuizMyStatusBadge status={quiz.me} />
+          <QuizMyStatusBadge status={quiz.me?.status} />
         </div>
         <div className="flex shrink-0 gap-1">
           {mine && (
@@ -171,6 +274,16 @@ function QuizHeader({ quiz, mine }: { quiz: Quiz; mine: boolean }) {
   )
 }
 
+/** 섞은 사본 (Fisher–Yates). 원본은 그대로 둔다. */
+function shuffle<T>(list: readonly T[]): T[] {
+  const copy = [...list]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
+
 /** 한 문제. 답을 내면 바로 채점하고 가린 카드를 모두 연다. */
 function QuizQuestion({
   no,
@@ -190,6 +303,8 @@ function QuizQuestion({
   onNext: () => void
 }) {
   const [value, setValue] = useState('')
+  // 보기는 문제를 열 때마다 새로 섞어 보여 준다. 고른 값은 보기 글자 그대로라 채점·기록엔 영향 없다.
+  const [options] = useState(() => shuffle(item.answerOptions))
   const graded = given !== undefined
   const correct = graded && isCorrectAnswer(given, item.answer)
   const choice = item.answerOptions.length > 0
@@ -231,7 +346,7 @@ function QuizQuestion({
 
       {choice ? (
         <ol className="grid gap-2 sm:grid-cols-2">
-          {item.answerOptions.map((o, i) => {
+          {options.map((o, i) => {
             const picked = (graded ? given : value) === o
             const isAnswer = graded && o === item.answer
             return (
@@ -298,10 +413,11 @@ function QuizQuestion({
 
 /** 풀이 기록 저장 상태 */
 type RecordState =
+  | { kind: 'past'; at: unknown }
   | { kind: 'guest' }
   | { kind: 'none' }
   | { kind: 'saving' }
-  | { kind: 'saved' }
+  | { kind: 'saved'; best: { correctCnt: number; tryCnt: number }; total: number }
   | { kind: 'error'; message: string }
 
 function QuizResult({
@@ -309,11 +425,14 @@ function QuizResult({
   answers,
   onRetry,
   record,
+  social,
 }: {
   items: QuizItem[]
   answers: (string | undefined)[]
   onRetry: () => void
   record: RecordState
+  /** 반응·댓글을 달 원글. null 이면 두지 않는다 */
+  social: OpinionTarget | null
 }) {
   const results = items.map((item, i) => ({
     item,
@@ -330,13 +449,15 @@ function QuizResult({
           {score} <span className="text-lg text-neutral-400">/ {items.length}</span>
         </p>
         <p className="mt-1 text-xs text-neutral-500" role="status">
-          {record.kind === 'guest'
-            ? '로그인하면 풀이 기록이 남습니다.'
-            : record.kind === 'saving'
-              ? '기록 저장 중...'
-              : record.kind === 'saved'
-                ? '풀이 기록을 저장했습니다.'
-                : null}
+          {record.kind === 'past'
+            ? `내 최고 기록 · ${formatDateTime(record.at)}`
+            : record.kind === 'guest'
+              ? '로그인하면 풀이 기록이 남습니다.'
+              : record.kind === 'saving'
+                ? '기록 저장 중...'
+                : record.kind === 'saved'
+                  ? `기록 저장 · 내 최고 ${record.best.correctCnt} / ${record.total} · ${record.best.tryCnt}번째 시도`
+                  : null}
         </p>
         {record.kind === 'error' && (
           <p className="mt-1 text-xs text-red-600 dark:text-red-400">
@@ -376,6 +497,14 @@ function QuizResult({
           다시 풀기
         </button>
       </div>
+
+      {social && (
+        // pb-32: 하단 고정 입력창에 마지막 항목이 가리지 않도록 여백
+        <div className="space-y-8 border-t border-neutral-200 dark:border-neutral-800 pt-4 pb-32">
+          <ReactionBar target={{ entity: 'Quiz', id: social.id }} />
+          <TargetThreads target={social} />
+        </div>
+      )}
     </div>
   )
 }

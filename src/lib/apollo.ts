@@ -29,6 +29,7 @@ const QUERY_NAMESPACES = [
   'NotifyQryNamespace',
   'OpinionQryNamespace',
   'PointQryNamespace',
+  'QuizQryNamespace',
   'ReactionQryNamespace',
   'SenseQryNamespace',
   'SystemQryNamespace',

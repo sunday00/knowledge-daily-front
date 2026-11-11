@@ -227,12 +227,13 @@ export function useSaveQuizItem(quizId: string) {
 export function useSaveQuizAnswer(quizId: string) {
   const client = useApolloClient()
   const [error, setError] = useState<string | null>(null)
-  const [saved, setSaved] = useState(false)
+  // 저장 뒤 서버가 돌려준 최고 기록. 방금 낸 답이 최고보다 낮으면 예전 최고 기록이다.
+  const [best, setBest] = useState<{ correctCnt: number; tryCnt: number } | null>(null)
   const [create, { loading }] = useMutation(QUIZ_ANSWER_CREATE_MUTATION)
 
   const save = async (answers: { quizItem: string; answer: string; correct: boolean }[]) => {
     setError(null)
-    setSaved(false)
+    setBest(null)
     try {
       const { data, errors } = await create({
         variables: { input: { quiz: quizId, answers } },
@@ -240,7 +241,7 @@ export function useSaveQuizAnswer(quizId: string) {
       if (errors?.length) return setError(errors.map((e) => e.message).join(', '))
       const res = data?.QuizMutation.quizAnswerCreate
       if (!res?.success) return setError(res?.message ?? '기록을 저장하지 못했습니다.')
-      setSaved(true)
+      setBest({ correctCnt: res.item.correctCnt, tryCnt: res.item.tryCnt })
       client.cache.evict({ id: 'ROOT_QUERY', fieldName: 'QuizQuery' })
       client.cache.gc()
     } catch (e: unknown) {
@@ -248,5 +249,5 @@ export function useSaveQuizAnswer(quizId: string) {
     }
   }
 
-  return { save, saving: loading, saved, error }
+  return { save, saving: loading, best, error }
 }

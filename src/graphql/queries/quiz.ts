@@ -17,7 +17,10 @@ export const QUIZ_LIST_QUERY = graphql(`
           createdAt
           quizItemsCnt
           # 내 풀이 상태 (ALL_CORRECT / TRIED). 기록 없음·비로그인은 null
-          me
+          me {
+            _id
+            status
+          }
           tags {
             _id
             name
@@ -48,8 +51,20 @@ export const QUIZ_ONE_QUERY = graphql(`
           description
           createdAt
           quizItemsCnt
-          # 내 풀이 상태 (ALL_CORRECT / TRIED). 기록 없음·비로그인은 null
-          me
+          # 내 풀이 기록 (유저 + 퀴즈당 한 건, 늘 최고 기록). 기록 없음·비로그인은 null
+          # status 는 지금 문항 수 기준 (ALL_CORRECT / TRIED)
+          me {
+            _id
+            status
+            correctCnt
+            tryCnt
+            createdAt
+            answers {
+              quizItem
+              answer
+              correct
+            }
+          }
           tags {
             _id
             name
@@ -57,6 +72,12 @@ export const QUIZ_ONE_QUERY = graphql(`
           user {
             _id
             nickname
+          }
+          opinionsCnt
+          reactionsCnt {
+            name
+            cnt
+            me
           }
           quizItems {
             _id

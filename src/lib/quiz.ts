@@ -35,7 +35,7 @@ export const quizEditPath = (quizId: string) => `${QUIZ_PATH}/${quizId}/edit`
 export const QUIZ_TITLE_MAX = 100
 export const QUIZ_BRIEF_MAX = 200
 /** 객관식 보기 최대 개수 */
-export const QUIZ_OPTIONS_MAX = 6
+export const QUIZ_OPTIONS_MAX = 10
 
 /** 문항 카드에 보여 줄 상식. 내 상식 목록 항목에서 필요한 것만 */
 export type QuizSenseCardData = {

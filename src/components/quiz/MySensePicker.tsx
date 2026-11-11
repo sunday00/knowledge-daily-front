@@ -6,6 +6,7 @@ import { useDebouncedValue } from '@/hooks/useDebouncedValue.ts'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { SafeImage } from '@/components/SafeImage.tsx'
 import { senseImagesOf, type QuizSenseCardData } from '@/lib/quiz.ts'
+import { SearchInput } from '@/components/SearchInput.tsx'
 
 const PAGE_SIZE = 20
 
@@ -77,13 +78,12 @@ export function MySensePicker({
 
   return (
     <div className="space-y-2 rounded-md border border-neutral-200 dark:border-neutral-800 p-3">
-      <input
-        type="search"
+      <SearchInput
         value={keyword}
         onChange={(e) => setKeyword(e.target.value)}
         placeholder="내 상식에서 제목 또는 설명으로 검색"
         aria-label="내 상식 검색"
-        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-sm outline-none focus:border-brand-500"
+        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-9 pr-3 py-1.5 text-sm outline-none focus:border-brand-500"
       />
 
       {loading && <LoadingSpinner size="sm" />}

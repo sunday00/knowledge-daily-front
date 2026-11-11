@@ -16,6 +16,7 @@ import {
 import { Pagination, PAGE_PARAM, usePageParam } from '@/components/Pagination.tsx'
 import { SafeImage } from '@/components/SafeImage.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { SearchInput } from '@/components/SearchInput.tsx'
 
 type CampaignListItem = CampaignListQuery['CampaignQuery']['campaignStandardList']['items'][number]
 
@@ -178,13 +179,13 @@ function SearchForm({ keyword }: { keyword: string }) {
 
   return (
     <form role="search" onSubmit={handleSubmit} className="flex gap-2">
-      <input
-        type="search"
+      <SearchInput
+        wrapperClassName="min-w-0 flex-1"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="이벤트 제목, 부제로 검색"
         aria-label="이벤트 검색"
-        className="min-w-0 flex-1 rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-sm outline-none focus:border-brand-500"
+        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-9 pr-3 py-1.5 text-sm outline-none focus:border-brand-500"
       />
       <button type="submit" className="btn text-sm">
         검색

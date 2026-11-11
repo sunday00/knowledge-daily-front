@@ -54,7 +54,10 @@ export const QUIZ_ITEM_UPDATE_MUTATION = graphql(`
   }
 `)
 
-/** 퀴즈 풀이 기록 저장 (공개 퀴즈만, 로그인 필요). 맞힌 수는 문항별 correct 로 서버가 센다. */
+/**
+ * 퀴즈 풀이 저장 (공개 퀴즈만, 로그인 필요). 맞힌 수는 문항별 correct 로 서버가 센다.
+ * 유저 + 퀴즈당 한 건: 기존 최고 이상이면 답을 바꾸고, 아니면 시도 횟수만 는다. 늘 저장된 최고 기록을 돌려준다.
+ */
 export const QUIZ_ANSWER_CREATE_MUTATION = graphql(`
   mutation QuizAnswerCreate($input: QuizAnswerCreateInput!) {
     QuizMutation {
@@ -62,7 +65,10 @@ export const QUIZ_ANSWER_CREATE_MUTATION = graphql(`
         success
         message
         item {
-          id
+          _id
+          correctCnt
+          tryCnt
+          createdAt
         }
       }
     }

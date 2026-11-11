@@ -34,7 +34,7 @@ import { QUIZ_NEW_PATH, QUIZ_PATH } from './lib/quiz'
 import QuizListPage from './pages/quiz/QuizListPage'
 import QuizCreatePage from './pages/quiz/QuizCreatePage'
 import QuizBuildPage from './pages/quiz/QuizBuildPage'
-import QuizPlayPage from './pages/quiz/QuizPlayPage'
+import QuizPlayPage, { QuizThreadPage } from './pages/quiz/QuizPlayPage'
 import QuizEditPage from './pages/quiz/QuizEditPage'
 import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
@@ -113,6 +113,7 @@ export default function App() {
           <Route path={`${QUIZ_PATH}/:id`} element={<QuizPlayPage />} />
           <Route path={`${QUIZ_PATH}/:id/build`} element={<QuizBuildPage />} />
           <Route path={`${QUIZ_PATH}/:id/edit`} element={<QuizEditPage />} />
+          <Route path={`${QUIZ_PATH}/:id/threads/:threadId`} element={<QuizThreadPage />} />
           <Route
             path={`${ISOLATED_PAGE_PATH}/:slug`}
             element={

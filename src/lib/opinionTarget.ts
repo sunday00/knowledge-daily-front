@@ -1,10 +1,10 @@
 /**
  * 의견(대화록)을 다는 원글. 상식(Sense), 문의/요청 글(Ask), 게시글(Article), 공지(Notice), 캠페인(Campaign),
- * 독립 페이지(IsolatedPage)에 쓴다.
+ * 독립 페이지(IsolatedPage), 퀴즈(Quiz)에 쓴다.
  * path 는 원글 페이지 주소로, 대화 페이지는 `${path}/threads/:threadId`.
  */
 export type OpinionTarget = {
-  entity: 'Sense' | 'Ask' | 'Article' | 'Notice' | 'Campaign' | 'IsolatedPage'
+  entity: 'Sense' | 'Ask' | 'Article' | 'Notice' | 'Campaign' | 'IsolatedPage' | 'Quiz'
   id: string
   path: string
 }

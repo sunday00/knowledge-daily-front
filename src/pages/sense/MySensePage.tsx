@@ -8,6 +8,7 @@ import { MySenseButton } from '@/components/MySenseButton.tsx'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue.ts'
 import { useSenseMyList } from '@/hooks/useSenseMyList.ts'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { SearchInput } from '@/components/SearchInput.tsx'
 
 export default function MySensePage() {
   const { user } = useAuth()
@@ -38,13 +39,12 @@ export default function MySensePage() {
             </div>
 
             <form role="search" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="search"
+              <SearchInput
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 placeholder="제목 또는 설명으로 검색"
                 aria-label="검색"
-                className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 outline-none focus:border-brand-500"
+                className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-9 pr-3 py-2 outline-none focus:border-brand-500"
               />
             </form>
 
