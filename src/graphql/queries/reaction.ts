@@ -89,6 +89,17 @@ export const ISOLATED_PAGE_REACTIONS_FRAGMENT = graphql(`
   }
 `)
 
+export const QUIZ_REACTIONS_FRAGMENT = graphql(`
+  fragment QuizReactions on Quiz {
+    _id
+    reactionsCnt {
+      name
+      cnt
+      me
+    }
+  }
+`)
+
 // 대화록 한 건의 리액션. 대화 페이지에 바로 들어와 캐시에 그 대화가 없을 때 받는다
 export const THREAD_REACTIONS_QUERY = graphql(`
   query ThreadReactions($input: ThreadListByQry) {

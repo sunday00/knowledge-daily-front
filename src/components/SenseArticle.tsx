@@ -21,9 +21,12 @@ export type SenseOneItem = SenseOneQuery['SenseQuery']['senseOne']['item']
 export function SenseOneView({
   id,
   children,
+  tagsAction,
 }: {
   id: string
   children: (sense: SenseOneItem) => ReactNode
+  /** 태그 줄 오른쪽 끝에 둘 버튼 */
+  tagsAction?: (sense: SenseOneItem) => ReactNode
 }) {
   const { data, loading, error } = useQuery(SENSE_ONE_QUERY, {
     variables: { input: { _id: id } },
@@ -61,14 +64,14 @@ export function SenseOneView({
     <div className="space-y-8 pb-32">
       <div className="space-y-4">
         {back}
-        <SenseArticle sense={res.item} />
+        <SenseArticle sense={res.item} tagsAction={tagsAction?.(res.item)} />
       </div>
       {children(res.item)}
     </div>
   )
 }
 
-function SenseArticle({ sense }: { sense: SenseOneItem }) {
+function SenseArticle({ sense, tagsAction }: { sense: SenseOneItem; tagsAction?: ReactNode }) {
   return (
     <article className="space-y-4">
       <header className="space-y-2">
@@ -82,7 +85,14 @@ function SenseArticle({ sense }: { sense: SenseOneItem }) {
           <SenseCounts opinionsCnt={sense.opinionsCnt} />
           <span>Lv.{sense.lv}</span>
         </div>
-        <TagChips tags={sense.tags} />
+        {tagsAction ? (
+          <div className="flex items-start gap-3">
+            <TagChips tags={sense.tags} className="min-w-0 flex-1" />
+            <div className="ml-auto shrink-0">{tagsAction}</div>
+          </div>
+        ) : (
+          <TagChips tags={sense.tags} />
+        )}
       </header>
 
       {/* 요약: 강조 상자로 본문과 구분 */}

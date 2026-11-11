@@ -3,6 +3,7 @@ import { useQuery } from '@apollo/client'
 import { TAG_STANDARD_LIST_QUERY } from '@/graphql/queries/tag.ts'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue.ts'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { SearchInput } from '@/components/SearchInput.tsx'
 
 export type TagOption = { _id: string; name: string }
 
@@ -62,13 +63,12 @@ export function TagPicker({ value, onChange, disabled }: Props) {
         <p className="text-sm text-neutral-500">선택된 태그가 없습니다.</p>
       )}
 
-      <input
-        type="search"
+      <SearchInput
         value={keyword}
         onChange={(e) => setKeyword(e.target.value)}
         disabled={disabled}
         placeholder="태그 검색"
-        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 outline-none focus:border-brand-500"
+        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 pl-9 pr-3 py-2 outline-none focus:border-brand-500"
       />
 
       <div className="min-h-10">

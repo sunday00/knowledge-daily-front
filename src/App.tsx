@@ -30,6 +30,12 @@ import { documentPath } from './lib/documents'
 import { CAMPAIGN_PATH } from './lib/campaign'
 import { ISOLATED_PAGE_PATH } from './lib/isolatedPage'
 import CampaignListPage from './pages/campaign/CampaignListPage'
+import { QUIZ_NEW_PATH, QUIZ_PATH } from './lib/quiz'
+import QuizListPage from './pages/quiz/QuizListPage'
+import QuizCreatePage from './pages/quiz/QuizCreatePage'
+import QuizBuildPage from './pages/quiz/QuizBuildPage'
+import QuizPlayPage, { QuizThreadPage } from './pages/quiz/QuizPlayPage'
+import QuizEditPage from './pages/quiz/QuizEditPage'
 import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
 import { ErrorBanner } from './components/ErrorBanner'
@@ -102,6 +108,12 @@ export default function App() {
               </Suspense>
             }
           />
+          <Route path={QUIZ_PATH} element={<QuizListPage />} />
+          <Route path={QUIZ_NEW_PATH} element={<QuizCreatePage />} />
+          <Route path={`${QUIZ_PATH}/:id`} element={<QuizPlayPage />} />
+          <Route path={`${QUIZ_PATH}/:id/build`} element={<QuizBuildPage />} />
+          <Route path={`${QUIZ_PATH}/:id/edit`} element={<QuizEditPage />} />
+          <Route path={`${QUIZ_PATH}/:id/threads/:threadId`} element={<QuizThreadPage />} />
           <Route
             path={`${ISOLATED_PAGE_PATH}/:slug`}
             element={

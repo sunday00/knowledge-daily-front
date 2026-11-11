@@ -2722,6 +2722,7 @@ type Mutation {
   OpinionMutation: OpinionMutNamespace!
   PointMutation: PointMutNamespace!
   PromotionMutation: PromotionMutNamespace!
+  QuizMutation: QuizMutNamespace!
   ReactionMutation: ReactionMutNamespace!
   SenseMutation: SenseMutNamespace!
   UserMutation: UserMutNamespace!
@@ -3055,10 +3056,8 @@ input NotifySettingUpdateInput {
   deletedAt: DateTime
   fcm: String
 
-  """
-  UTC 시간 차이. eg. "+09:00" | "-03:30"
-  """
-  fromUtcH: String = "+09:00"
+  """UTC 시간 차이. eg. "+09:00" | "-03:30". 안 보내면 저장된 값 유지"""
+  fromUtcH: String
 
   """
   update 시 nullish는 삭제 update로 인식하므로, 해당필드 없애는 update 아니면 기존 필드 채워 req 바람
@@ -3386,8 +3385,6 @@ input OpinionUpdateInput {
 
   """부모 Thread의 아이디"""
   parent: String
-  pinn: Boolean
-  sortKey: Int
 
   """조상 원컨텐츠의 아이디"""
   targetId: String
@@ -3793,12 +3790,560 @@ type Query {
   OpinionQuery: OpinionQryNamespace!
   PointQuery: PointQryNamespace!
   PromotionQuery: PromotionQryNamespace!
+  QuizQuery: QuizQryNamespace!
   ReactionQuery: ReactionQryNamespace!
   SenseQuery: SenseQryNamespace!
   SystemQuery: SystemQryNamespace!
   TagQuery: TagQryNamespace!
   UserQuery: UserQryNamespace!
   VillainQuery: VillainQryNamespace!
+}
+
+type Quiz implements CompactEntity & ICreatedAt & IOpinion & IReaction & ITag & IUser & IVillain {
+  _id: String!
+
+  """짧은 소개글"""
+  brief: String
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """긴 소개글"""
+  description: String
+
+  """
+  내 기록(최고 기록 한 건: 답 / 맞힌 수 / 시도 횟수) + 상태(지금 문항 수 기준 ALL_CORRECT / TRIED). 기록 없음 / 비로그인은 null
+  """
+  me: QuizMe
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+
+  """생성시엔 미출력하고 조회시에만 resolver, loader 로 할당"""
+  quizItems: [QuizItem!]!
+
+  """퀴즈의 ACTIVE 문항 수"""
+  quizItemsCnt: Int!
+
+  """reaction 이름별 갯수"""
+  reactionsCnt: [ReactionCnt!]
+  status: StandardStatus!
+
+  """tags"""
+  tags: [Tag!]!
+  title: String!
+
+  """user"""
+  user: User
+  version: String!
+  villainStatus: VillainStatus
+}
+
+type QuizAnswer implements CompactEntity & ICreatedAt & IUser {
+  _id: String!
+
+  """문항별 답"""
+  answers: [QuizAnswerItem!]!
+
+  """맞힌 문항 수 (최고 기록)"""
+  correctCnt: Int!
+  createdAt: DateTime!
+  deletedAt: DateTime
+
+  """퀴즈 id"""
+  quiz: String!
+  status: StandardStatus!
+
+  """시도 횟수"""
+  tryCnt: Int!
+
+  """user"""
+  user: User
+  version: String!
+}
+
+input QuizAnswerCreateInput {
+  """문항별 답"""
+  answers: [QuizAnswerItemInput!]!
+
+  """퀴즈 id"""
+  quiz: String!
+}
+
+input QuizAnswerInput {
+  """문항별 답"""
+  answers: [QuizAnswerItemInput!]!
+
+  """맞힌 문항 수 (최고 기록)"""
+  correctCnt: Int!
+
+  """퀴즈 id"""
+  quiz: String!
+
+  """시도 횟수"""
+  tryCnt: Int!
+}
+
+type QuizAnswerItem {
+  """내가 고른 / 쓴 답"""
+  answer: String!
+
+  """정답 여부"""
+  correct: Boolean!
+
+  """문항(QuizItem) id"""
+  quizItem: String!
+}
+
+input QuizAnswerItemInput {
+  """내가 고른 / 쓴 답"""
+  answer: String!
+
+  """정답 여부"""
+  correct: Boolean!
+
+  """문항(QuizItem) id"""
+  quizItem: String!
+}
+
+type QuizAnswerResponse {
+  item: QuizAnswer!
+  message: String
+  success: Int!
+}
+
+input QuizCreateInput {
+  """짧은 소개글"""
+  brief: String
+
+  """긴 소개글"""
+  description: String
+
+  """태그 이름. 없으면 새로 만들어 연결"""
+  tagNames: [String!]
+  title: String!
+}
+
+input QuizInput {
+  """짧은 소개글"""
+  brief: String
+
+  """긴 소개글"""
+  description: String
+
+  """생성시엔 미출력하고 조회시에만 resolver, loader 로 할당"""
+  quizItems: [QuizItemInput!]!
+  title: String!
+}
+
+type QuizItem implements ICreatedAt & IUser & StandardEntity {
+  _id: String!
+  answer: String!
+
+  """없으면 주관식이 된다."""
+  answerOptions: [String!]!
+  ask: String!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  flags: [String!]!
+
+  """url address to move other pages"""
+  links: [Link!]!
+  pinn: Boolean!
+
+  """부모 Quiz 의 아이디"""
+  quiz: String!
+
+  """기반 지식/상식"""
+  senses: [QuizItemSenseInfo!]!
+  sortKey: Int!
+  status: StandardStatus!
+
+  """user"""
+  user: User
+  version: String!
+}
+
+input QuizItemInput {
+  answer: String!
+
+  """없으면 주관식이 된다."""
+  answerOptions: [String!]!
+  ask: String!
+
+  """부모 Quiz 의 아이디"""
+  quiz: String!
+
+  """기반 지식/상식"""
+  senses: [QuizItemSenseInfoInput!]!
+}
+
+input QuizItemListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: QuizItemSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: QuizItemSearchInputSortType
+}
+
+type QuizItemListResponse {
+  hasNext: Boolean
+  items: [QuizItem!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+input QuizItemOneByQry {
+  _id: String!
+}
+
+type QuizItemResponse {
+  item: QuizItem!
+  message: String
+  success: Int!
+}
+
+input QuizItemSearchInput {
+  _id: RangeString
+  answer: RangeString
+
+  """없으면 주관식이 된다."""
+  answerOptions: [String!]
+  ask: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  createdAt: RangeDate
+  deletedAt: RangeDate
+  flags: [String!]
+
+  """url address to move other pages"""
+  links: [LinkInput!]
+  pinn: Boolean
+
+  """부모 Quiz 의 아이디"""
+  quiz: RangeString
+
+  """기반 지식/상식"""
+  senses: [QuizItemSenseInfoInput!]
+  sortKey: RangeInt
+  status: RangeStandardStatus
+
+  """user"""
+  user: UserInput
+  version: RangeString
+}
+
+input QuizItemSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  answer: Int
+
+  """1: asc, -1: desc"""
+  answerOptions: Int
+
+  """1: asc, -1: desc"""
+  ask: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  flags: Int
+
+  """1: asc, -1: desc"""
+  links: Int
+
+  """1: asc, -1: desc"""
+  pinn: Int
+
+  """1: asc, -1: desc"""
+  quiz: Int
+
+  """1: asc, -1: desc"""
+  senses: Int
+
+  """1: asc, -1: desc"""
+  sortKey: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  user: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+type QuizItemSenseInfo {
+  """보여줄 Sense 필드 중 가릴 필드"""
+  hideSenseFields: [SenseKey!]!
+
+  """기반 지식/상식 id"""
+  senses: String!
+
+  """보이는 상식이 여럿일때 순서"""
+  sortKey: Int!
+}
+
+input QuizItemSenseInfoInput {
+  """보여줄 Sense 필드 중 가릴 필드"""
+  hideSenseFields: [SenseKey!]!
+
+  """기반 지식/상식 id"""
+  senses: String!
+
+  """보이는 상식이 여럿일때 순서"""
+  sortKey: Int! = 1000
+}
+
+input QuizItemUpdateInput {
+  _id: String!
+  answer: String
+
+  """없으면 주관식이 된다."""
+  answerOptions: [String!]
+  ask: String
+  flags: [String!]
+
+  """기반 지식/상식"""
+  senses: [QuizItemSenseInfoInput!]
+  sortKey: Int
+}
+
+input QuizItemsCreateInput {
+  """한 번에 만들 문항들"""
+  items: [QuizItemsCreateItemInput!]!
+
+  """부모 Quiz 의 아이디"""
+  quiz: String!
+}
+
+input QuizItemsCreateItemInput {
+  answer: String!
+
+  """없으면 주관식이 된다."""
+  answerOptions: [String!]!
+  ask: String!
+  flags: [String!]!
+
+  """기반 지식/상식"""
+  senses: [QuizItemSenseInfoInput!]!
+  sortKey: Int!
+}
+
+input QuizListByQry {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: QuizSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: QuizSearchInputSortType
+}
+
+type QuizListResponse {
+  hasNext: Boolean
+  items: [Quiz!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+type QuizMe {
+  _id: String!
+
+  """문항별 답"""
+  answers: [QuizAnswerItem!]!
+
+  """맞힌 문항 수 (최고 기록)"""
+  correctCnt: Int!
+  createdAt: DateTime!
+
+  """최고 맞힌 수가 지금 문항 수 이상이면 ALL_CORRECT, 아니면 TRIED"""
+  status: QuizMyStatus!
+
+  """시도 횟수"""
+  tryCnt: Int!
+}
+
+type QuizMutNamespace {
+  """
+  퀴즈 풀이 저장 (공개 퀴즈만). 유저 + 퀴즈당 한 건: 최고 이상이면 답 교체, 아니면 시도 횟수만 증가. 항상 최고 기록 반환
+  """
+  quizAnswerCreate(input: QuizAnswerCreateInput!): QuizAnswerResponse!
+
+  """퀴즈 생성. 처음엔 항상 DRAFT. 문항은 quizItemsCreate 로 따로"""
+  quizCreate(input: QuizCreateInput!): IdResultResponse!
+  quizItemUpdate(input: QuizItemUpdateInput!): BooleanResponse!
+
+  """내 퀴즈에 문항 여러 개를 한 번에 생성. 전부 들어가면 true"""
+  quizItemsCreate(input: QuizItemsCreateInput!): BooleanResponse!
+
+  """내 퀴즈 수정. ACTIVE 로 바꾸려면 ACTIVE 문항이 있어야 함 (없으면 QUIZ_ITEMS_REQUIRED)"""
+  quizUpdate(input: QuizUpdateInput!): BooleanResponse!
+}
+
+enum QuizMyStatus {
+  """최고 맞힌 수가 지금 문항 수 이상 (문항이 늘면 TRIED 로 바뀔 수 있음)"""
+  ALL_CORRECT
+
+  """풀어봤지만 지금 문항을 전부 맞힌 기록은 없음"""
+  TRIED
+}
+
+input QuizOneByQry {
+  _id: String!
+}
+
+type QuizQryNamespace {
+  quizItemList(input: QuizItemListByQry): QuizItemListResponse!
+  quizItemOne(input: QuizItemOneByQry!): QuizItemResponse!
+  quizList(input: QuizListByQry): QuizListResponse!
+  quizOne(input: QuizOneByQry!): QuizResponse!
+}
+
+type QuizResponse {
+  item: Quiz!
+  message: String
+  success: Int!
+}
+
+input QuizSearchInput {
+  _id: RangeString
+
+  """짧은 소개글"""
+  brief: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"eq\": \"5cd9849c27c7b430b637aqb9\"\n        },\n        \"targetId\": {\n          \"eq\": \"6ad9749c22c7b160b636d8a8\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"id\": [\n            \"user\",\n            \"targetId\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  createdAt: RangeDate
+  deletedAt: RangeDate
+
+  """긴 소개글"""
+  description: RangeString
+
+  """통합 검색어. 제목 / 태그 이름 부분일치(대소문자 무시) 또는 문항에 쓰인 상식 id"""
+  keyword: RangeString
+
+  """[threadCnt/opinionCnt]"""
+  opinionsCnt: [Int!]
+
+  """생성시엔 미출력하고 조회시에만 resolver, loader 로 할당"""
+  quizItems: [QuizItemInput!]
+  status: RangeStandardStatus
+
+  """tags"""
+  tags: [TagInput!]
+  title: RangeString
+
+  """user"""
+  user: UserInput
+  version: RangeString
+}
+
+input QuizSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  brief: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  description: Int
+
+  """1: asc, -1: desc"""
+  keyword: Int
+
+  """1: asc, -1: desc"""
+  opinionsCnt: Int
+
+  """1: asc, -1: desc"""
+  quizItems: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  tags: Int
+
+  """1: asc, -1: desc"""
+  title: Int
+
+  """1: asc, -1: desc"""
+  user: Int
+
+  """1: asc, -1: desc"""
+  version: Int
+}
+
+input QuizUpdateInput {
+  _id: String!
+
+  """짧은 소개글"""
+  brief: String
+
+  """긴 소개글"""
+  description: String
+  status: StandardStatus
+
+  """태그 이름. 주면 기존 태그를 전부 지우고 이걸로 교체. 빈 배열이면 전부 제거. 안 주면 유지"""
+  tagNames: [String!]
+  title: String
 }
 
 "\n  Range input: one or more of eq/gt/lt/gte/lte/contains/not/mul.\n  - eq: 일치\n  - mul: multiple or 검색. A, 또는 B\n  - gt, gte, lt, lte: 초과, 이상, 미만, 이하\n  - contains: string에서 포함할 단어\n  - not: 부정 검색.\n\n  - eq, contains, not 등은 단독으로만 사용\n  - 모순된 사용은 되도록 지양바람\n    - ex: {  gt: 100, lt: 3 } 100초과이면서 3미만인 것 같은 동작...;\n  "
@@ -4167,6 +4712,20 @@ input SenseInput {
   """참조, 출처, 연관"""
   refs: [RefInput!]!
   title: String!
+}
+
+"""Sense 필드 이름. Sense 필드에서 자동 생성"""
+enum SenseKey {
+  WHOLE
+  _id
+  attaches
+  description
+  detail
+  lv
+  nativeLang
+  refs
+  tags
+  title
 }
 
 input SenseListByQry {
@@ -4796,6 +5355,7 @@ input UserUpdateInput {
 enum VBlockTargetEntity {
   Article
   Opinion
+  Quiz
   User
 }
 
@@ -4807,6 +5367,7 @@ enum VCommentTargetEntity {
   IsolatedPage
   Notice
   Opinion
+  Quiz
   Sense
   Thread
 }
