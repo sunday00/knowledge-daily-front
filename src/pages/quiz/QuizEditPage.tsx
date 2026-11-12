@@ -56,7 +56,7 @@ export default function QuizEditPage() {
   }
 
   return (
-    <section className="space-y-5">
+    <section className="mx-auto max-w-2xl space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">내 퀴즈 수정</h2>
         <Link to={quizPath(quiz._id)} className="btn text-sm no-underline">

@@ -54,7 +54,7 @@ export default function QuizListPage() {
   const items = res?.items ?? []
 
   return (
-    <section className="space-y-4">
+    <section className="mx-auto max-w-2xl space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-semibold">{QUIZ_TITLE}</h2>
         {user && (

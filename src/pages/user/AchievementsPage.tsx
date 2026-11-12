@@ -38,7 +38,6 @@ function Achievements() {
 
   const all = items.flatMap((i) => i.goals)
   const achievedCount = all.filter((g) => g.status === 'achieved').length
-  const unclaimed = all.filter((g) => g.pointable && !point.claimed.has(g.id)).length
   const appliedCount = appliedNames.length
 
   return (
@@ -70,11 +69,6 @@ function Achievements() {
       {point.message && (
         <p role="alert" className="text-sm text-red-600 dark:text-red-400">
           {point.message}
-        </p>
-      )}
-      {unclaimed > 0 && (
-        <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
-          받지 않은 보상이 {unclaimed}개 있어요. 달성한 도전과제의 <b>받기</b>를 눌러 주세요.
         </p>
       )}
 
@@ -140,14 +134,26 @@ function ItemSection({
           const title = achieved ? goal.title : HIDDEN_MARK
           const label = achievementGoalLabel(item.key, achieved ? goal.cnt : null)
           const ratio = ratioOf(item.current, goal.cnt)
+          // 보상을 아직 안 받았으면 카드를 눌렀을 때 슬쩍 준다 (선물처럼. 받을 게 있다는 표시는 하지 않는다)
+          const claimable = goal.pointable && !point.claimed.has(goal.id)
           return (
             <li
               key={goal.id}
               title={`${title} · ${label} · ${STATUS_LABEL[goal.status]}`}
-              className={`flex flex-col items-center gap-1.5 rounded-lg p-2 text-center ${
+              className={`relative flex flex-col items-center gap-1.5 rounded-lg p-2 text-center ${
                 CARD_TONE[applied ? 'applied' : goal.status]
-              }`}
+              } ${claimable ? 'ring-2 ring-emerald-400 transition-colors hover:bg-emerald-50 dark:ring-emerald-600 dark:hover:bg-emerald-950/40' : ''}`}
             >
+              {claimable && (
+                // 카드 전체를 덮는 투명 버튼. 겉으로는 다른 카드와 같다. 칭호적용 버튼만 그 위(z-10)로 올린다.
+                <button
+                  type="button"
+                  aria-label={title}
+                  disabled={point.pendingId !== null}
+                  onClick={() => void point.claim(goal.id)}
+                  className="absolute inset-0 rounded-lg disabled:cursor-wait"
+                />
+              )}
               <AchievementIcon
                 itemKey={item.key}
                 status={goal.status}
@@ -198,36 +204,7 @@ function ItemSection({
                   />
                 </span>
               )}
-              {goal.pointable && point.claimed.has(goal.id) ? (
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                  +{goal.reward.toLocaleString()}P 지급 예정
-                </span>
-              ) : goal.pointable ? (
-                // 달성했지만 보상을 아직 안 받음
-                <button
-                  type="button"
-                  disabled={point.pendingId !== null}
-                  onClick={() => void point.claim(goal.id)}
-                  className="rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {point.pendingId === goal.id
-                    ? '받는 중…'
-                    : `+${goal.reward.toLocaleString()}P 받기`}
-                </button>
-              ) : (
-                <span
-                  className={`text-[11px] tabular-nums ${
-                    applied
-                      ? 'font-medium text-amber-700 dark:text-amber-300'
-                      : goal.status === 'locked'
-                        ? 'text-neutral-400 dark:text-neutral-600'
-                        : 'font-medium text-brand-700 dark:text-indigo-300'
-                  }`}
-                >
-                  <span className="sr-only">{STATUS_LABEL[goal.status]} · </span>
-                  {goal.reward.toLocaleString()}P
-                </span>
-              )}
+              <span className="sr-only">{STATUS_LABEL[goal.status]}</span>
               {applied ? (
                 <span className="mt-0.5 rounded-full bg-amber-500 px-2 py-0.5 text-[11px] font-medium text-white">
                   적용 중
@@ -239,7 +216,7 @@ function ItemSection({
                     type="button"
                     disabled={pendingId !== null}
                     onClick={() => onAdd(goal.id)}
-                    className="mt-0.5 rounded-full border border-brand-300 px-2 py-0.5 text-[11px] font-medium text-brand-600 transition-colors hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+                    className="relative z-10 mt-0.5 rounded-full border border-brand-300 px-2 py-0.5 text-[11px] font-medium text-brand-600 transition-colors hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
                   >
                     {pendingId === goal.id ? '…' : '칭호적용'}
                   </button>

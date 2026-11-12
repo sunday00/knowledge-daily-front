@@ -81,7 +81,7 @@ export default function QuizBuildPage() {
   }
 
   return (
-    <section className="space-y-5">
+    <section className="mx-auto max-w-2xl space-y-5">
       <h2 className="text-xl font-semibold">내 퀴즈 만들기</h2>
       <QuizSteps current={2} />
 

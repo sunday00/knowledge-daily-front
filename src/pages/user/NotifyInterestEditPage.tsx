@@ -24,7 +24,7 @@ export default function NotifyInterestEditPage() {
   const disabled = saving || loading
 
   return (
-    <section className="space-y-4 max-w-xl">
+    <section className="mx-auto max-w-xl space-y-4">
       <h2 className="text-xl font-semibold">내 관심 수정</h2>
 
       {loading && <LoadingSpinner />}

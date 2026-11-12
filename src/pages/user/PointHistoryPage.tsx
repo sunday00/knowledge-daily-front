@@ -5,6 +5,8 @@ import { formatDateTime } from '@/lib/formatDate.ts'
 import { usePointHistory, type PointHistoryFilter } from '@/hooks/usePointHistory.ts'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll.ts'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { getSharedConfigs } from '@/lib/sharedConfigs.ts'
+import { achievementTitleById, readAchievementItemConfigs } from '@/lib/achievement.ts'
 
 const FILTER_PARAM = 'type'
 const TABS: { key: PointHistoryFilter; label: string }[] = [
@@ -31,7 +33,7 @@ export default function PointHistoryPage() {
   if (!user) return <Navigate to="/login" replace />
 
   return (
-    <section className="max-w-2xl space-y-4">
+    <section className="mx-auto max-w-2xl space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-xl font-semibold">포인트 내역</h2>
         {point !== null && (
@@ -84,6 +86,13 @@ function FilterTabs({ current }: { current: PointHistoryFilter }) {
   )
 }
 
+/** 내역 사유 표시명. 업적 보상은 counterLabel 이 업적 id(OpinionCreate1_000 등)라 '{칭호} 달성' 으로 바꾼다. */
+function reasonLabel(label: string | null | undefined): string | null {
+  if (!label) return null
+  const title = achievementTitleById(label, readAchievementItemConfigs(getSharedConfigs()))
+  return title ? `[도전과제] ${title} 달성` : label
+}
+
 function HistoryList({ filter }: { filter: PointHistoryFilter }) {
   const { res, loading, loadingMore, error, loadMore } = usePointHistory(filter)
   const sentinelRef = useInfiniteScroll<HTMLDivElement>(loadMore, !!res?.hasNext && !loadingMore)
@@ -110,7 +119,8 @@ function HistoryList({ filter }: { filter: PointHistoryFilter }) {
               <div className="min-w-0 space-y-0.5">
                 <p className="truncate font-medium text-neutral-900 dark:text-neutral-100">
                   {/* 사유 표시명이 없으면 적립/사용으로 */}
-                  {h.reasonDetail?.counterLabel || (earn ? '포인트 적립' : '포인트 사용')}
+                  {reasonLabel(h.reasonDetail?.counterLabel) ??
+                    (earn ? '포인트 적립' : '포인트 사용')}
                 </p>
                 <time dateTime={String(h.createdAt)} className="block text-xs text-neutral-500">
                   {formatDateTime(h.createdAt)}
