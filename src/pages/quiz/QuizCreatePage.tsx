@@ -20,7 +20,7 @@ export default function QuizCreatePage() {
   }
 
   return (
-    <section className="space-y-4">
+    <section className="mx-auto max-w-2xl space-y-4">
       <h2 className="text-xl font-semibold">내 퀴즈 만들기</h2>
       <QuizSteps current={1} />
       <QuizSetForm

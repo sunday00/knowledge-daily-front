@@ -19,7 +19,7 @@ export default function PromotionPage() {
   if (!user) return <Navigate to="/login" replace />
 
   return (
-    <section className="max-w-2xl space-y-4">
+    <section className="mx-auto max-w-2xl space-y-4">
       <h2 className="text-xl font-semibold">프로모션</h2>
       <PromotionTabs current={tab} />
       {tab === 'code' && <PromotionCodeForm />}

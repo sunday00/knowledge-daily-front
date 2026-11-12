@@ -21,7 +21,37 @@ export const ARCHIVE_ACHIEVEMENT_APPLY_MUTATION = graphql(`
         message
         item {
           available
-          applied
+          pointable
+          applied {
+            sortKey
+            name
+          }
+          progress {
+            opinionCreate
+            reactionCreate
+            goodReceive
+            earnPoints
+          }
+        }
+      }
+    }
+  }
+`)
+
+/** 칭호 통째로 교체. names 순서가 곧 우선순위 (sortKey 0 부터). 달성한 것만, 3개까지, 중복 없이. [] 면 전부 해제 */
+export const ARCHIVE_ACHIEVEMENT_APPLY_SET_MUTATION = graphql(`
+  mutation ArchiveAchievementApplySet($input: ArchiveAchievementApplySetInput!) {
+    ArchiveMutation {
+      archiveAchievementApplySet(input: $input) {
+        success
+        message
+        item {
+          available
+          pointable
+          applied {
+            sortKey
+            name
+          }
           progress {
             opinionCreate
             reactionCreate

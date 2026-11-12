@@ -37,7 +37,7 @@ export default function DocumentPage({ slug: slugProp }: { slug?: string }) {
   if (!doc) return null
 
   return (
-    <article className="space-y-6">
+    <article className="mx-auto max-w-2xl space-y-6">
       <header className="space-y-1 border-b border-neutral-200 dark:border-neutral-800 pb-4">
         <h2 className="text-2xl font-semibold">{doc.title}</h2>
         <p className="text-sm text-neutral-500">

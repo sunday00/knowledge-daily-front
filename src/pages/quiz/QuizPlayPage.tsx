@@ -111,7 +111,7 @@ export default function QuizPlayPage() {
   }
 
   return (
-    <section className="space-y-5">
+    <section className="mx-auto max-w-2xl space-y-5">
       <QuizHeader quiz={quiz} mine={mine} />
 
       {items.length === 0 ? (
@@ -224,7 +224,7 @@ export function QuizThreadPage() {
 
   return (
     // pb-32: 하단 고정 입력창에 마지막 항목이 가리지 않도록 여백
-    <section className="space-y-5 pb-32">
+    <section className="mx-auto max-w-2xl space-y-5 pb-32">
       <QuizHeader quiz={quiz} mine={!!user && quiz.user?._id === user.userId} />
       <div className="flex justify-end">
         <Link to={quizPath(quiz._id)} className={`${primaryBtn} text-sm no-underline`}>

@@ -6,6 +6,7 @@ import type { ArticleOneQuery } from '@/graphql/__generated__/graphql.ts'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import { boardPath, findBoardBySlug, type BoardConfig } from '@/lib/boards.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
+import { EditedAt } from '@/components/EditedAt.tsx'
 import { MarkdownView } from '@/components/MarkdownView.tsx'
 import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
@@ -13,6 +14,7 @@ import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.
 import { AdjacentNav } from '@/components/AdjacentNav.tsx'
 import { BackToList } from '@/components/BackToList.tsx'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
+import { UserTitleBadge } from '@/components/profile/UserTitleBadge.tsx'
 
 export type ArticleOneItem = ArticleOneQuery['BoardQuery']['articleOne']['item']
 
@@ -103,7 +105,12 @@ export function ArticleOneView({
                   <UserAvatar archive={item.user?.archive} userId={item.user?._id} size={20} />
                   {item.user?.nickname ?? '알 수 없음'}
                 </span>
+                <UserTitleBadge archive={item.user?.archive} userId={item.user?._id} all />
+              </div>
+              {/* 작성 시간과 수정 버튼은 한 줄 아래 */}
+              <div className="flex items-center gap-2 text-sm text-neutral-500">
                 <time dateTime={String(item.createdAt)}>{formatDateTime(item.createdAt)}</time>
+                <EditedAt createdAt={item.createdAt} updatedAt={item.updatedAt} />
                 {mine && (
                   <Link
                     to={`${boardPath(board)}/${item._id}/edit`}

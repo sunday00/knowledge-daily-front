@@ -11,11 +11,15 @@ import { ARCHIVE_MY_QUERY } from '@/graphql/queries/archive.ts'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 import { syncArchiveProfile } from '@/lib/authStorage.ts'
 import { PaidServices } from '@/components/paid/PaidServices.tsx'
+import { AchievementTitleSettings } from '@/components/AchievementTitleSettings.tsx'
+import { AchievementIcon } from '@/components/AchievementIcon.tsx'
+import { useMyAchievements } from '@/hooks/useMyAchievements.ts'
 
 const TABS = [
   { key: 'basic', label: '기본정보', editTo: '/user/settings/edit' },
   { key: 'interest', label: '내 관심', editTo: '/user/settings/interest/edit' },
   { key: 'paid', label: '유료서비스', editTo: null },
+  { key: 'title', label: '칭호', editTo: null },
 ] as const
 
 type TabKey = (typeof TABS)[number]['key']
@@ -30,7 +34,7 @@ export default function UserSettingsPage() {
   if (!user) return <Navigate to="/login" replace />
 
   return (
-    <section className="space-y-4">
+    <section className="mx-auto max-w-2xl space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">개인설정</h2>
         {editTo && (
@@ -68,6 +72,7 @@ export default function UserSettingsPage() {
       {tab === 'basic' && <BasicInfo />}
       {tab === 'interest' && <NotifyInterest />}
       {tab === 'paid' && <PaidServices />}
+      {tab === 'title' && <AchievementTitleSettings />}
     </section>
   )
 }
@@ -109,6 +114,9 @@ function BasicInfo() {
           </InfoRow>
           <InfoRow label="프로필">
             <MyProfileImoji />
+          </InfoRow>
+          <InfoRow label="칭호">
+            <MyTitles />
           </InfoRow>
           <InfoRow label="닉네임">{item.nickname}</InfoRow>
           <InfoRow label="레벨">{String(item.lv)}</InfoRow>
@@ -158,5 +166,36 @@ function MyProfileImoji() {
       <UserAvatar archive={res.item} size={40} />
       {!current && <span className="text-neutral-500">(없음)</span>}
     </span>
+  )
+}
+
+/** 지금 칭호, 우선순위 순. 없으면 (없음). 바꾸기는 칭호 탭 */
+function MyTitles() {
+  const { configs, achievedById, appliedNames } = useMyAchievements()
+  if (!configs) return <span className="text-neutral-400">…</span>
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {appliedNames.length === 0 ? (
+        <span className="text-neutral-500">(없음)</span>
+      ) : (
+        <ol className="contents" aria-label="내 칭호 (우선순위 순)">
+          {appliedNames.map((name) => {
+            const o = achievedById.get(name)
+            return (
+              <li
+                key={name}
+                className="flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 py-0.5 pl-0.5 pr-2.5 text-sm font-medium text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+              >
+                {o && <AchievementIcon itemKey={o.itemKey} status="achieved" applied size={20} />}
+                {o?.title ?? name}
+              </li>
+            )
+          })}
+        </ol>
+      )}
+      <Link to="?tab=title" className="btn px-2 py-0.5 text-xs">
+        칭호 수정
+      </Link>
+    </div>
   )
 }

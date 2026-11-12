@@ -19,6 +19,7 @@ import { OpinionVillainMenu, UserVillainMenu } from '@/components/OpinionVillain
 import { blockedAwareContent } from '@/lib/blockedContent.ts'
 import { SUBMIT_SHORTCUT_LABEL, useSubmitShortcut } from '@/hooks/useSubmitShortcut.ts'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
+import { UserTitleBadge } from '@/components/profile/UserTitleBadge.tsx'
 
 export type OpinionListItem =
   OpinionStandardListQuery['OpinionQuery']['opinionStandardList']['items'][number]
@@ -65,6 +66,11 @@ export function OpinionItem({
           ) : (
             <span className="truncate">{opinion.user?.nickname ?? '알 수 없음'}</span>
           )}
+          <UserTitleBadge
+            archive={opinion.user?.archive}
+            userId={opinion.user?._id}
+            className="ml-1.5 max-w-[8rem]"
+          />
           <SidMention sid={opinion.sid} />
           <ReportedMark villainStatus={opinion.villainStatus} user={opinion.user} />
         </div>

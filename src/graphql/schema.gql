@@ -3,14 +3,38 @@
 # ------------------------------------------------------
 
 type Achievement {
-  applied: [String!]!
+  """sortKey 오름차순으로 저장"""
+  applied: [AchievementApplied!]!
   available: [String!]!
+
+  """달성했지만 아직 보상 포인트를 받지 않은 업적 id. 달성 시 available 과 함께 추가, 보상 지급 시 제거"""
+  pointable: [String!]!
   progress: AchievementProgress
 }
 
+type AchievementApplied {
+  """업적 id (AchievementItemConfigs goal id)"""
+  name: String!
+
+  """우선순위. 작을수록 앞"""
+  sortKey: Int!
+}
+
+input AchievementAppliedInput {
+  """업적 id (AchievementItemConfigs goal id)"""
+  name: String!
+
+  """우선순위. 작을수록 앞"""
+  sortKey: Int!
+}
+
 input AchievementInput {
-  applied: [String!]!
+  """sortKey 오름차순으로 저장"""
+  applied: [AchievementAppliedInput!]!
   available: [String!]!
+
+  """달성했지만 아직 보상 포인트를 받지 않은 업적 id. 달성 시 available 과 함께 추가, 보상 지급 시 제거"""
+  pointable: [String!]!
   progress: AchievementProgressInput
 }
 
@@ -204,6 +228,11 @@ type Archive implements CompactEntity & IAttach & ICreatedAt & IUser {
 input ArchiveAchievementApplyInput {
   """업적 id (AchievementItemConfigs goal id)"""
   id: String!
+}
+
+input ArchiveAchievementApplySetInput {
+  """내걸 업적 id 들. 순서대로 우선순위(sortKey 0 부터). [] 면 전부 해제"""
+  names: [String!]!
 }
 
 type ArchiveAvailableImg implements CompactEntity & ICreatedAt {
@@ -417,8 +446,11 @@ input ArchiveInput {
 }
 
 type ArchiveMutNamespace {
-  """업적 내걸기 토글. applied 에 있으면 해제, 없으면 추가 (available 중 3개까지)"""
+  """업적 내걸기 토글. applied 에 있으면 해제, 없으면 맨 뒤에 추가 (available 중 3개까지)"""
   archiveAchievementApply(input: ArchiveAchievementApplyInput!): AchievementResponse!
+
+  """내건 업적 통째 교체. names 순서가 우선순위 (available 중 3개까지, [] 면 전부 해제)"""
+  archiveAchievementApplySet(input: ArchiveAchievementApplySetInput!): AchievementResponse!
   archiveUpsert(input: ArchiveUpsertInput!): BooleanResponse!
 }
 
@@ -461,7 +493,7 @@ input ArchiveUpsertInput {
   img: ArchiveImgUpsertInput!
 }
 
-type Article implements IAttach & ICreatedAt & IOpinion & IReaction & ITag & IUser & IVillain & StandardEntity {
+type Article implements IAttach & ICreatedAt & IOpinion & IReaction & ITag & IUpdatedAt & IUser & IVillain & StandardEntity {
   _id: String!
 
   """첨부 미디어 목록"""
@@ -491,6 +523,7 @@ type Article implements IAttach & ICreatedAt & IOpinion & IReaction & ITag & IUs
   """tags"""
   tags: [Tag!]!
   title: String!
+  updatedAt: DateTime
 
   """user"""
   user: User
@@ -609,6 +642,7 @@ input ArticleSearchInput {
   """tags"""
   tags: [TagInput!]
   title: RangeString
+  updatedAt: RangeDate
 
   """user"""
   user: UserInput
@@ -665,6 +699,9 @@ input ArticleSearchInputSortType {
   title: Int
 
   """1: asc, -1: desc"""
+  updatedAt: Int
+
+  """1: asc, -1: desc"""
   user: Int
 
   """1: asc, -1: desc"""
@@ -685,7 +722,7 @@ input ArticleUpdateInput {
   title: String
 }
 
-type Ask implements ComplaintEntity & IAttach & ICreatedAt & IOpinion & IReaction & IUser {
+type Ask implements ComplaintEntity & IAttach & ICreatedAt & IOpinion & IReaction & IUpdatedAt & IUser {
   _id: String!
 
   """답변, 응답, 관리자 대답 등"""
@@ -712,6 +749,7 @@ type Ask implements ComplaintEntity & IAttach & ICreatedAt & IOpinion & IReactio
   reactionsCnt: [ReactionCnt!]
   result: ComplaintResult!
   status: StandardStatus!
+  updatedAt: DateTime
 
   """user"""
   user: User
@@ -755,6 +793,7 @@ input AskInput {
   quest: String!
   result: ComplaintResult!
   status: StandardStatus!
+  updatedAt: DateTime
 
   """user"""
   user: UserInput
@@ -845,6 +884,7 @@ input AskSearchInput {
   quest: RangeString
   result: RangeComplaintResult
   status: RangeStandardStatus
+  updatedAt: RangeDate
 
   """user"""
   user: UserInput
@@ -890,6 +930,9 @@ input AskSearchInputSortType {
 
   """1: asc, -1: desc"""
   status: Int
+
+  """1: asc, -1: desc"""
+  updatedAt: Int
 
   """1: asc, -1: desc"""
   user: Int
@@ -2513,6 +2556,10 @@ interface ITag {
   tags: [Tag!]!
 }
 
+interface IUpdatedAt {
+  updatedAt: DateTime
+}
+
 interface IUser {
   """user"""
   user: User
@@ -3447,6 +3494,11 @@ input OpinionUpdateInput {
   version: String
 }
 
+input PointAchievementSagaInput {
+  """보상 받을 업적 id (AchievementItemConfigs goal id)"""
+  name: String!
+}
+
 input PointClickSagaInput {
   """클릭한 링크 key. clickLinkEvent.linkKey 와 같아야 보상"""
   linkKey: String!
@@ -3601,6 +3653,11 @@ input PointHistorySearchInputSortType {
 }
 
 type PointMutNamespace {
+  """
+  업적 달성 보상 포인트 받기. 달성(available)했고 아직 안 받은(pointable) 업적만. item true = 지급 접수, false = 지급 사유 비활성
+  """
+  achievementPoint(input: PointAchievementSagaInput!): BooleanResponse!
+
   """
   하위 읽기형 캠페인 링크 클릭 보상 (clickLinkEvent). item true = 지급 접수, false = 지급 사유 비활성. 횟수 초과 등은 에러
   """

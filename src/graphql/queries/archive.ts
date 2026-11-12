@@ -15,7 +15,11 @@ export const ARCHIVE_MY_QUERY = graphql(`
           }
           achievements {
             available
-            applied
+            pointable
+            applied {
+              sortKey
+              name
+            }
             progress {
               opinionCreate
               reactionCreate

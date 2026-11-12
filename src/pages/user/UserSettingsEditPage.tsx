@@ -23,7 +23,7 @@ export default function UserSettingsEditPage() {
   }
 
   return (
-    <section className="space-y-4 max-w-xl">
+    <section className="mx-auto max-w-xl space-y-4">
       <h2 className="text-xl font-semibold">개인설정 수정</h2>
 
       {loading && <LoadingSpinner />}

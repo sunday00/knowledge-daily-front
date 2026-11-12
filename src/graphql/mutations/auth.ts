@@ -20,7 +20,11 @@ export const KAKAO_LOGIN_MUTATION = graphql(`
             }
             achievements {
               available
-              applied
+              pointable
+              applied {
+                sortKey
+                name
+              }
               progress {
                 opinionCreate
                 reactionCreate

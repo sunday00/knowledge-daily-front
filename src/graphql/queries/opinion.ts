@@ -36,6 +36,12 @@ export const THREAD_STANDARD_LIST_QUERY = graphql(`
               nickname
               archive {
                 _id
+                achievements {
+                  applied {
+                    sortKey
+                    name
+                  }
+                }
                 img {
                   current {
                     _id
@@ -97,6 +103,12 @@ export const OPINION_STANDARD_LIST_QUERY = graphql(`
             nickname
             archive {
               _id
+              achievements {
+                applied {
+                  sortKey
+                  name
+                }
+              }
               img {
                 current {
                   _id
@@ -150,6 +162,12 @@ export const OPINION_ITEM_FRAGMENT = graphql(`
       nickname
       archive {
         _id
+        achievements {
+          applied {
+            sortKey
+            name
+          }
+        }
         img {
           current {
             _id

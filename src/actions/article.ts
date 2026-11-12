@@ -108,6 +108,8 @@ export function useSaveArticle() {
           content: () => body.content,
           // 첨부는 바뀐 목록을 다시 받아야 주소(src)가 있어 캐시에서 지운다.
           attaches: (_prev, { DELETE }) => DELETE,
+          // 수정 시각도 서버 값으로 다시 받는다 ('수정됨' 표시)
+          updatedAt: (_prev, { DELETE }) => DELETE,
         },
       })
       return true

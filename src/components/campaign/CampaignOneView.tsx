@@ -72,7 +72,9 @@ export function CampaignOneView({ children }: { children?: (item: CampaignOneIte
 
   return (
     // pb-32: 대화록이 있으면 하단 고정 입력창에 마지막 항목이 가리지 않도록 여백
-    <div className={`space-y-8 ${item && hasCampaignComponent(item, 'Opinion') ? 'pb-32' : ''}`}>
+    <div
+      className={`mx-auto max-w-2xl space-y-8 ${item && hasCampaignComponent(item, 'Opinion') ? 'pb-32' : ''}`}
+    >
       <article className="space-y-6">
         {/* 목록에서 왔으면 보던 페이지(?page=)로 돌아간다. 배너 등으로 바로 왔으면 이벤트 목록 */}
         <BackToList fallback={CAMPAIGN_PATH}>{CAMPAIGN_TITLE} 목록</BackToList>
