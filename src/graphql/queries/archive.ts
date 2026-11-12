@@ -1,6 +1,6 @@
 import { graphql } from '../__generated__'
 
-/** 내 archive (프로필 이모지 등). input 이 없으면 로그인 유저 */
+/** 내 archive (프로필 이모지, 포인트, 업적 등). input 이 없으면 로그인 유저 */
 export const ARCHIVE_MY_QUERY = graphql(`
   query ArchiveMy {
     ArchiveQuery {
@@ -9,6 +9,20 @@ export const ARCHIVE_MY_QUERY = graphql(`
         message
         item {
           _id
+          point {
+            cur
+            inc
+          }
+          achievements {
+            available
+            applied
+            progress {
+              opinionCreate
+              reactionCreate
+              goodReceive
+              earnPoints
+            }
+          }
           img {
             current {
               _id

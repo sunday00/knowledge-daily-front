@@ -14,7 +14,20 @@ export const KAKAO_LOGIN_MUTATION = graphql(`
           nickname
           archive {
             _id
-            point
+            point {
+              cur
+              inc
+            }
+            achievements {
+              available
+              applied
+              progress {
+                opinionCreate
+                reactionCreate
+                goodReceive
+                earnPoints
+              }
+            }
             img {
               current {
                 _id

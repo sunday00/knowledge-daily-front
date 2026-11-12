@@ -11,6 +11,8 @@ import PointHistoryPage from './pages/user/PointHistoryPage'
 import { POINT_HISTORY_PATH } from './lib/userPoint'
 import PromotionPage from './pages/user/PromotionPage'
 import MyMediaPage from './pages/user/MyMediaPage'
+import AchievementsPage from './pages/user/AchievementsPage'
+import { ACHIEVEMENTS_PATH } from './lib/achievement'
 import { MY_MEDIA_PATH } from './lib/myMedia'
 import { PROMOTION_PATH } from './lib/promotion'
 import { EMBED_APPLY_PATH } from './components/paid/PaidServices'
@@ -139,6 +141,7 @@ export default function App() {
           <Route path={POINT_HISTORY_PATH} element={<PointHistoryPage />} />
           <Route path={PROMOTION_PATH} element={<PromotionPage />} />
           <Route path={MY_MEDIA_PATH} element={<MyMediaPage />} />
+          <Route path={ACHIEVEMENTS_PATH} element={<AchievementsPage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
           <Route path="/sense/my-sense" element={<MySensePage />} />
           <Route path="/tags/:tag?" element={<TagsPage />} />
