@@ -29,3 +29,5 @@ dist-ssr
 
 # graphql-codegen
 src/graphql/__generated__/
+# Claude Code (세션 worktree 등)
+.claude/worktrees/
