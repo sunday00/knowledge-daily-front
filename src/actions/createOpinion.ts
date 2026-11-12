@@ -8,6 +8,7 @@ import type { OpinionItemFieldsFragment } from '@/graphql/__generated__/graphql.
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import type { OpinionTarget } from '@/lib/opinionTarget.ts'
 import { getArchive } from '@/lib/authStorage.ts'
+import { appliedNamesOf } from '@/lib/achievement.ts'
 
 // 기존 의견 데이터와 같은 스키마 버전
 const OPINION_VERSION = '1.0'
@@ -41,6 +42,14 @@ export function useCreateOpinion(target: Pick<OpinionTarget, 'entity' | 'id'>, p
         ? { __typename: 'ArchiveImg' as const, current: stored.img.current ?? null }
         : null,
       attaches: stored.attaches,
+      achievements: {
+        __typename: 'Achievement' as const,
+        applied: appliedNamesOf(stored.achievements).map((name, sortKey) => ({
+          __typename: 'AchievementApplied' as const,
+          sortKey,
+          name,
+        })),
+      },
     }
   }
 

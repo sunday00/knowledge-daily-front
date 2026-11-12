@@ -13,6 +13,7 @@ import { OpinionTypeBadge } from '@/components/OpinionTypeBadge.tsx'
 import { threadPath } from '@/lib/opinionTarget.ts'
 import { useKeepListContext } from '@/hooks/useKeepListContext.ts'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
+import { UserTitleBadge } from '@/components/profile/UserTitleBadge.tsx'
 
 export type ThreadListItem =
   ThreadStandardListQuery['OpinionQuery']['threadStandardList']['items'][number]
@@ -56,6 +57,11 @@ export function ThreadItem({
           ) : (
             <span className="truncate">{opinion.user?.nickname ?? '알 수 없음'}</span>
           )}
+          <UserTitleBadge
+            archive={opinion.user?.archive}
+            userId={opinion.user?._id}
+            className="ml-1.5 max-w-[8rem]"
+          />
           <span className="ml-1 shrink-0 font-normal text-neutral-400">@{opinion.sid}</span>
           <ReportedMark villainStatus={opinion.villainStatus} user={opinion.user} />
         </div>

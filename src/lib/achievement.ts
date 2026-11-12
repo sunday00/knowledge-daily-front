@@ -15,6 +15,39 @@ export function achievementTitle(id: string, key: string, cnt: number): string {
   return TITLES[id] ?? achievementGoalLabel(key, cnt)
 }
 
+/**
+ * 적용한 칭호 id 를 우선순위(sortKey 오름차순)대로.
+ * 이 형식 전에 저장된 로컬 값(string[])도 그 순서대로 읽는다.
+ */
+export function appliedNamesOf(
+  achievements: Pick<StoredAchievements, 'applied'> | null | undefined,
+): string[] {
+  const applied: unknown[] = achievements?.applied ?? []
+  return applied
+    .map((a, i) =>
+      typeof a === 'string'
+        ? { sortKey: i, name: a }
+        : (a as { sortKey?: number; name?: string } | null),
+    )
+    .filter((a): a is { sortKey: number; name: string } => typeof a?.name === 'string')
+    .sort((a, z) => (a.sortKey ?? 0) - (z.sortKey ?? 0))
+    .map((a) => a.name)
+}
+
+/** 업적 id 로 칭호를 찾는다. 매핑(json)이 없으면 업적 설정에서 단계를 찾아 설명으로, 그것도 없으면 null */
+export function achievementTitleById(
+  id: string,
+  configs: AchievementItemConfigs | null,
+): string | null {
+  const mapped = TITLES[id]
+  if (mapped) return mapped
+  for (const [key, { goals }] of Object.entries(configs ?? {})) {
+    const goal = goals.find((g) => g.id === id)
+    if (goal) return achievementGoalLabel(key, goal.cnt)
+  }
+  return null
+}
+
 /** 업적 한 단계. cnt 만큼 채우면 달성, reward 포인트를 받는다. */
 export type AchievementGoal = { id: string; cnt: number; reward: number }
 
@@ -30,6 +63,8 @@ export type AchievementView = AchievementGoal & {
   status: AchievementStatus
   /** archive.achievements.applied 에 있는지 */
   applied: boolean
+  /** 달성했지만 보상 포인트를 아직 안 받았는지 (archive.achievements.pointable) */
+  pointable: boolean
 }
 
 export type AchievementItemView = {
@@ -92,7 +127,8 @@ export function buildAchievementItems(
   overrides: Record<string, number | null | undefined> = {},
 ): AchievementItemView[] {
   const available = new Set(achievements?.available ?? [])
-  const applied = new Set(achievements?.applied ?? [])
+  const applied = new Set(appliedNamesOf(achievements))
+  const pointable = new Set(achievements?.pointable ?? [])
   return Object.entries(configs).map(([key, { goals }]) => {
     const current = Math.max(achievements?.progress?.[key] ?? 0, overrides[key] ?? 0)
     let nextFound = false
@@ -108,6 +144,7 @@ export function buildAchievementItems(
         title: achievementTitle(g.id, key, g.cnt),
         status,
         applied: applied.has(g.id),
+        pointable: status === 'achieved' && pointable.has(g.id),
       }
     })
     return { key, title: ACHIEVEMENT_ITEM_META[key]?.title ?? key, current, goals: views }

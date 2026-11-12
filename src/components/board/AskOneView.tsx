@@ -4,6 +4,7 @@ import { ASK_ONE_QUERY } from '@/graphql/queries/board.ts'
 import type { AskOneQuery } from '@/graphql/__generated__/graphql.ts'
 import { boardPath, findBoardBySlug, type BoardConfig } from '@/lib/boards.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
+import { EditedAt } from '@/components/EditedAt.tsx'
 import { AskResultBadge } from '@/components/board/AskResultBadge.tsx'
 import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
@@ -73,6 +74,7 @@ export function AskOneView({
               <time className="ml-auto" dateTime={String(item.createdAt)}>
                 {formatDateTime(item.createdAt)}
               </time>
+              <EditedAt createdAt={item.createdAt} updatedAt={item.updatedAt} />
             </header>
 
             <p className="whitespace-pre-wrap break-words leading-relaxed">{item.quest}</p>

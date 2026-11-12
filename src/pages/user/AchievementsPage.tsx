@@ -1,44 +1,24 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useQuery } from '@apollo/client'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider.tsx'
-import { ARCHIVE_MY_QUERY } from '@/graphql/queries/archive.ts'
-import { useMyArchive } from '@/hooks/useMyArchive.ts'
-import { syncArchiveAchievements } from '@/lib/authStorage.ts'
-import { getSharedConfigs, refreshSharedConfigs } from '@/lib/sharedConfigs.ts'
-import { useUserPointInc } from '@/lib/userPoint.ts'
 import {
   ACHIEVEMENT_APPLY_LIMIT,
   HIDDEN_MARK,
   achievementGoalLabel,
-  buildAchievementItems,
-  readAchievementItemConfigs,
   type AchievementItemView,
 } from '@/lib/achievement.ts'
 import { AchievementIcon } from '@/components/AchievementIcon.tsx'
 import { useAchievementApply } from '@/actions/achievementApply.ts'
+import { useAchievementPoint } from '@/actions/achievementPoint.ts'
+import { useMyAchievements } from '@/hooks/useMyAchievements.ts'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 
-/** 업적 설정. 로컬 공용 설정에 없으면(이 기능 전에 받은 설정) 한 번 다시 받는다. */
-function useAchievementItemConfigs() {
-  const [configs, setConfigs] = useState(() => readAchievementItemConfigs(getSharedConfigs()))
-  const [loading, setLoading] = useState(configs === null)
-  useEffect(() => {
-    if (configs) return
-    let alive = true
-    void refreshSharedConfigs().then((next) => {
-      if (!alive) return
-      setConfigs(readAchievementItemConfigs(next))
-      setLoading(false)
-    })
-    return () => {
-      alive = false
-    }
-  }, [configs])
-  return { configs, loading }
-}
+/** 개인설정 > 칭호 탭 (해제 / 순서 바꾸기는 여기서) */
+const TITLE_SETTINGS_PATH = '/user/settings?tab=title'
 
-/** /user/achievements — 도전과제. 업적 설정(sharedConfigs)과 내 archive.achievements 를 비교해 보여 준다. */
+/**
+ * /user/achievements — 도전과제. 업적 설정(sharedConfigs)과 내 archive.achievements 를 비교해 보여 준다.
+ * 여기선 칭호 추가만 한다. 해제와 순서 바꾸기는 개인설정 > 칭호.
+ */
 export default function AchievementsPage() {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
@@ -46,26 +26,10 @@ export default function AchievementsPage() {
 }
 
 function Achievements() {
-  const { configs, loading: configsLoading } = useAchievementItemConfigs()
-  const myArchive = useMyArchive()
-  const pointInc = useUserPointInc()
+  const { configs, configsLoading, hasAchievements, loading, error, items, appliedNames } =
+    useMyAchievements()
   const apply = useAchievementApply()
-  // 로컬(auth_archive)은 로그인 시점 값이라, 들어올 때마다 서버 값으로 맞춘다.
-  const { data, loading, error } = useQuery(ARCHIVE_MY_QUERY, { fetchPolicy: 'cache-and-network' })
-  const serverItem = data?.ArchiveQuery.archiveUserOne.item
-  useEffect(() => {
-    if (serverItem)
-      syncArchiveAchievements({ point: serverItem.point, achievements: serverItem.achievements })
-  }, [serverItem])
-
-  // 저장된 archive 가 없으면(이 기능 전에 로그인) 서버 값을 바로 쓴다.
-  const achievements = myArchive?.achievements ?? serverItem?.achievements
-  const inc = Math.max(pointInc ?? 0, myArchive?.point?.inc ?? 0, serverItem?.point.inc ?? 0)
-
-  const items = useMemo(
-    () => (configs ? buildAchievementItems(configs, achievements, { earnPoints: inc }) : []),
-    [configs, achievements, inc],
-  )
+  const point = useAchievementPoint()
 
   if (!configs) {
     if (configsLoading) return <LoadingSpinner />
@@ -74,7 +38,8 @@ function Achievements() {
 
   const all = items.flatMap((i) => i.goals)
   const achievedCount = all.filter((g) => g.status === 'achieved').length
-  const appliedCount = all.filter((g) => g.status === 'achieved' && g.applied).length
+  const unclaimed = all.filter((g) => g.pointable && !point.claimed.has(g.id)).length
+  const appliedCount = appliedNames.length
 
   return (
     <section className="mx-auto max-w-2xl space-y-6">
@@ -93,8 +58,8 @@ function Achievements() {
         </p>
       </div>
 
-      {!achievements && loading && <LoadingSpinner />}
-      {error && !achievements && (
+      {!hasAchievements && loading && <LoadingSpinner />}
+      {error && !hasAchievements && (
         <p className="text-sm text-red-600">도전과제를 불러오지 못했습니다.</p>
       )}
       {apply.message && (
@@ -102,14 +67,32 @@ function Achievements() {
           {apply.message}
         </p>
       )}
+      {point.message && (
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+          {point.message}
+        </p>
+      )}
+      {unclaimed > 0 && (
+        <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+          받지 않은 보상이 {unclaimed}개 있어요. 달성한 도전과제의 <b>받기</b>를 눌러 주세요.
+        </p>
+      )}
+
+      <p className="text-sm text-neutral-500">
+        달성한 도전과제는 칭호로 걸 수 있어요. 해제와 순서 바꾸기는{' '}
+        <Link to={TITLE_SETTINGS_PATH} className="text-brand-600 dark:text-indigo-300">
+          개인설정 &gt; 칭호
+        </Link>
+        에서 해요.
+      </p>
 
       {items.map((item) => (
         <ItemSection
           key={item.key}
           item={item}
-          applyFull={appliedCount >= ACHIEVEMENT_APPLY_LIMIT}
           pendingId={apply.pendingId}
-          onToggleApply={(id) => void apply.toggle(id)}
+          onAdd={(id) => void apply.add(id)}
+          point={point}
         />
       ))}
     </section>
@@ -129,16 +112,16 @@ const CARD_TONE = {
 
 function ItemSection({
   item,
-  applyFull,
   pendingId,
-  onToggleApply,
+  onAdd,
+  point,
 }: {
   item: AchievementItemView
-  /** 칭호를 더 적용할 수 없는지 (최대 개수) */
-  applyFull: boolean
-  /** 적용 / 해제 중인 도전과제 id */
+  /** 칭호로 거는 중인 도전과제 id */
   pendingId: string | null
-  onToggleApply: (id: string) => void
+  onAdd: (id: string) => void
+  /** 보상 포인트 받기 */
+  point: ReturnType<typeof useAchievementPoint>
 }) {
   const done = item.goals.filter((g) => g.status === 'achieved').length
   return (
@@ -215,37 +198,52 @@ function ItemSection({
                   />
                 </span>
               )}
-              <span
-                className={`text-[11px] tabular-nums ${
-                  applied
-                    ? 'font-medium text-amber-700 dark:text-amber-300'
-                    : goal.status === 'locked'
-                      ? 'text-neutral-400 dark:text-neutral-600'
-                      : 'font-medium text-brand-700 dark:text-indigo-300'
-                }`}
-              >
-                <span className="sr-only">{STATUS_LABEL[goal.status]} · </span>
-                {goal.reward.toLocaleString()}P
-              </span>
-              {goal.status === 'achieved' && (
+              {goal.pointable && point.claimed.has(goal.id) ? (
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                  +{goal.reward.toLocaleString()}P 지급 예정
+                </span>
+              ) : goal.pointable ? (
+                // 달성했지만 보상을 아직 안 받음
                 <button
                   type="button"
-                  disabled={pendingId !== null || (!applied && applyFull)}
-                  title={
-                    !applied && applyFull
-                      ? `칭호는 ${ACHIEVEMENT_APPLY_LIMIT}개까지 적용할 수 있습니다.`
-                      : undefined
-                  }
-                  aria-pressed={applied}
-                  onClick={() => onToggleApply(goal.id)}
-                  className={`mt-0.5 rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                  disabled={point.pendingId !== null}
+                  onClick={() => void point.claim(goal.id)}
+                  className="rounded-full bg-emerald-600 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {point.pendingId === goal.id
+                    ? '받는 중…'
+                    : `+${goal.reward.toLocaleString()}P 받기`}
+                </button>
+              ) : (
+                <span
+                  className={`text-[11px] tabular-nums ${
                     applied
-                      ? 'bg-amber-500 text-white hover:bg-amber-600'
-                      : 'border border-brand-300 text-brand-600 hover:bg-brand-100 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-900/60'
+                      ? 'font-medium text-amber-700 dark:text-amber-300'
+                      : goal.status === 'locked'
+                        ? 'text-neutral-400 dark:text-neutral-600'
+                        : 'font-medium text-brand-700 dark:text-indigo-300'
                   }`}
                 >
-                  {pendingId === goal.id ? '…' : applied ? '적용 해제' : '칭호적용'}
-                </button>
+                  <span className="sr-only">{STATUS_LABEL[goal.status]} · </span>
+                  {goal.reward.toLocaleString()}P
+                </span>
+              )}
+              {applied ? (
+                <span className="mt-0.5 rounded-full bg-amber-500 px-2 py-0.5 text-[11px] font-medium text-white">
+                  적용 중
+                </span>
+              ) : (
+                achieved && (
+                  // 개수가 넘치면 서버가 알려 주는 에러만 보여 준다 (해제는 개인설정에서)
+                  <button
+                    type="button"
+                    disabled={pendingId !== null}
+                    onClick={() => onAdd(goal.id)}
+                    className="mt-0.5 rounded-full border border-brand-300 px-2 py-0.5 text-[11px] font-medium text-brand-600 transition-colors hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-indigo-700 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
+                  >
+                    {pendingId === goal.id ? '…' : '칭호적용'}
+                  </button>
+                )
               )}
             </li>
           )

@@ -4,6 +4,7 @@ import { useQuery } from '@apollo/client'
 import { ARTICLE_LIST_QUERY } from '@/graphql/queries/board.ts'
 import { boardPath, type BoardConfig } from '@/lib/boards.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
+import { EditedAt } from '@/components/EditedAt.tsx'
 import { BoardItemCounts } from '@/components/board/BoardItemCounts.tsx'
 import { Pagination, usePageParam } from '@/components/Pagination.tsx'
 import { ImageIcon } from '@/components/ImageIcon.tsx'
@@ -100,6 +101,7 @@ export function ArticleList({ board, action }: { board: BoardConfig; action?: Re
                       {item.user?.nickname ?? '알 수 없음'}
                     </span>
                     <time dateTime={String(item.createdAt)}>{formatDateTime(item.createdAt)}</time>
+                    <EditedAt createdAt={item.createdAt} updatedAt={item.updatedAt} compact />
                     <BoardItemCounts item={item} />
                   </div>
                 </Link>

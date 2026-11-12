@@ -15,6 +15,7 @@ export const ASK_LIST_QUERY = graphql(`
           result
           answer
           createdAt
+          updatedAt
           handledAt
           components
           opinionsCnt
@@ -43,6 +44,7 @@ export const ASK_ONE_QUERY = graphql(`
           result
           answer
           createdAt
+          updatedAt
           handledAt
           components
           opinionsCnt
@@ -89,6 +91,7 @@ export const ARTICLE_LIST_QUERY = graphql(`
           category
           pinn
           createdAt
+          updatedAt
           components
           opinionsCnt
           reactionsCnt {
@@ -145,6 +148,7 @@ export const ARTICLE_ONE_QUERY = graphql(`
           category
           pinn
           createdAt
+          updatedAt
           components
           opinionsCnt
           reactionsCnt {
@@ -157,6 +161,12 @@ export const ARTICLE_ONE_QUERY = graphql(`
             nickname
             archive {
               _id
+              achievements {
+                applied {
+                  sortKey
+                  name
+                }
+              }
               img {
                 current {
                   _id

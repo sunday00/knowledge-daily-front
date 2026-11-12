@@ -11,13 +11,15 @@ export type StoredArchive = {
   point?: { cur: number; inc: number }
   img?: { current?: { _id: string; code: string; type: string } | null } | null
   attaches: { sortKey: number; attach: { _id: string; src?: unknown } }[]
-  /** 업적. available = 달성한 업적 id, applied = 적용한 업적 id, progress = 항목별 진행 수치 */
+  /** 업적. available = 달성한 업적 id, applied = 적용한 칭호(sortKey 작을수록 앞), progress = 항목별 진행 수치 */
   achievements?: StoredAchievements | null
 }
 
 export type StoredAchievements = {
   available: string[]
-  applied: string[]
+  applied: { sortKey: number; name: string }[]
+  /** 달성했지만 아직 보상 포인트를 받지 않은 업적 id (이 필드 전에 저장된 값엔 없다) */
+  pointable?: string[]
   progress?: Record<string, number | null | undefined> | null
 }
 

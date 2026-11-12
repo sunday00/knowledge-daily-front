@@ -4,6 +4,7 @@ import { useQuery } from '@apollo/client'
 import { ASK_LIST_QUERY } from '@/graphql/queries/board.ts'
 import { boardPath, type BoardConfig } from '@/lib/boards.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
+import { EditedAt } from '@/components/EditedAt.tsx'
 import { AskResultBadge } from '@/components/board/AskResultBadge.tsx'
 import { BoardItemCounts } from '@/components/board/BoardItemCounts.tsx'
 import { Pagination, usePageParam } from '@/components/Pagination.tsx'
@@ -81,6 +82,7 @@ export function AskList({ board, action }: { board: BoardConfig; action?: ReactN
                     <time className="ml-auto" dateTime={String(item.createdAt)}>
                       {formatDateTime(item.createdAt)}
                     </time>
+                    <EditedAt createdAt={item.createdAt} updatedAt={item.updatedAt} compact />
                   </div>
                   <p className="line-clamp-2 text-sm text-neutral-800 dark:text-neutral-200">
                     {item.quest}
