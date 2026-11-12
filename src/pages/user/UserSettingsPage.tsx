@@ -12,6 +12,7 @@ import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 import { syncArchiveProfile } from '@/lib/authStorage.ts'
 import { PaidServices } from '@/components/paid/PaidServices.tsx'
 import { AchievementTitleSettings } from '@/components/AchievementTitleSettings.tsx'
+import { ResignSection } from '@/components/ResignSection.tsx'
 import { AchievementIcon } from '@/components/AchievementIcon.tsx'
 import { useMyAchievements } from '@/hooks/useMyAchievements.ts'
 
@@ -73,6 +74,8 @@ export default function UserSettingsPage() {
       {tab === 'interest' && <NotifyInterest />}
       {tab === 'paid' && <PaidServices />}
       {tab === 'title' && <AchievementTitleSettings />}
+
+      <ResignSection />
     </section>
   )
 }

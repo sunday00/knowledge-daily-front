@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 import { useQuery } from '@apollo/client'
+import { useSearchParams } from 'react-router-dom'
 import { SYSTEM_HEALTH_QUERY } from '../graphql/queries/health'
 import { SenseStandardList } from '../components/SenseStandardList'
 import { SenseBuzzList, SensePopularList } from '../components/SenseTopList'
@@ -14,8 +15,13 @@ import { useIsolatedPageBanners } from '../hooks/useIsolatedPageBanners'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { NoticeTicker } from '../components/notice/NoticeTicker'
 import { NOTICE_SPOT } from '../lib/notice'
+import { ResignedModal } from '../components/ResignedModal'
+import { RESIGNED_PARAM } from '../lib/resign'
 
 export default function HomePage() {
+  // 탈퇴하고 왔으면 안내 (닫으면 주소에서 지운다)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const resigned = searchParams.has(RESIGNED_PARAM)
   const { data } = useQuery(SYSTEM_HEALTH_QUERY, {
     variables: { input: { d: 1 } },
   })
@@ -45,6 +51,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6">
+      {resigned && <ResignedModal onClose={() => setSearchParams({}, { replace: true })} />}
       <NoticeTicker spot={NOTICE_SPOT.MAIN_ROLE} />
       {topSpinner || <BannerCarousel banners={topBanners} label="상단 배너" />}
       <HomeSection

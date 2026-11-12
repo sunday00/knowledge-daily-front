@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { useKakaoSignIn } from '@/actions/kakaoSignIn.ts'
+import { formatDateTime } from '@/lib/formatDate.ts'
 
 export default function KakaoCallbackPage() {
   const [params] = useSearchParams()
@@ -13,6 +14,19 @@ export default function KakaoCallbackPage() {
 
       {status.kind === 'error' && (
         <p className="text-red-600 dark:text-red-400">{status.message}</p>
+      )}
+
+      {status.kind === 'rejoinRestricted' && (
+        // 일반 로그인 실패와 구분: 탈퇴 후 재가입 제한 기간
+        <p
+          role="alert"
+          className="rounded-md bg-amber-50 px-3 py-2 text-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
+        >
+          탈퇴 후 재가입 제한 기간입니다.{' '}
+          {status.rejoinAt
+            ? `${formatDateTime(status.rejoinAt)} 이후에 다시 가입할 수 있어요.`
+            : '잠시 후 다시 가입할 수 있어요.'}
+        </p>
       )}
 
       {status.kind === 'ok' && (
