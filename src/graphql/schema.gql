@@ -2,6 +2,38 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Achievement {
+  applied: [String!]!
+  available: [String!]!
+  progress: AchievementProgress
+}
+
+input AchievementInput {
+  applied: [String!]!
+  available: [String!]!
+  progress: AchievementProgressInput
+}
+
+type AchievementProgress {
+  earnPoints: Int
+  goodReceive: Int
+  opinionCreate: Int
+  reactionCreate: Int
+}
+
+input AchievementProgressInput {
+  earnPoints: Int
+  goodReceive: Int
+  opinionCreate: Int
+  reactionCreate: Int
+}
+
+type AchievementResponse {
+  item: Achievement!
+  message: String
+  success: Int!
+}
+
 type ApplicableCampaign implements IAttach & ICreatedAt & StandardEntity {
   _id: String!
 
@@ -154,20 +186,24 @@ input ApplicationCampaignWinnerSettingInput {
 
 type Archive implements CompactEntity & IAttach & ICreatedAt & IUser {
   _id: String!
+  achievements: Achievement
 
   """첨부 미디어 목록"""
   attaches: [AttachItem!]!
   createdAt: DateTime!
   deletedAt: DateTime
   img: ArchiveImg
-
-  """보유 포인트"""
-  point: Int!
+  point: ArchivePoint!
   status: StandardStatus!
 
   """user"""
   user: User
   version: String!
+}
+
+input ArchiveAchievementApplyInput {
+  """업적 id (AchievementItemConfigs goal id)"""
+  id: String!
 }
 
 type ArchiveAvailableImg implements CompactEntity & ICreatedAt {
@@ -375,19 +411,36 @@ input ArchiveImgUpsertInput {
 }
 
 input ArchiveInput {
+  achievements: AchievementInput
   img: ArchiveImgInput
-
-  """보유 포인트"""
-  point: Int!
+  point: ArchivePointInput!
 }
 
 type ArchiveMutNamespace {
+  """업적 내걸기 토글. applied 에 있으면 해제, 없으면 추가 (available 중 3개까지)"""
+  archiveAchievementApply(input: ArchiveAchievementApplyInput!): AchievementResponse!
   archiveUpsert(input: ArchiveUpsertInput!): BooleanResponse!
 }
 
 input ArchiveOneMyQry {
   """없으면 로그인 유저"""
   userId: String
+}
+
+type ArchivePoint {
+  """보유 포인트"""
+  cur: Int!
+
+  """누적 획득 포인트 (소비해도 줄지 않음)"""
+  inc: Int!
+}
+
+input ArchivePointInput {
+  """보유 포인트"""
+  cur: Int!
+
+  """누적 획득 포인트 (소비해도 줄지 않음)"""
+  inc: Int!
 }
 
 type ArchiveQryNamespace {
@@ -2053,9 +2106,9 @@ input ClickEventSettingInput {
 }
 
 """
-targetEntity 에 따라 Opinion | Thread | Sense | Article | Ask | Notice | Campaign | IsolatedPage
+targetEntity 에 따라 Opinion | Thread | Sense | Article | Ask | Notice | Campaign | IsolatedPage | Quiz
 """
-union CommentableTarget = Article | Ask | Campaign | IsolatedPage | Notice | Opinion | Sense | Thread
+union CommentableTarget = Article | Ask | Campaign | IsolatedPage | Notice | Opinion | Quiz | Sense | Thread
 
 interface CompactEntity implements ICreatedAt {
   _id: String!

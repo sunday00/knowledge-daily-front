@@ -7,10 +7,18 @@ const ARCHIVE_KEY = 'auth_archive'
 /** 내 archive (프로필, 포인트 등). 로그인 응답으로 저장하고, 프로필을 바꾸면 img/attaches 를 갱신한다. */
 export type StoredArchive = {
   _id: string
-  /** 로그인 시점 값 */
-  point?: number
+  /** 로그인 시점 포인트. cur = 보유, inc = 누적 획득 (써도 줄지 않음) */
+  point?: { cur: number; inc: number }
   img?: { current?: { _id: string; code: string; type: string } | null } | null
   attaches: { sortKey: number; attach: { _id: string; src?: unknown } }[]
+  /** 업적. available = 달성한 업적 id, applied = 적용한 업적 id, progress = 항목별 진행 수치 */
+  achievements?: StoredAchievements | null
+}
+
+export type StoredAchievements = {
+  available: string[]
+  applied: string[]
+  progress?: Record<string, number | null | undefined> | null
 }
 
 export function getUserId(): string | null {
@@ -82,6 +90,24 @@ export function syncArchiveProfile(next: Pick<StoredArchive, '_id' | 'img' | 'at
     prev &&
     JSON.stringify({ i: prev._id, c: prev.img?.current ?? null, a: prev.attaches }) ===
       JSON.stringify({ i: merged._id, c: merged.img?.current ?? null, a: merged.attaches })
+  ) {
+    return
+  }
+  writeArchive(merged)
+}
+
+/** 서버에서 받은 내 포인트 / 업적을 로컬에도 반영한다. 바뀐 게 없으면 그대로. 저장된 archive 가 없으면 하지 않는다. */
+export function syncArchiveAchievements(next: Pick<StoredArchive, 'point' | 'achievements'>): void {
+  const prev = getArchive()
+  if (!prev) return
+  const merged: StoredArchive = {
+    ...prev,
+    point: next.point ?? prev.point,
+    achievements: next.achievements ?? null,
+  }
+  if (
+    JSON.stringify({ p: prev.point, a: prev.achievements ?? null }) ===
+    JSON.stringify({ p: merged.point, a: merged.achievements })
   ) {
     return
   }

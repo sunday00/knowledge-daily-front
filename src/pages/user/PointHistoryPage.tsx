@@ -1,6 +1,6 @@
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider.tsx'
-import { useUserPoint } from '@/lib/userPoint.ts'
+import { useUserPoint, useUserPointInc } from '@/lib/userPoint.ts'
 import { formatDateTime } from '@/lib/formatDate.ts'
 import { usePointHistory, type PointHistoryFilter } from '@/hooks/usePointHistory.ts'
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll.ts'
@@ -23,6 +23,7 @@ const EMPTY: Record<PointHistoryFilter, string> = {
 export default function PointHistoryPage() {
   const { user } = useAuth()
   const point = useUserPoint()
+  const inc = useUserPointInc()
   const [params] = useSearchParams()
   const raw = params.get(FILTER_PARAM)
   const filter: PointHistoryFilter = raw === 'earn' || raw === 'spend' ? raw : 'all'
@@ -39,6 +40,11 @@ export default function PointHistoryPage() {
             <span className="text-lg font-semibold tabular-nums text-amber-700 dark:text-amber-300">
               {point.toLocaleString()}P
             </span>
+            {inc !== null && (
+              <span className="ml-2 text-xs">
+                누적 획득 <span className="tabular-nums">{inc.toLocaleString()}P</span>
+              </span>
+            )}
           </p>
         )}
       </div>
