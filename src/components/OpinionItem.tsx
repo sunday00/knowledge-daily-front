@@ -20,6 +20,7 @@ import { blockedAwareContent } from '@/lib/blockedContent.ts'
 import { SUBMIT_SHORTCUT_LABEL, useSubmitShortcut } from '@/hooks/useSubmitShortcut.ts'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 import { UserTitleBadge } from '@/components/profile/UserTitleBadge.tsx'
+import { UserNickname, isResignedUser } from '@/components/profile/UserNickname.tsx'
 
 export type OpinionListItem =
   OpinionStandardListQuery['OpinionQuery']['opinionStandardList']['items'][number]
@@ -61,10 +62,10 @@ export function OpinionItem({
             className="mr-1.5"
           />
           {/* 남의 의견이면 닉네임을 눌러 그 유저를 차단/신고 */}
-          {others && opinion.user ? (
+          {others && opinion.user && !isResignedUser(opinion.user) ? (
             <UserVillainMenu user={opinion.user} />
           ) : (
-            <span className="truncate">{opinion.user?.nickname ?? '알 수 없음'}</span>
+            <UserNickname user={opinion.user} className="truncate" />
           )}
           <UserTitleBadge
             archive={opinion.user?.archive}

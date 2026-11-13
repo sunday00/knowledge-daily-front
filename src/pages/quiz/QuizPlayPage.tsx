@@ -24,6 +24,7 @@ import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { TargetThreads } from '@/components/TargetThreads.tsx'
 import { ThreadConversation } from '@/components/ThreadConversation.tsx'
 import type { OpinionTarget } from '@/lib/opinionTarget.ts'
+import { UserNickname } from '@/components/profile/UserNickname.tsx'
 
 type Quiz = QuizOneQuery['QuizQuery']['quizOne']['item']
 
@@ -266,7 +267,11 @@ function QuizHeader({ quiz, mine }: { quiz: Quiz; mine: boolean }) {
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <TagChips tags={quiz.tags} />
         <p className="text-xs text-neutral-400">
-          {quiz.user?.nickname && <span>{quiz.user.nickname} · </span>}
+          {quiz.user && (
+            <span>
+              <UserNickname user={quiz.user} /> ·{' '}
+            </span>
+          )}
           {quiz.quizItemsCnt.toLocaleString()}문항 · {formatDateTime(quiz.createdAt)}
         </p>
       </div>

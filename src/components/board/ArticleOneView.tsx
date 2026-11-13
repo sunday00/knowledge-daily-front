@@ -15,6 +15,7 @@ import { AdjacentNav } from '@/components/AdjacentNav.tsx'
 import { BackToList } from '@/components/BackToList.tsx'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 import { UserTitleBadge } from '@/components/profile/UserTitleBadge.tsx'
+import { UserNickname } from '@/components/profile/UserNickname.tsx'
 
 export type ArticleOneItem = ArticleOneQuery['BoardQuery']['articleOne']['item']
 
@@ -103,7 +104,7 @@ export function ArticleOneView({
                 )}
                 <span className="inline-flex items-center gap-1.5">
                   <UserAvatar archive={item.user?.archive} userId={item.user?._id} size={20} />
-                  {item.user?.nickname ?? '알 수 없음'}
+                  <UserNickname user={item.user} />
                 </span>
                 <UserTitleBadge archive={item.user?.archive} userId={item.user?._id} all />
               </div>

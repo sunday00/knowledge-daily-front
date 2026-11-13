@@ -11,6 +11,7 @@ import { ImageIcon } from '@/components/ImageIcon.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
+import { UserNickname } from '@/components/profile/UserNickname.tsx'
 
 const PAGE_SIZE = 20
 
@@ -98,7 +99,7 @@ export function ArticleList({ board, action }: { board: BoardConfig; action?: Re
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-neutral-500">
                     <span className="inline-flex items-center gap-1">
                       <UserAvatar archive={item.user?.archive} userId={item.user?._id} size={16} />
-                      {item.user?.nickname ?? '알 수 없음'}
+                      <UserNickname user={item.user} />
                     </span>
                     <time dateTime={String(item.createdAt)}>{formatDateTime(item.createdAt)}</time>
                     <EditedAt createdAt={item.createdAt} updatedAt={item.updatedAt} compact />

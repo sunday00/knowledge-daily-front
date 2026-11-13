@@ -28,6 +28,7 @@ export const QUIZ_LIST_QUERY = graphql(`
           user {
             _id
             nickname
+            status
           }
         }
       }
@@ -72,6 +73,7 @@ export const QUIZ_ONE_QUERY = graphql(`
           user {
             _id
             nickname
+            status
           }
           opinionsCnt
           reactionsCnt {
