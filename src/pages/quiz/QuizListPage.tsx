@@ -18,6 +18,7 @@ import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { TagChips } from '@/components/TagChips.tsx'
 import { QuizMyStatusBadge } from '@/components/quiz/QuizMyStatusBadge.tsx'
 import { SearchInput } from '@/components/SearchInput.tsx'
+import { UserNickname } from '@/components/profile/UserNickname.tsx'
 
 type QuizListItem = QuizListQuery['QuizQuery']['quizList']['items'][number]
 
@@ -177,7 +178,11 @@ function QuizCard({ item, mine }: { item: QuizListItem; mine: boolean }) {
       <TagChips tags={item.tags} className="relative z-1 mt-2" />
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-neutral-500">
-          {item.user?.nickname && <span>{item.user.nickname} · </span>}
+          {item.user && (
+            <span>
+              <UserNickname user={item.user} /> ·{' '}
+            </span>
+          )}
           {formatDateTime(item.createdAt)}
         </p>
         <div className="relative z-1 flex gap-1">

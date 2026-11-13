@@ -102,6 +102,7 @@ export const ARTICLE_LIST_QUERY = graphql(`
           user {
             _id
             nickname
+            status
             archive {
               _id
               img {
@@ -159,6 +160,7 @@ export const ARTICLE_ONE_QUERY = graphql(`
           user {
             _id
             nickname
+            status
             archive {
               _id
               achievements {

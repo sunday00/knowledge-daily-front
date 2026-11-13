@@ -33,6 +33,7 @@ import { useClickPoint, type ClickNotice } from '@/actions/clickPoint.ts'
 import { Modal, ModalButton, ModalSpinner } from '@/components/Modal.tsx'
 import { BackToList } from '@/components/BackToList.tsx'
 import { CampaignImage } from '@/components/campaign/CampaignImage.tsx'
+import { UserNickname } from '@/components/profile/UserNickname.tsx'
 
 export type CampaignOneItem = CampaignOneQuery['CampaignQuery']['campaignOne']['item']
 type CampaignChild = CampaignOneItem['items'][number]
@@ -413,7 +414,7 @@ function WinnerRow({
                 {ordered && (
                   <span className="mr-1 text-neutral-500">{subRankOf(w, winners, i)}.</span>
                 )}
-                {w.user?.nickname ?? '(알 수 없음)'}
+                <UserNickname user={w.user} fallback="(알 수 없음)" />
                 {mine && <span className="ml-1 text-xs">(나)</span>}
               </li>
             )

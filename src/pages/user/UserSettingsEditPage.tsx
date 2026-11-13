@@ -12,7 +12,7 @@ import { ProfileImojiPicker } from '@/components/profile/ProfileImojiPicker.tsx'
 export default function UserSettingsEditPage() {
   const { user } = useAuth()
   const { nickname, setNickname, links, setLinks, loading } = useUserInfoForm()
-  const { submit, saving, error } = useUpdateUserSettings()
+  const { submit, saving, error, nicknameError, clearNicknameError } = useUpdateUserSettings()
   const imoji = useProfileImoji()
 
   if (!user) return <Navigate to="/login" replace />
@@ -41,7 +41,15 @@ export default function UserSettingsEditPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <NicknameField value={nickname} onChange={setNickname} disabled={saving} />
+        <NicknameField
+          value={nickname}
+          onChange={(next) => {
+            setNickname(next)
+            clearNicknameError()
+          }}
+          disabled={saving}
+          error={nicknameError}
+        />
         <LinksEditor value={links} onChange={setLinks} disabled={saving} />
 
         {error && <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>}

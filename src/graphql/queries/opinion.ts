@@ -34,6 +34,7 @@ export const THREAD_STANDARD_LIST_QUERY = graphql(`
             user {
               _id
               nickname
+              status
               archive {
                 _id
                 achievements {
@@ -101,6 +102,7 @@ export const OPINION_STANDARD_LIST_QUERY = graphql(`
           user {
             _id
             nickname
+            status
             archive {
               _id
               achievements {
@@ -160,6 +162,7 @@ export const OPINION_ITEM_FRAGMENT = graphql(`
     user {
       _id
       nickname
+      status
       archive {
         _id
         achievements {

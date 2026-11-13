@@ -9,6 +9,7 @@ import { BoardItemCounts } from '@/components/board/BoardItemCounts.tsx'
 import { ImageIcon } from '@/components/ImageIcon.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
+import { UserNickname } from '@/components/profile/UserNickname.tsx'
 
 type Target = ArticleReactionTopQuery['ReactionQuery']['reactionTopList']['items'][number]['target']
 type ArticleItem = Exclude<NonNullable<Target>, Record<PropertyKey, never>>
@@ -110,7 +111,7 @@ function ArticleRow({
           </span>
           <span className="inline-flex items-center gap-1">
             <UserAvatar archive={article.user?.archive} userId={article.user?._id} size={16} />
-            {article.user?.nickname ?? '알 수 없음'}
+            <UserNickname user={article.user} />
           </span>
           <time dateTime={String(article.createdAt)}>{formatDateTime(article.createdAt)}</time>
           <BoardItemCounts item={article} />

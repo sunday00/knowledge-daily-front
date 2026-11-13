@@ -18,6 +18,7 @@ import {
   SHARED_CONFIGS_VERSION_HEADER,
 } from './sharedConfigs'
 import { syncUserPointFromHeaders } from './userPoint'
+import { decodeAnglesDeep } from '@/lib/angleEntities.ts'
 
 const QUERY_NAMESPACES = [
   'AttachQryNamespace',
@@ -109,12 +110,20 @@ const userPointLink = new ApolloLink((operation, forward) =>
   }),
 )
 
+// 서버가 꺾쇠를 &lt; &gt; 로 바꿔 둔 값을 < > 로 되돌린다 (자세한 이유는 angleEntities.ts)
+const decodeAnglesLink = new ApolloLink((operation, forward) =>
+  forward(operation).map((result) =>
+    result.data ? { ...result, data: decodeAnglesDeep(result.data) } : result,
+  ),
+)
+
 export const apolloClient = new ApolloClient({
   link: from([
     errorLink,
     configVersionRetryLink,
     sharedConfigsLink,
     userPointLink,
+    decodeAnglesLink,
     new HttpLink({
       uri,
       // HttpOnly 쿠키 전송을 위해 필수.

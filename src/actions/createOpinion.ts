@@ -136,6 +136,7 @@ export function useCreateOpinion(target: Pick<OpinionTarget, 'entity' | 'id'>, p
               __typename: 'User',
               _id: user.userId,
               nickname: user.nickname,
+              status: 'ACTIVE' as const,
               archive: myArchive(),
               villainStatus: {
                 __typename: 'VillainStatus',

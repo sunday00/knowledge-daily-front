@@ -116,6 +116,7 @@ export const CAMPAIGN_ONE_QUERY = graphql(`
                 user {
                   _id
                   nickname
+                  status
                 }
               }
               links {

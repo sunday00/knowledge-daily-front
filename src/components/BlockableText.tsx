@@ -23,7 +23,7 @@ export function BlockableText({ text }: { text: string }) {
   )
 }
 
-function BlockedPart({ text }: { text: string }) {
+export function BlockedPart({ text }: { text: string }) {
   const [shown, setShown] = useState(false)
 
   const toggle = (

@@ -14,12 +14,13 @@ import { CharCount } from '@/components/CharCount.tsx'
 import { OPINION_MAX_LENGTH } from '@/lib/opinionLimits.ts'
 import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { ReportedMark } from '@/components/ReportedMark.tsx'
-import { BlockableText } from '@/components/BlockableText.tsx'
+import { OpinionMarkdown } from '@/components/OpinionMarkdown.tsx'
 import { OpinionVillainMenu, UserVillainMenu } from '@/components/OpinionVillainMenu.tsx'
 import { blockedAwareContent } from '@/lib/blockedContent.ts'
 import { SUBMIT_SHORTCUT_LABEL, useSubmitShortcut } from '@/hooks/useSubmitShortcut.ts'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 import { UserTitleBadge } from '@/components/profile/UserTitleBadge.tsx'
+import { UserNickname, isResignedUser } from '@/components/profile/UserNickname.tsx'
 
 export type OpinionListItem =
   OpinionStandardListQuery['OpinionQuery']['opinionStandardList']['items'][number]
@@ -61,10 +62,10 @@ export function OpinionItem({
             className="mr-1.5"
           />
           {/* 남의 의견이면 닉네임을 눌러 그 유저를 차단/신고 */}
-          {others && opinion.user ? (
+          {others && opinion.user && !isResignedUser(opinion.user) ? (
             <UserVillainMenu user={opinion.user} />
           ) : (
-            <span className="truncate">{opinion.user?.nickname ?? '알 수 없음'}</span>
+            <UserNickname user={opinion.user} className="truncate" />
           )}
           <UserTitleBadge
             archive={opinion.user?.archive}
@@ -96,10 +97,10 @@ export function OpinionItem({
         <EditForm opinion={opinion} onDone={() => setMode('view')} />
       ) : (
         <>
-          <p className="mt-2 whitespace-pre-wrap break-words">
+          <div className="mt-2 flex items-start gap-1.5">
             <OpinionTypeBadge type={opinion.type} />
-            <BlockableText text={blockedAwareContent(opinion)} />
-          </p>
+            <OpinionMarkdown text={blockedAwareContent(opinion)} className="min-w-0 flex-1" />
+          </div>
           <div className="mt-2">
             <ReactionBar target={{ entity: 'Opinion', id: opinion._id }} />
           </div>

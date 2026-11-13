@@ -102,6 +102,7 @@ export const ARTICLE_REACTION_TOP_QUERY = graphql(`
               user {
                 _id
                 nickname
+                status
                 archive {
                   _id
                   img {
@@ -158,6 +159,7 @@ export const ARTICLE_OPINION_TOP_QUERY = graphql(`
               user {
                 _id
                 nickname
+                status
                 archive {
                   _id
                   img {
