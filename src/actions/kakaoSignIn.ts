@@ -5,17 +5,23 @@ import { KAKAO_LOGIN_MUTATION } from '@/graphql/mutations/auth.ts'
 import { consumeKakaoState } from '@/lib/kakao.ts'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import { reportError } from '@/lib/errorReporter.ts'
+import { REJOIN_RESTRICTED_CODE, rejoinAtOf } from '@/lib/resign.ts'
 
 export type KakaoSignInStatus =
   | { kind: 'pending' }
   | { kind: 'error'; message: string }
+  /** 탈퇴 후 재가입 제한 기간. rejoinAt = 다시 가입할 수 있는 시각 (모르면 null) */
+  | { kind: 'rejoinRestricted'; rejoinAt: string | null }
   | { kind: 'ok'; isNewUser: boolean; nickname: string }
 
 export function useKakaoSignIn(params: URLSearchParams) {
   const [status, setStatus] = useState<KakaoSignInStatus>({ kind: 'pending' })
   const { signIn } = useAuth()
   const navigate = useNavigate()
-  const [kakaoLogin] = useMutation(KAKAO_LOGIN_MUTATION)
+  const [kakaoLogin] = useMutation(KAKAO_LOGIN_MUTATION, {
+    // 재가입 제한은 화면에서 따로 안내하므로 에러 배너엔 띄우지 않는다.
+    context: { expectedErrorCodes: [REJOIN_RESTRICTED_CODE] },
+  })
   const handledRef = useRef(false)
 
   useEffect(() => {
@@ -76,6 +82,11 @@ export function useKakaoSignIn(params: URLSearchParams) {
         setTimeout(() => navigate('/', { replace: true }), 600)
       })
       .catch((e: unknown) => {
+        const rejoinAt = rejoinAtOf(e)
+        if (rejoinAt !== undefined) {
+          setStatus({ kind: 'rejoinRestricted', rejoinAt })
+          return
+        }
         fail(e instanceof Error ? e.message : String(e), e)
       })
   }, [params, kakaoLogin, navigate, signIn])

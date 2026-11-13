@@ -5431,12 +5431,21 @@ input UserInput {
 }
 
 type UserMutNamespace {
+  """
+  탈퇴. status INACTIVE + deletedAt + 탈퇴 사유 기록(input 생략 / 사유 없음 가능). 이후 토큰은 guest, 재가입 제한 기간 후 같은 계정으로 로그인하면 새 유저. item false = 이미 탈퇴
+  """
+  userResign(input: UserResignInput): BooleanResponse!
   userSupersimpleRegister(input: UserCreateInput!): AuthTokenResponseResponse!
   userUpdate(input: UserUpdateInput!): SimpleJsonRes!
 }
 
 type UserQryNamespace {
   info: UserInfoResponseItemResponse!
+}
+
+input UserResignInput {
+  """탈퇴 사유. 없으면 그냥 탈퇴"""
+  reason: String
 }
 
 enum UserRole {
