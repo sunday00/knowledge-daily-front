@@ -19,6 +19,14 @@ export type RecordType = 'sense' | 'article' | 'opinion' | 'thread'
 /** 기록 왼쪽 메뉴와 그 아래 탭 */
 export const RECORD_MENU = [
   {
+    key: 'sense',
+    label: '내 상식',
+    subs: [
+      { key: 'made', label: '내가 만든 상식' },
+      { key: 'received', label: '내가 받은 상식' },
+    ],
+  },
+  {
     key: 'post',
     label: '내 게시글',
     subs: [
@@ -57,6 +65,10 @@ export const REACTION_ENTITY: Record<RecordType, 'Sense' | 'Article' | 'Opinion'
 }
 
 export const RECORD_PAGE_SIZE = 20
+
+/** 내 상식 > 내가 받은 상식 주소. tag 가 있으면 그 관심 태그로 거른다 (예전 /sense/my-sense) */
+export const receivedSensePath = (tag?: string) =>
+  `${RECORD_PATH}?${new URLSearchParams({ tab: 'sense', type: 'received', ...(tag && { tag }) }).toString()}`
 
 /** 내 의견 탭별로 거를 원글 종류 (opinion.targetEntity). 전체는 거르지 않는다 */
 export const OPINION_TAB_ENTITIES: Record<string, string[] | undefined> = {

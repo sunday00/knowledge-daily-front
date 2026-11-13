@@ -11,14 +11,20 @@ import {
   MyTriedQuizList,
 } from '@/components/record/RecordLists.tsx'
 import { reactionOf } from '@/lib/reactions.ts'
-import { RECORD_MENU, type RecordMenuKey, type RecordType } from '@/lib/myRecord.ts'
+import {
+  RECORD_MENU,
+  receivedSensePath,
+  type RecordMenuKey,
+  type RecordType,
+} from '@/lib/myRecord.ts'
+import { MyReceivedSenses } from '@/components/record/MyReceivedSenses.tsx'
 
 const TAB_PARAM = 'tab'
 const TYPE_PARAM = 'type'
 const REACTION_PARAM = 'r'
 
 /**
- * /user/record — 기록. 왼쪽 메뉴(내 게시글 / 내 의견 / 내 반응 / 내 퀴즈), 오른쪽은 그 아래 탭 + 목록.
+ * /user/record — 기록. 왼쪽 메뉴(내 상식 / 내 게시글 / 내 의견 / 내 반응 / 내 퀴즈), 오른쪽은 그 아래 탭 + 목록.
  * 내 반응은 이모지를 고르면 그 반응을 남긴 것만 본다(여러 개면 그중 하나라도). 메뉴·탭·이모지는 주소(?tab=&type=&r=a,b)에 둔다.
  */
 export default function MyRecordPage() {
@@ -58,6 +64,15 @@ export default function MyRecordPage() {
             current={sub}
             toParams={(key) => ({ [TAB_PARAM]: menu.key, [TYPE_PARAM]: key })}
           />
+
+          {menu.key === 'sense' && sub === 'made' && (
+            <p className="rounded-md bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-500 dark:bg-neutral-900">
+              내가 만든 상식은 준비 중이에요.
+            </p>
+          )}
+          {menu.key === 'sense' && sub === 'received' && (
+            <MyReceivedSenses tag={params.get('tag') ?? undefined} tagPath={receivedSensePath} />
+          )}
 
           {menu.key === 'post' && sub === 'article' && <MyArticleList />}
           {menu.key === 'post' && sub === 'ask' && <MyAskList />}

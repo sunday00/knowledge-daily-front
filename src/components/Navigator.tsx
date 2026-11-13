@@ -26,13 +26,8 @@ export function Navigator() {
       </div>
       <div className="hidden sm:flex items-center gap-4">
         <Link to="/tags" className="nav-link">
-          Tags
+          Senses
         </Link>
-        {user && (
-          <Link to="/sense/my-sense" className="nav-link">
-            My Senses
-          </Link>
-        )}
         <BoardMenu />
         <Link to={QUIZ_PATH} className="nav-link">
           Quiz
@@ -63,7 +58,6 @@ type MenuItem = { key: string; to: string; label: string }
 
 /** 좁은 화면의 메뉴. 게시판 드롭다운은 펼쳐서 같은 목록 안에 보인다. */
 function MobileMenu() {
-  const { user } = useAuth()
   const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
   // 이동하면 닫는다. (뒤로 가기 등 메뉴 밖에서 바뀐 경우도)
@@ -71,10 +65,7 @@ function MobileMenu() {
 
   // 열 때마다 읽어서 공용 설정이 갱신돼도 반영되게 한다.
   const boards = open ? listBoards() : []
-  const main: MenuItem[] = [
-    { key: 'tags', to: '/tags', label: 'Tags' },
-    ...(user ? [{ key: 'my-sense', to: '/sense/my-sense', label: 'My Senses' }] : []),
-  ]
+  const main: MenuItem[] = [{ key: 'tags', to: '/tags', label: 'Senses' }]
   const boardItems: MenuItem[] = [
     { key: 'notice', to: NOTICE_PATH, label: NOTICE_TITLE },
     ...boards.map((b) => ({ key: b._id, to: boardPath(b), label: b.label || b.title })),
