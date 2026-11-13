@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
 import Markdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { SafeImage } from '@/components/SafeImage.tsx'
@@ -39,14 +39,19 @@ function imageStyleOf(src: string): CSSProperties | undefined {
   }
 }
 
-// 원시 HTML 은 렌더링하지 않는다 (react-markdown 기본값). 외부 링크는 새 탭으로.
-const components: Components = {
-  a: ({ node: _node, href, ...props }) => {
-    const external = !!href && /^https?:\/\//.test(href)
-    return (
-      <a href={href} {...props} {...(external ? { target: '_blank', rel: 'noreferrer' } : {})} />
-    )
-  },
+/** 마크다운 링크. 외부 링크는 새 탭으로 */
+export function MarkdownLink({
+  node: _node,
+  href,
+  ...props
+}: ComponentPropsWithoutRef<'a'> & { node?: unknown }) {
+  const external = !!href && /^https?:\/\//.test(href)
+  return <a href={href} {...props} {...(external ? { target: '_blank', rel: 'noreferrer' } : {})} />
+}
+
+// 원시 HTML 은 렌더링하지 않는다 (react-markdown 기본값).
+const markdownComponents: Components = {
+  a: MarkdownLink,
   // 유실되거나 주소가 깨진 이미지는 대체 그림으로. #w=..&ratio=..&align=.. 로 크기·비율·정렬
   img: ({ node: _node, src = '', ...props }) => (
     <SafeImage
@@ -60,7 +65,7 @@ const components: Components = {
 }
 
 // 코드 블록/인라인 코드는 엔티티가 그대로 보이므로 건드리지 않는다.
-const CODE_RE = /(```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`)/g
+export const CODE_RE = /(```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]*`)/g
 
 // remark-gfm 은 ~ 하나짜리 짝도 취소선으로 처리한다 (예: 1995~1996 … 2007~2021).
 // 단독 ~ 는 &#126; 로 바꿔 문자 그대로 보이게 하고, ~~ 취소선은 유지한다.
@@ -74,16 +79,22 @@ function escapeSingleTilde(md: string) {
 export function MarkdownView({
   children,
   className = '',
+  components,
 }: {
   children: string
   className?: string
+  /** 기본 처리(markdownComponents) 위에 덮어쓸 것 */
+  components?: Components
 }) {
   return (
     // flow-root: 끝에 걸친 float 그림이 본문 밖(리액션 줄 등)으로 넘치지 않게 감싼다.
     <div
       className={`prose prose-neutral dark:prose-invert max-w-none break-words flow-root ${className}`}
     >
-      <Markdown remarkPlugins={[remarkGfm]} components={components}>
+      <Markdown
+        remarkPlugins={[remarkGfm]}
+        components={components ? { ...markdownComponents, ...components } : markdownComponents}
+      >
         {escapeSingleTilde(children)}
       </Markdown>
     </div>
