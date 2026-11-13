@@ -13,8 +13,9 @@ import {
   THREAD_REACTIONS_FRAGMENT,
 } from '@/graphql/queries/reaction.ts'
 import { reactionTypename, useToggleReaction, type ReactionTarget } from '@/actions/reaction.ts'
-import { REACTIONS, reactionOf, sortReactions, type ReactionCode } from '@/lib/reactions.ts'
+import { reactionOf, sortReactions, type ReactionCode } from '@/lib/reactions.ts'
 import { Popover } from '@/components/Popover.tsx'
+import { ReactionEmojiGrid } from '@/components/ReactionEmojiGrid.tsx'
 
 // 대상별로 캐시에서 리액션 집계를 읽을 fragment
 const REACTIONS_FRAGMENT = {
@@ -116,24 +117,7 @@ export function ReactionBar({
           side={pickerSide}
           buttonClassName={`${chipBase} ${chipOthers} hover:bg-neutral-100 dark:hover:bg-neutral-800`}
         >
-          <div className="grid grid-cols-6 gap-0.5" role="group" aria-label="리액션 고르기">
-            {REACTIONS.map(({ code, emoji, label }) => {
-              const mine = mineOf(code)
-              return (
-                <button
-                  key={code}
-                  type="button"
-                  title={label}
-                  aria-label={label}
-                  aria-pressed={mine}
-                  onClick={() => pick(code)}
-                  className={`flex size-9 items-center justify-center rounded-md text-xl transition-colors ${mine ? 'bg-brand-50 ring-1 ring-brand-500/60 dark:bg-brand-500/15' : 'hover:bg-neutral-100 dark:hover:bg-neutral-800'}`}
-                >
-                  {emoji}
-                </button>
-              )
-            })}
-          </div>
+          <ReactionEmojiGrid isActive={mineOf} onPick={pick} />
         </Popover>
       )}
     </div>

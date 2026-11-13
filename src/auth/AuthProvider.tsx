@@ -13,6 +13,8 @@ type AuthUser = { userId: string; nickname: string }
 
 type AuthContextValue = {
   user: AuthUser | null
+  /** 이 화면에서 마지막으로 로그인한 시각. 로그인할 때마다 바뀐다 (새로고침 뒤 로그인 유지면 0) */
+  signedInAt: number
   signIn: (payload: AuthUser & { archive?: StoredArchive | null }) => void
   signOut: () => void
   updateUser: (partial: Partial<AuthUser>) => void
@@ -29,13 +31,16 @@ function readInitial(): AuthUser | null {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(readInitial)
+  const [signedInAt, setSignedInAt] = useState(0)
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
+      signedInAt,
       signIn: ({ userId, nickname, archive }) => {
         saveSession({ userId, nickname, archive })
         setUser({ userId, nickname })
+        setSignedInAt(Date.now())
       },
       signOut: () => {
         clearSession()
@@ -51,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
       },
     }),
-    [user],
+    [user, signedInAt],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

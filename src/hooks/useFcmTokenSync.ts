@@ -2,7 +2,7 @@ import { useCallback, useEffect } from 'react'
 import { useMutation } from '@apollo/client'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import { USER_UPDATE_MUTATION } from '@/graphql/mutations/user.ts'
-import { prepareFcmToken } from '@/lib/firebase.ts'
+import { diagnoseFcm, prepareFcmToken } from '@/lib/firebase.ts'
 import { reportError } from '@/lib/errorReporter.ts'
 
 /**
@@ -15,7 +15,12 @@ export function useSyncFcmToken() {
   return useCallback(
     async (isCancelled: () => boolean = () => false): Promise<boolean> => {
       const token = await prepareFcmToken()
-      if (!token || isCancelled()) return false
+      if (!token) {
+        // 토큰이 없으면 보낼 게 없어 userUpdate 를 건너뛴다. 왜 없는지 남겨 둔다.
+        console.warn('[fcm] 토큰을 받지 못해 userUpdate 를 보내지 않음:', await diagnoseFcm())
+        return false
+      }
+      if (isCancelled()) return false
       const { data } = await mutate({ variables: { input: { notify__fcm: token } } })
       const result = data?.UserMutation.userUpdate
       if (!result?.success) throw new Error(result?.message ?? '알림 토큰 등록에 실패했습니다.')
@@ -27,12 +32,12 @@ export function useSyncFcmToken() {
 
 /**
  * 로그인 상태에서 이 클라이언트의 FCM 토큰이 준비되면 항상 서버(notify__fcm)에 반영한다.
- * - 로그인/계정 전환 시
+ * - 로그인할 때마다 (같은 계정으로 다시 로그인해도) / 계정 전환 시 / 새로고침 뒤 로그인 유지 시
  * - 알림 권한이 나중에 허용된 경우 (브라우저 설정 변경 포함)
  * 권한 요청 자체는 설정 페이지의 알림 켜기 버튼에서 한다.
  */
 export function useFcmTokenSync() {
-  const { user } = useAuth()
+  const { user, signedInAt } = useAuth()
   const userId = user?.userId
   const syncFcmToken = useSyncFcmToken()
 
@@ -63,5 +68,6 @@ export function useFcmTokenSync() {
       cancelled = true
       permissionStatus?.removeEventListener('change', onPermissionChange)
     }
-  }, [userId, syncFcmToken])
+    // signedInAt: 같은 계정으로 다시 로그인해도(userId 그대로) 다시 반영
+  }, [userId, signedInAt, syncFcmToken])
 }

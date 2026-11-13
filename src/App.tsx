@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Navigate, Route, Routes, useParams } from 'react-router-dom'
+import { Navigate, Route, Routes, useParams, useSearchParams } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import NotFoundPage from './pages/NotFoundPage'
 import LoginPage from './pages/LoginPage'
@@ -12,12 +12,13 @@ import { POINT_HISTORY_PATH } from './lib/userPoint'
 import PromotionPage from './pages/user/PromotionPage'
 import MyMediaPage from './pages/user/MyMediaPage'
 import AchievementsPage from './pages/user/AchievementsPage'
+import MyRecordPage from './pages/user/MyRecordPage'
+import { RECORD_PATH, receivedSensePath } from './lib/myRecord'
 import { ACHIEVEMENTS_PATH } from './lib/achievement'
 import { MY_MEDIA_PATH } from './lib/myMedia'
 import { PROMOTION_PATH } from './lib/promotion'
 import { EMBED_APPLY_PATH } from './components/paid/PaidServices'
 import KakaoCallbackPage from './pages/auth/KakaoCallbackPage'
-import MySensePage from './pages/sense/MySensePage'
 import TagsPage from './pages/tag/TagsPage'
 import BoardLayout from './pages/board/BoardLayout'
 import BoardPage from './pages/board/BoardPage'
@@ -142,8 +143,10 @@ export default function App() {
           <Route path={PROMOTION_PATH} element={<PromotionPage />} />
           <Route path={MY_MEDIA_PATH} element={<MyMediaPage />} />
           <Route path={ACHIEVEMENTS_PATH} element={<AchievementsPage />} />
+          <Route path={RECORD_PATH} element={<MyRecordPage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
-          <Route path="/sense/my-sense" element={<MySensePage />} />
+          {/* 예전 내 상식 주소 → 기록 > 내 상식 > 내가 받은 상식 (태그 유지) */}
+          <Route path="/sense/my-sense" element={<LegacyMySenseRedirect />} />
           <Route path="/tags/:tag?" element={<TagsPage />} />
           {/* 공지사항은 공용 설정의 게시판이 아니라 따로 둔다. (정적 경로라 :slug 보다 먼저 맞는다) */}
           <Route path="/board/notice" element={<BoardLayout />}>
@@ -182,4 +185,9 @@ export default function App() {
       <ScrollTopButton />
     </div>
   )
+}
+
+function LegacyMySenseRedirect() {
+  const [params] = useSearchParams()
+  return <Navigate to={receivedSensePath(params.get('tag') ?? undefined)} replace />
 }
