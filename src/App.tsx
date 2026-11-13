@@ -12,6 +12,8 @@ import { POINT_HISTORY_PATH } from './lib/userPoint'
 import PromotionPage from './pages/user/PromotionPage'
 import MyMediaPage from './pages/user/MyMediaPage'
 import AchievementsPage from './pages/user/AchievementsPage'
+import MyRecordPage from './pages/user/MyRecordPage'
+import { RECORD_PATH } from './lib/myRecord'
 import { ACHIEVEMENTS_PATH } from './lib/achievement'
 import { MY_MEDIA_PATH } from './lib/myMedia'
 import { PROMOTION_PATH } from './lib/promotion'
@@ -142,6 +144,7 @@ export default function App() {
           <Route path={PROMOTION_PATH} element={<PromotionPage />} />
           <Route path={MY_MEDIA_PATH} element={<MyMediaPage />} />
           <Route path={ACHIEVEMENTS_PATH} element={<AchievementsPage />} />
+          <Route path={RECORD_PATH} element={<MyRecordPage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
           <Route path="/sense/my-sense" element={<MySensePage />} />
           <Route path="/tags/:tag?" element={<TagsPage />} />
