@@ -47,3 +47,20 @@ export function blockedAwareContent(opinion: BlockableOpinion): string {
   const raw = opinion.content.replace(BLOCKED, '$1')
   return isBlockedOpinion(opinion) ? `%BLOCKED<%${raw}%>BLOCKED%` : raw
 }
+
+// 목록에서 삭제된 글은 서버가 필드 값을 이 값으로 가려서 준다 (차단이면 %BLOCKED<% … %>BLOCKED% 로 한 번 더 감싼다)
+const DELETED_MARK = '%DELETED%'
+
+/**
+ * 서버가 목록에서 가린 값(삭제 / 차단)이면 안내 문구, 아니면 null. noun = '글' / '퀴즈' 등.
+ * 삭제는 펼쳐 볼 원문이 없어 차단이어도 삭제 문구로.
+ */
+export function maskedNoticeOf(value: string | null | undefined, noun: string): string | null {
+  if (!value) return null
+  const parts = splitBlocked(value)
+  const blocked = parts.some((p) => p.blocked)
+  const raw = blocked ? parts.map((p) => p.text).join('') : value
+  if (raw === DELETED_MARK) return `삭제된 ${noun}입니다.`
+  if (blocked) return `차단된 ${noun}입니다.`
+  return null
+}

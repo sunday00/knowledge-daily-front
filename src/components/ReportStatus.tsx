@@ -29,7 +29,8 @@ export function ReportStatus({
   target,
   villainStatus,
 }: {
-  target: '의견' | '유저'
+  /** 신고 대상 이름 ('의견', '유저', '게시글', '퀴즈') */
+  target: string
   villainStatus: Pick<VillainStatus, 'status' | 'result'>
 }) {
   const step = stepOf(villainStatus)

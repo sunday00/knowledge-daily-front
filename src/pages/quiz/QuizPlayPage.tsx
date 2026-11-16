@@ -24,7 +24,9 @@ import { ReactionBar } from '@/components/ReactionBar.tsx'
 import { TargetThreads } from '@/components/TargetThreads.tsx'
 import { ThreadConversation } from '@/components/ThreadConversation.tsx'
 import type { OpinionTarget } from '@/lib/opinionTarget.ts'
-import { UserNickname } from '@/components/profile/UserNickname.tsx'
+import { UserNickname, isResignedUser } from '@/components/profile/UserNickname.tsx'
+import { ContentVillainMenu } from '@/components/ContentVillainMenu.tsx'
+import { UserVillainMenu } from '@/components/OpinionVillainMenu.tsx'
 
 type Quiz = QuizOneQuery['QuizQuery']['quizOne']['item']
 
@@ -237,8 +239,11 @@ export function QuizThreadPage() {
   )
 }
 
-/** 위에 작게: 제목, 소제목, 소개글, 태그, 내 풀이 상태, (내 퀴즈면) 수정 */
+/** 위에 작게: 제목, 소제목, 소개글, 태그, 내 풀이 상태, (내 퀴즈면) 수정, (남의 퀴즈면) 차단 */
 function QuizHeader({ quiz, mine }: { quiz: Quiz; mine: boolean }) {
+  const { user } = useAuth()
+  // 로그인했고 남의 퀴즈면 퀴즈 / 작성자를 차단할 수 있다
+  const others = !!user && !!quiz.user && quiz.user._id !== user.userId
   return (
     <header className="space-y-1 border-b border-neutral-200 dark:border-neutral-800 pb-3">
       <div className="flex items-start justify-between gap-2">
@@ -255,6 +260,14 @@ function QuizHeader({ quiz, mine }: { quiz: Quiz; mine: boolean }) {
               {quiz.status === 'DRAFT' ? '이어 만들기' : '수정'}
             </Link>
           )}
+          {others && (
+            <ContentVillainMenu
+              target={{ entity: 'Quiz', id: quiz._id }}
+              noun="퀴즈"
+              villainStatus={quiz.villainStatus}
+              user={quiz.user}
+            />
+          )}
           <Link to={QUIZ_PATH} className="btn text-xs px-2 py-1 no-underline">
             목록
           </Link>
@@ -269,7 +282,13 @@ function QuizHeader({ quiz, mine }: { quiz: Quiz; mine: boolean }) {
         <p className="text-xs text-neutral-400">
           {quiz.user && (
             <span>
-              <UserNickname user={quiz.user} /> ·{' '}
+              {/* 남의 퀴즈면 닉네임을 눌러 그 유저를 차단 / 신고 */}
+              {others && !isResignedUser(quiz.user) ? (
+                <UserVillainMenu user={quiz.user} />
+              ) : (
+                <UserNickname user={quiz.user} />
+              )}{' '}
+              ·{' '}
             </span>
           )}
           {quiz.quizItemsCnt.toLocaleString()}문항 · {formatDateTime(quiz.createdAt)}

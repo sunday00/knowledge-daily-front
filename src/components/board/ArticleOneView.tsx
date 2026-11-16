@@ -15,7 +15,9 @@ import { AdjacentNav } from '@/components/AdjacentNav.tsx'
 import { BackToList } from '@/components/BackToList.tsx'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 import { UserTitleBadge } from '@/components/profile/UserTitleBadge.tsx'
-import { UserNickname } from '@/components/profile/UserNickname.tsx'
+import { UserNickname, isResignedUser } from '@/components/profile/UserNickname.tsx'
+import { ContentVillainMenu } from '@/components/ContentVillainMenu.tsx'
+import { UserVillainMenu } from '@/components/OpinionVillainMenu.tsx'
 
 export type ArticleOneItem = ArticleOneQuery['BoardQuery']['articleOne']['item']
 
@@ -63,6 +65,8 @@ export function ArticleOneView({
   const categoryLabel = (code: string) =>
     board.categories?.find((c) => c.code === code)?.label ?? code
   const mine = !!user && !!item?.user && item.user._id === user.userId
+  // 로그인했고 남의 글이면 차단할 수 있다
+  const others = !!user && !!item?.user && item.user._id !== user.userId
 
   return (
     // pb-32: 대화록이 있으면 하단 고정 입력창에 마지막 항목이 가리지 않도록 여백
@@ -104,7 +108,12 @@ export function ArticleOneView({
                 )}
                 <span className="inline-flex items-center gap-1.5">
                   <UserAvatar archive={item.user?.archive} userId={item.user?._id} size={20} />
-                  <UserNickname user={item.user} />
+                  {/* 남의 글이면 닉네임을 눌러 그 유저를 차단 / 신고 */}
+                  {others && item.user && !isResignedUser(item.user) ? (
+                    <UserVillainMenu user={item.user} />
+                  ) : (
+                    <UserNickname user={item.user} />
+                  )}
                 </span>
                 <UserTitleBadge archive={item.user?.archive} userId={item.user?._id} all />
               </div>
@@ -112,6 +121,16 @@ export function ArticleOneView({
               <div className="flex items-center gap-2 text-sm text-neutral-500">
                 <time dateTime={String(item.createdAt)}>{formatDateTime(item.createdAt)}</time>
                 <EditedAt createdAt={item.createdAt} updatedAt={item.updatedAt} />
+                {others && (
+                  <div className="ml-auto">
+                    <ContentVillainMenu
+                      target={{ entity: 'Article', id: item._id }}
+                      noun="게시글"
+                      villainStatus={item.villainStatus}
+                      user={item.user}
+                    />
+                  </div>
+                )}
                 {mine && (
                   <Link
                     to={`${boardPath(board)}/${item._id}/edit`}

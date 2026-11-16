@@ -224,6 +224,12 @@ export const MY_QUIZ_LIST_QUERY = graphql(`
           brief
           createdAt
           quizItemsCnt
+          opinionsCnt
+          reactionsCnt {
+            name
+            cnt
+            me
+          }
           me {
             _id
             status
@@ -266,6 +272,12 @@ export const MY_QUIZ_ANSWER_LIST_QUERY = graphql(`
             brief
             createdAt
             quizItemsCnt
+            opinionsCnt
+            reactionsCnt {
+              name
+              cnt
+              me
+            }
             me {
               _id
               status

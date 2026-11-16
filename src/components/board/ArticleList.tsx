@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { ARTICLE_LIST_QUERY } from '@/graphql/queries/board.ts'
 import { boardPath, type BoardConfig } from '@/lib/boards.ts'
@@ -12,6 +12,9 @@ import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 import { UserNickname } from '@/components/profile/UserNickname.tsx'
+import { MaskedText } from '@/components/MaskedText.tsx'
+import { MaybeLink } from '@/components/MaybeLink.tsx'
+import { maskedNoticeOf } from '@/lib/blockedContent.ts'
 
 const PAGE_SIZE = 20
 
@@ -69,7 +72,9 @@ export function ArticleList({ board, action }: { board: BoardConfig; action?: Re
           <ul className="divide-y divide-neutral-200 dark:divide-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-800">
             {res.items.map((item) => (
               <li key={item._id}>
-                <Link
+                <MaybeLink
+                  // 차단 / 삭제된 글은 상세로 가지 않는다
+                  disabled={!!maskedNoticeOf(item.title, '글')}
                   // 분류 탭에서 들어가면 상세의 이전/다음도 그 분류 안에서
                   to={withCategory(`${boardPath(board)}/${item._id}`, category)}
                   // 상세의 목록 버튼이 보던 페이지로 돌아가도록
@@ -87,7 +92,7 @@ export function ArticleList({ board, action }: { board: BoardConfig; action?: Re
                         {categoryLabel(item.category)}
                       </span>
                     )}
-                    <span className="truncate">{item.title}</span>
+                    <MaskedText value={item.title} noun="글" className="truncate" />
                     {item.attaches.length > 0 && (
                       <ImageIcon
                         size={16}
@@ -105,7 +110,7 @@ export function ArticleList({ board, action }: { board: BoardConfig; action?: Re
                     <EditedAt createdAt={item.createdAt} updatedAt={item.updatedAt} compact />
                     <BoardItemCounts item={item} />
                   </div>
-                </Link>
+                </MaybeLink>
               </li>
             ))}
           </ul>
