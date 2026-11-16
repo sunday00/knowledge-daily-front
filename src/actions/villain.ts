@@ -22,7 +22,15 @@ type VillainFlags = {
   result?: string | null
 }
 
-/** 캐시의 대상(Opinion / User) villainStatus 를 고치고, 고치기 전 값을 돌려준다 */
+/** 차단 대상 이름 (실패 안내용) */
+const BLOCK_TARGET_LABEL: Record<VBlockTargetEntity, string> = {
+  Opinion: '의견',
+  User: '유저',
+  Article: '게시글',
+  Quiz: '퀴즈',
+}
+
+/** 캐시의 대상(Opinion / User / Article / Quiz) villainStatus 를 고치고, 고치기 전 값을 돌려준다 */
 function patchVillainStatus(
   cache: ApolloCache<unknown>,
   target: BlockTarget,
@@ -42,7 +50,7 @@ function patchVillainStatus(
 }
 
 /**
- * 의견 / 유저 차단 토글. 캐시를 먼저 바꿔 화면(같은 유저의 다른 의견 포함)에 바로 반영하고,
+ * 의견 / 유저 / 게시글 / 퀴즈 차단 토글. 캐시를 먼저 바꿔 화면(같은 유저의 다른 의견 포함)에 바로 반영하고,
  * 서버 반영이 실패하면 되돌리고 상단 에러 배너로 알린다.
  */
 export function useToggleBlock() {
@@ -50,7 +58,7 @@ export function useToggleBlock() {
   const [mutate] = useMutation(VILLAIN_TOGGLE_BLOCK_MUTATION)
 
   const toggle = (target: BlockTarget, block: boolean): void => {
-    const label = `${target.entity === 'User' ? '유저' : '의견'} 차단${block ? '' : ' 해제'}`
+    const label = `${BLOCK_TARGET_LABEL[target.entity]} 차단${block ? '' : ' 해제'}`
     const before = patchVillainStatus(client.cache, target, { isBlocked: block })
 
     void (async () => {
@@ -81,7 +89,7 @@ const isDuplicatedReport = (e: unknown) =>
   e instanceof ApolloError &&
   e.graphQLErrors.some((g) => g.extensions?.code === 'VILLAIN_SUSPECT_CREATE_DUPLICATED')
 
-/** 의견 / 유저 신고. 성공하면(이미 접수된 신고였어도) 캐시에 신고함으로 표시한다. */
+/** 의견 / 유저 / 게시글 / 퀴즈 신고. 성공하면(이미 접수된 신고였어도) 캐시에 신고함으로 표시한다. */
 export function useReport() {
   const client = useApolloClient()
   const [error, setError] = useState<string | null>(null)

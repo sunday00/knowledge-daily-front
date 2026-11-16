@@ -1,5 +1,4 @@
 import { useQuery } from '@apollo/client'
-import { Link } from 'react-router-dom'
 import { ARTICLE_OPINION_TOP_QUERY, ARTICLE_REACTION_TOP_QUERY } from '@/graphql/queries/top.ts'
 import type { ArticleReactionTopQuery } from '@/graphql/__generated__/graphql.ts'
 import { POPULAR_REACTION_CODES } from '@/lib/reactions.ts'
@@ -10,6 +9,9 @@ import { ImageIcon } from '@/components/ImageIcon.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { UserAvatar } from '@/components/profile/UserAvatar.tsx'
 import { UserNickname } from '@/components/profile/UserNickname.tsx'
+import { MaskedText } from '@/components/MaskedText.tsx'
+import { MaybeLink } from '@/components/MaybeLink.tsx'
+import { maskedNoticeOf } from '@/lib/blockedContent.ts'
 
 type Target = ArticleReactionTopQuery['ReactionQuery']['reactionTopList']['items'][number]['target']
 type ArticleItem = Exclude<NonNullable<Target>, Record<PropertyKey, never>>
@@ -87,8 +89,10 @@ function ArticleRow({
   rank: number
 }) {
   return (
-    <Link
+    <MaybeLink
       to={to}
+      // 차단 / 삭제된 글은 상세로 가지 않는다
+      disabled={!!maskedNoticeOf(article.title, '글')}
       className="flex items-start gap-3 rounded-lg border border-neutral-200 dark:border-neutral-800 px-4 py-3 no-underline text-inherit hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
     >
       <span className="w-5 shrink-0 text-center text-lg font-bold tabular-nums text-brand-600 dark:text-indigo-300">
@@ -96,7 +100,7 @@ function ArticleRow({
       </span>
       <div className="min-w-0 flex-1 space-y-1">
         <p className="flex items-center gap-2 font-medium text-neutral-900 dark:text-neutral-100">
-          <span className="truncate">{article.title}</span>
+          <MaskedText value={article.title} noun="글" className="truncate" />
           {article.attaches.length > 0 && (
             <ImageIcon
               size={16}
@@ -117,7 +121,7 @@ function ArticleRow({
           <BoardItemCounts item={article} />
         </div>
       </div>
-    </Link>
+    </MaybeLink>
   )
 }
 

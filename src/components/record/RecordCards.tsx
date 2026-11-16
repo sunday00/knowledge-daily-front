@@ -11,6 +11,8 @@ import { findBoardById } from '@/lib/boards.ts'
 import { blockedAwareContent, maskBlocked } from '@/lib/blockedContent.ts'
 import { isDeletedOpinion } from '@/lib/opinionStatus.ts'
 import { articlePathOf } from '@/lib/myRecord.ts'
+import { MaskedText } from '@/components/MaskedText.tsx'
+import { maskedNoticeOf } from '@/lib/blockedContent.ts'
 
 export type RecordArticle = MyArticleListQuery['BoardQuery']['articleList']['items'][number]
 export type RecordAsk = MyAskListQuery['BoardQuery']['askList']['items'][number]
@@ -21,7 +23,8 @@ const card = 'space-y-2 rounded-lg border border-neutral-200 p-4 dark:border-neu
 
 /** 게시글 한 장: 제목(상세로) · 게시판 · 날짜 + 리액션 */
 export function RecordArticleCard({ article }: { article: RecordArticle }) {
-  const path = articlePathOf(article)
+  // 차단 / 삭제된 글은 상세로 가지 않는다
+  const path = maskedNoticeOf(article.title, '글') ? null : articlePathOf(article)
   const board = findBoardById(article.board)
   return (
     <li className={card}>
@@ -30,10 +33,12 @@ export function RecordArticleCard({ article }: { article: RecordArticle }) {
           to={path}
           className="block font-medium text-neutral-900 no-underline hover:underline dark:text-neutral-100"
         >
-          {article.title}
+          <MaskedText value={article.title} noun="글" />
         </Link>
       ) : (
-        <p className="font-medium">{article.title}</p>
+        <p className="font-medium">
+          <MaskedText value={article.title} noun="글" />
+        </p>
       )}
       <p className="flex flex-wrap gap-x-2 text-xs text-neutral-500">
         {board && <span>{board.title}</span>}
@@ -46,10 +51,16 @@ export function RecordArticleCard({ article }: { article: RecordArticle }) {
 
 /** 문의 / 요청 한 장: 내용 앞부분(상세로) · 분류 · 처리 결과 · 게시판 · 날짜 */
 export function RecordAskCard({ ask }: { ask: RecordAsk }) {
-  const path = articlePathOf(ask)
+  const path = maskedNoticeOf(ask.quest, '글') ? null : articlePathOf(ask)
   const board = findBoardById(ask.board)
   const category = board?.categories?.find((c) => c.code === ask.category)?.label ?? ask.category
-  const quest = <span className="line-clamp-2 whitespace-pre-wrap break-words">{ask.quest}</span>
+  const quest = (
+    <MaskedText
+      value={ask.quest}
+      noun="글"
+      className="line-clamp-2 whitespace-pre-wrap break-words"
+    />
+  )
   return (
     <li className={card}>
       {path ? (

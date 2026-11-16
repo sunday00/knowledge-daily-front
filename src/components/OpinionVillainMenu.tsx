@@ -12,7 +12,11 @@ import { ReportStatus } from '@/components/ReportStatus.tsx'
 import { REPORT_REASONS, type ReportReasonCode } from '@/lib/reportReasons.ts'
 
 type Opinion = Pick<OpinionItemFieldsFragment, '_id' | 'villainStatus' | 'user'>
-type OpinionUser = NonNullable<OpinionItemFieldsFragment['user']>
+// 유저 차단 / 신고에 필요한 것만 (게시글 / 퀴즈 작성자에도 쓴다)
+type OpinionUser = Pick<
+  NonNullable<OpinionItemFieldsFragment['user']>,
+  '_id' | 'nickname' | 'villainStatus'
+>
 
 const menuItem =
   'block w-full whitespace-nowrap rounded px-2 py-1.5 text-left text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors'
@@ -89,7 +93,7 @@ export function OpinionVillainMenu({ opinion }: { opinion: Opinion }) {
 }
 
 /**
- * 남의 의견의 닉네임. 누르면 그 유저를 차단 / 차단 해제 / 신고하는 작은 창이 뜬다.
+ * 남의 의견(게시글 / 퀴즈)의 닉네임. 누르면 그 유저를 차단 / 차단 해제 / 신고하는 작은 창이 뜬다.
  * 유저 차단은 화면의 그 유저 의견 모두에 바로 반영된다.
  */
 export function UserVillainMenu({ user }: { user: OpinionUser }) {
@@ -142,7 +146,8 @@ export function UserVillainMenu({ user }: { user: OpinionUser }) {
   )
 }
 
-function ReportForm({ target, onDone }: { target: BlockTarget; onDone: () => void }) {
+/** 신고 사유 고르기 + 상세 내용. 의견 / 유저 / 게시글 / 퀴즈 공용 */
+export function ReportForm({ target, onDone }: { target: BlockTarget; onDone: () => void }) {
   const [reason, setReason] = useState<ReportReasonCode | null>(null)
   const [detail, setDetail] = useState('')
   const { report, sending, error } = useReport()

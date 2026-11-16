@@ -135,6 +135,12 @@ export const ARTICLE_ONE_QUERY = graphql(`
         message
         item {
           _id
+          villainStatus {
+            isBlocked
+            isSuspected
+            status
+            result
+          }
           board
           title
           content
@@ -160,6 +166,12 @@ export const ARTICLE_ONE_QUERY = graphql(`
           user {
             _id
             nickname
+            villainStatus {
+              isBlocked
+              isSuspected
+              status
+              result
+            }
             status
             archive {
               _id

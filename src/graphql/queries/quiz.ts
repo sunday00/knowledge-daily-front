@@ -16,6 +16,12 @@ export const QUIZ_LIST_QUERY = graphql(`
           brief
           createdAt
           quizItemsCnt
+          opinionsCnt
+          reactionsCnt {
+            name
+            cnt
+            me
+          }
           # 내 풀이 상태 (ALL_CORRECT / TRIED). 기록 없음·비로그인은 null
           me {
             _id
@@ -46,6 +52,12 @@ export const QUIZ_ONE_QUERY = graphql(`
         message
         item {
           _id
+          villainStatus {
+            isBlocked
+            isSuspected
+            status
+            result
+          }
           status
           title
           brief
@@ -73,6 +85,12 @@ export const QUIZ_ONE_QUERY = graphql(`
           user {
             _id
             nickname
+            villainStatus {
+              isBlocked
+              isSuspected
+              status
+              result
+            }
             status
           }
           opinionsCnt

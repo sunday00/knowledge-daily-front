@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { useQuery } from '@apollo/client'
 import { ASK_LIST_QUERY } from '@/graphql/queries/board.ts'
 import { boardPath, type BoardConfig } from '@/lib/boards.ts'
@@ -10,6 +10,9 @@ import { BoardItemCounts } from '@/components/board/BoardItemCounts.tsx'
 import { Pagination, usePageParam } from '@/components/Pagination.tsx'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
 import { useCategoryParam, withCategory } from '@/components/board/CategoryTabs.tsx'
+import { MaskedText } from '@/components/MaskedText.tsx'
+import { MaybeLink } from '@/components/MaybeLink.tsx'
+import { maskedNoticeOf } from '@/lib/blockedContent.ts'
 
 const PAGE_SIZE = 20
 
@@ -67,7 +70,9 @@ export function AskList({ board, action }: { board: BoardConfig; action?: ReactN
           <ul className="divide-y divide-neutral-200 dark:divide-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-800">
             {res.items.map((item) => (
               <li key={item._id}>
-                <Link
+                <MaybeLink
+                  // 차단 / 삭제된 글은 상세로 가지 않는다
+                  disabled={!!maskedNoticeOf(item.quest, '글')}
                   // 분류 탭에서 들어가면 상세의 이전/다음도 그 분류 안에서
                   to={withCategory(`${boardPath(board)}/${item._id}`, category)}
                   // 상세의 목록 버튼이 보던 페이지로 돌아가도록
@@ -85,7 +90,7 @@ export function AskList({ board, action }: { board: BoardConfig; action?: ReactN
                     <EditedAt createdAt={item.createdAt} updatedAt={item.updatedAt} compact />
                   </div>
                   <p className="line-clamp-2 text-sm text-neutral-800 dark:text-neutral-200">
-                    {item.quest}
+                    <MaskedText value={item.quest} noun="글" />
                   </p>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                     {item.answer && (
@@ -93,7 +98,7 @@ export function AskList({ board, action }: { board: BoardConfig; action?: ReactN
                     )}
                     <BoardItemCounts item={item} />
                   </div>
-                </Link>
+                </MaybeLink>
               </li>
             ))}
           </ul>
