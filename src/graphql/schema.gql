@@ -1348,6 +1348,9 @@ type AttachUploadedResItemResponse {
 
 type AuthMutNamespace {
   authKakaoLogin(input: KakaoLoginInput!): AuthTokenResponseResponse!
+
+  """accessToken 쿠키 만료. 비로그인 / 만료 토큰이어도 성공(item true)"""
+  authLogout: BooleanResponse!
   authSupersimpleRegister(input: UserCreateInput!): AuthTokenResponseResponse!
 }
 
@@ -2282,6 +2285,11 @@ type Document implements IAttach & ICreatedAt & StandardEntity {
   version: String!
 }
 
+input DocumentAgreeInput {
+  """동의할 문서 slug 목록. ex) privacy, terms"""
+  slugs: [String!]!
+}
+
 input DocumentInput {
   """본문 (markdown)"""
   content: String!
@@ -2337,7 +2345,10 @@ type DocumentListResponse {
 }
 
 type DocumentMutNamespace {
-  _documentMutNotImplementedThing: SimpleJsonRes!
+  """
+  slug 별 현재 시행 문서에 동의. user.agreements[slug] = 문서 _id. item = 저장한 { slug: documentId }
+  """
+  documentAgree(input: DocumentAgreeInput!): SimpleJsonRes!
 }
 
 input DocumentOneBySlugQry {
@@ -5503,6 +5514,7 @@ input ThreadSearchInputSortType {
 
 type User implements ICreatedAt & IVillain & StandardEntity {
   _id: String!
+  agreements: JsonType
   archive: Archive!
   createdAt: DateTime!
   deletedAt: DateTime
@@ -5523,6 +5535,7 @@ type User implements ICreatedAt & IVillain & StandardEntity {
 }
 
 input UserCreateInput {
+  agreements: JsonType
   flags: [String!]!
 
   """url address to move other pages"""
@@ -5537,6 +5550,7 @@ input UserCreateInput {
 
 type UserInfoResponseItem {
   _id: String!
+  agreements: JsonType
   archive: Archive!
   createdAt: DateTime!
 
@@ -5557,6 +5571,7 @@ type UserInfoResponseItemResponse {
 
 input UserInput {
   _id: String!
+  agreements: JsonType
   archive: ArchiveInput!
   createdAt: DateTime!
   deletedAt: DateTime
@@ -5613,6 +5628,7 @@ enum UserRole {
 }
 
 input UserUpdateInput {
+  agreements: JsonType
   flags: [String!]
 
   """url address to move other pages"""

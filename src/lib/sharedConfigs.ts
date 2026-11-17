@@ -1,6 +1,7 @@
 import { print } from 'graphql'
 import { SYSTEM_SHARED_CONFIGS_QUERY } from '@/graphql/queries/system.ts'
 import { reportError } from '@/lib/errorReporter.ts'
+import { requestCredentials } from '@/lib/authStorage.ts'
 
 // 서버 공용 설정(systemStates sharedconfigs.value). 로컬에 없으면 받아서 저장하고,
 // 이후 모든 API 요청에 그 version 을 헤더로 실어 보낸다.
@@ -60,7 +61,8 @@ function restartForMajorUpdate(next: SharedConfigs): void {
 async function fetchSharedConfigs(): Promise<SharedConfigs | null> {
   const res = await fetch(uri, {
     method: 'POST',
-    credentials: 'include',
+    // 로그아웃 상태면 인증 쿠키를 싣지 않는다
+    credentials: requestCredentials(),
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       operationName: 'SystemSharedConfigs',

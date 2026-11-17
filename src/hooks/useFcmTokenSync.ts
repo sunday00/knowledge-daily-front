@@ -4,6 +4,7 @@ import { useAuth } from '@/auth/AuthProvider.tsx'
 import { USER_UPDATE_MUTATION } from '@/graphql/mutations/user.ts'
 import { diagnoseFcm, prepareFcmToken } from '@/lib/firebase.ts'
 import { reportError } from '@/lib/errorReporter.ts'
+import { usePendingAgreements } from '@/lib/agreement.ts'
 
 /**
  * 현재 FCM 토큰을 서버(notify__fcm)에 반영하는 함수를 반환한다.
@@ -39,10 +40,12 @@ export function useSyncFcmToken() {
 export function useFcmTokenSync() {
   const { user, signedInAt } = useAuth()
   const userId = user?.userId
+  // 동의할 문서가 있는 동안엔 요청이 막히므로, 동의한 뒤에 반영한다
+  const agreementPending = !!usePendingAgreements()
   const syncFcmToken = useSyncFcmToken()
 
   useEffect(() => {
-    if (!userId) return
+    if (!userId || agreementPending) return
     let cancelled = false
 
     const sync = () => {
@@ -69,5 +72,5 @@ export function useFcmTokenSync() {
       permissionStatus?.removeEventListener('change', onPermissionChange)
     }
     // signedInAt: 같은 계정으로 다시 로그인해도(userId 그대로) 다시 반영
-  }, [userId, signedInAt, syncFcmToken])
+  }, [userId, signedInAt, agreementPending, syncFcmToken])
 }
