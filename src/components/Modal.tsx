@@ -18,6 +18,11 @@ type Props = {
   dismissible?: boolean
   /** 넓은 모달 (사진 고르기 등 목록용). 내용은 왼쪽 정렬 */
   wide?: boolean
+  /**
+   * 어떤 방법으로도 닫히지 않는 모달 (약관 동의 등). Esc 를 연달아 눌러도 닫히지 않게 막는다.
+   * dismissible={false} 는 바깥 누르기 / Esc 로 onClose 를 부르지 않을 뿐이고, 이건 브라우저가 닫는 것까지 막는다
+   */
+  locked?: boolean
 }
 
 const TONE_ICON_CLASS: Record<ModalTone, string> = {
@@ -43,6 +48,7 @@ export function Modal({
   footer,
   dismissible = true,
   wide = false,
+  locked = false,
 }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
@@ -69,6 +75,15 @@ export function Modal({
       onCancel={(e) => {
         e.preventDefault()
         if (dismissible) onClose()
+      }}
+      // locked: Chrome 은 Esc 를 연달아 누르면 cancel 을 막아도 닫아 버려서 키 자체를 막는다
+      onKeyDown={(e) => {
+        if (locked && e.key === 'Escape') e.preventDefault()
+      }}
+      // locked: 그래도 브라우저가 닫았는데 열려 있어야 하면 다시 연다
+      onClose={(e) => {
+        const dialog = e.currentTarget
+        if (locked && open && !dialog.open) dialog.showModal()
       }}
       // 바깥(backdrop) 누르기. dialog 자신이 눌린 경우만 바깥이다.
       onClick={(e) => {

@@ -8,6 +8,7 @@ import {
   type StoredArchive,
 } from '../lib/authStorage'
 import { setUserPoint } from '../lib/userPoint'
+import { setPendingAgreements } from '../lib/agreement'
 
 type AuthUser = { userId: string; nickname: string }
 
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut: () => {
         clearSession()
         setUserPoint(null)
+        setPendingAgreements(null)
         setUser(null)
       },
       updateUser: (partial) => {

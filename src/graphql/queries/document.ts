@@ -20,3 +20,23 @@ export const DOCUMENT_ONE_QUERY = graphql(`
     }
   }
 `)
+
+// 동의 받기 모달용. 지금 시행 중인 문서 (_id 를 동의 기록으로 보낸다). 이름(AgreementDocument)으로 동의 대기 중에도 보낸다
+export const AGREEMENT_DOCUMENT_QUERY = graphql(`
+  query AgreementDocument($input: DocumentOneBySlugQry!) {
+    DocumentQuery {
+      documentOne(input: $input) {
+        success
+        message
+        item {
+          _id
+          slug
+          title
+          content
+          revision
+          effectiveAt
+        }
+      }
+    }
+  }
+`)

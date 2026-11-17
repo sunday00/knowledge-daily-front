@@ -139,3 +139,16 @@ export function clearSession(): void {
   localStorage.removeItem(NICKNAME_KEY)
   writeArchive(null)
 }
+
+// 인증 쿠키를 주고받아야 하는 요청: 로그인(응답의 Set-Cookie 를 받아야 함), 로그아웃(서버가 받은 쿠키를 만료시킴)
+const AUTH_COOKIE_OPERATIONS = new Set(['AuthKakaoLogin', 'AuthLogout'])
+
+/**
+ * 요청에 인증 쿠키를 실을지. 로그아웃 상태(로컬에 로그인 정보 없음)면 싣지 않는다.
+ * HttpOnly 쿠키라 프론트에서 지울 수 없어서, 로그아웃 뒤 남은 쿠키가 요청에 실리지 않게 하려는 것.
+ * 로그인 / 로그아웃 요청은 쿠키를 주고받아야 하므로 항상 include
+ */
+export function requestCredentials(operationName?: string): RequestCredentials {
+  if (operationName && AUTH_COOKIE_OPERATIONS.has(operationName)) return 'include'
+  return getUserId() ? 'include' : 'omit'
+}

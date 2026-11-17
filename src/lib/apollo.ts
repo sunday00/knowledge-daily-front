@@ -18,6 +18,15 @@ import {
   SHARED_CONFIGS_VERSION_HEADER,
 } from './sharedConfigs'
 import { syncUserPointFromHeaders } from './userPoint'
+import { requestCredentials } from './authStorage'
+import { GraphQLError } from 'graphql'
+import {
+  AGREEMENT_OPERATIONS,
+  DOCUMENTS_UNAGREED,
+  getPendingAgreements,
+  setPendingAgreements,
+  unagreedSlugsOf,
+} from './agreement'
 import { decodeAnglesDeep } from '@/lib/angleEntities.ts'
 
 const QUERY_NAMESPACES = [
@@ -44,6 +53,12 @@ const uri = import.meta.env.VITE_GRAPHQL_ENDPOINT ?? 'http://localhost:4000/grap
 // 모든 API 에러를 화면 상단 ErrorBanner 로 보고.
 // 화면에서 직접 처리하는 에러(예: 아직 신청 안 함)는 요청 context 의 expectedErrorCodes 에 적으면 보고하지 않는다.
 const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+  // 동의할 문서가 있으면 동의 받기 화면으로 돌리고(App), 에러로는 알리지 않는다
+  const unagreed = unagreedSlugsOf(graphQLErrors)
+  if (unagreed) {
+    setPendingAgreements(unagreed)
+    return
+  }
   const expected = (operation.getContext().expectedErrorCodes ?? []) as string[]
   if (
     !networkError &&
@@ -56,7 +71,25 @@ const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
   reportError(`[API] ${operation.operationName}: ${error.message}`, error)
 })
 
+// 동의할 문서가 있는 동안엔 동의에 필요한 요청(AGREEMENT_OPERATIONS)만 보내고, 나머지는 서버에 보내지 않고 같은 에러로 끝낸다
+const agreementGateLink = new ApolloLink((operation, forward) => {
+  const pending = getPendingAgreements()
+  if (!pending || AGREEMENT_OPERATIONS.has(operation.operationName)) return forward(operation)
+  return Observable.of({
+    errors: [
+      new GraphQLError('Documents to be agreed', {
+        extensions: { code: DOCUMENTS_UNAGREED, detail: pending },
+      }),
+    ],
+  })
+})
+
 // 모든 요청에 로컬 공용 설정의 version 을 헤더로 싣는다. 로컬에 없으면 먼저 받아 저장한다.
+// 로그아웃 상태면 인증 쿠키를 싣지 않는다 (requestCredentials). HttpLink 는 context.credentials 를 우선한다
+const credentialsLink = setContext((operation) => ({
+  credentials: requestCredentials(operation.operationName),
+}))
+
 const sharedConfigsLink = setContext(async (_, { headers }) => {
   const version = (await ensureSharedConfigs())?.version
   return version ? { headers: { ...headers, [SHARED_CONFIGS_VERSION_HEADER]: version } } : {}
@@ -120,13 +153,15 @@ const decodeAnglesLink = new ApolloLink((operation, forward) =>
 export const apolloClient = new ApolloClient({
   link: from([
     errorLink,
+    agreementGateLink,
     configVersionRetryLink,
     sharedConfigsLink,
+    credentialsLink,
     userPointLink,
     decodeAnglesLink,
     new HttpLink({
       uri,
-      // HttpOnly 쿠키 전송을 위해 필수.
+      // HttpOnly 쿠키 전송을 위해 필수. (로그아웃 상태면 credentialsLink 가 요청마다 omit 으로 바꾼다)
       // 서버 CORS 는 credentials:true + 명시된 origin 이어야 합니다.
       credentials: 'include',
     }),

@@ -52,3 +52,16 @@ export const KAKAO_LOGIN_MUTATION = graphql(`
     }
   }
 `)
+
+/** 로그아웃. 서버가 accessToken 쿠키를 만료시킨다 (비로그인 / 만료 토큰이어도 항상 성공) */
+export const AUTH_LOGOUT_MUTATION = graphql(`
+  mutation AuthLogout {
+    AuthMutation {
+      authLogout {
+        success
+        message
+        item
+      }
+    }
+  }
+`)

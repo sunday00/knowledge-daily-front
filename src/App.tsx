@@ -43,6 +43,10 @@ import { SiteTitle } from './components/SiteTitle'
 import { useFcmTokenSync } from './hooks/useFcmTokenSync'
 import { ErrorBanner } from './components/ErrorBanner'
 import { LoadingSpinner } from '@/components/LoadingSpinner.tsx'
+import { AgreementGate } from '@/components/AgreementGate.tsx'
+import { useAgreementCheck } from '@/hooks/useAgreementCheck.ts'
+import { usePendingAgreements } from '@/lib/agreement.ts'
+import { useAuth } from '@/auth/AuthProvider.tsx'
 
 // 마크다운 라이브러리가 커서 상세 페이지를 열 때만 따로 불러온다.
 const SenseDetailPage = lazy(() => import('./pages/sense/SenseDetailPage'))
@@ -75,6 +79,18 @@ const pageFallback = <LoadingSpinner />
 
 export default function App() {
   useFcmTokenSync()
+  useAgreementCheck()
+  const { user } = useAuth()
+  const pendingAgreements = usePendingAgreements()
+
+  // 로그인 유저가 동의할 문서가 있으면 다른 화면은 모두 숨기고 동의 받기만 보여 준다 (요청도 apollo 에서 막는다)
+  if (user && pendingAgreements) {
+    return (
+      <div className="mx-auto max-w-5xl px-6 py-6">
+        <AgreementGate slugs={pendingAgreements} />
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-6">
