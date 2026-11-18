@@ -13,6 +13,8 @@ import PromotionPage from './pages/user/PromotionPage'
 import MyMediaPage from './pages/user/MyMediaPage'
 import AchievementsPage from './pages/user/AchievementsPage'
 import MyRecordPage from './pages/user/MyRecordPage'
+import VillainManagePage from './pages/user/VillainManagePage'
+import { VILLAIN_MANAGE_PATH } from './lib/villainManage'
 import { RECORD_PATH, receivedSensePath } from './lib/myRecord'
 import { ACHIEVEMENTS_PATH } from './lib/achievement'
 import { MY_MEDIA_PATH } from './lib/myMedia'
@@ -160,6 +162,7 @@ export default function App() {
           <Route path={MY_MEDIA_PATH} element={<MyMediaPage />} />
           <Route path={ACHIEVEMENTS_PATH} element={<AchievementsPage />} />
           <Route path={RECORD_PATH} element={<MyRecordPage />} />
+          <Route path={VILLAIN_MANAGE_PATH} element={<VillainManagePage />} />
           <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
           {/* 예전 내 상식 주소 → 기록 > 내 상식 > 내가 받은 상식 (태그 유지) */}
           <Route path="/sense/my-sense" element={<LegacyMySenseRedirect />} />

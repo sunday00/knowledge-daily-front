@@ -1,6 +1,7 @@
-import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider.tsx'
 import { ReactionEmojiGrid } from '@/components/ReactionEmojiGrid.tsx'
+import { UnderlineTabs } from '@/components/UnderlineTabs.tsx'
 import { TAG_ASIDE_CLASS, TAG_LIST_CLASS, TagNavLink } from '@/components/TagSidebar.tsx'
 import {
   MyArticleList,
@@ -58,7 +59,7 @@ export default function MyRecordPage() {
         </aside>
 
         <div className="min-w-0 flex-1 space-y-4">
-          <Tabs
+          <UnderlineTabs
             label={`${menu.label} 분류`}
             items={subs}
             current={sub}
@@ -99,46 +100,6 @@ export default function MyRecordPage() {
         </div>
       </div>
     </section>
-  )
-}
-
-function Tabs<K extends string>({
-  label,
-  items,
-  current,
-  toParams,
-}: {
-  label: string
-  items: readonly { key: K; label: string }[]
-  current: K
-  toParams: (key: K) => Record<string, string>
-}) {
-  const { pathname } = useLocation()
-  return (
-    <nav
-      aria-label={label}
-      className="flex gap-1 overflow-x-auto border-b border-neutral-200 dark:border-neutral-800"
-    >
-      {items.map((t) => {
-        const active = t.key === current
-        const to = `${pathname}?${new URLSearchParams(toParams(t.key)).toString()}`
-        return (
-          <Link
-            key={t.key}
-            to={to}
-            replace
-            aria-current={active ? 'page' : undefined}
-            className={`-mb-px shrink-0 border-b-2 px-4 py-2 text-sm no-underline transition-colors ${
-              active
-                ? 'border-brand-600 font-medium text-brand-600 dark:border-indigo-300 dark:text-indigo-300'
-                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100'
-            }`}
-          >
-            {t.label}
-          </Link>
-        )
-      })}
-    </nav>
   )
 }
 

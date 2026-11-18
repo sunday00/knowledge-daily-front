@@ -20,3 +20,11 @@ export const REPORT_QUEST_SEPARATOR = '|'
  */
 export const toReportQuest = (code: ReportReasonCode, detail: string) =>
   `${code}${REPORT_QUEST_SEPARATOR}${detail.trim()}`
+
+/** 신고 내용(quest)을 사유 이름과 상세 내용으로. 모르는 코드면 코드 그대로 */
+export function parseReportQuest(quest: string): { label: string; detail: string } {
+  const at = quest.indexOf(REPORT_QUEST_SEPARATOR)
+  const code = at < 0 ? quest : quest.slice(0, at)
+  const detail = at < 0 ? '' : quest.slice(at + 1)
+  return { label: REPORT_REASONS.find((r) => r.code === code)?.label ?? code, detail }
+}

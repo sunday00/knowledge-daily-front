@@ -8,6 +8,7 @@ import { PROMOTION_PATH } from '@/lib/promotion.ts'
 import { MY_MEDIA_PATH } from '@/lib/myMedia.ts'
 import { ACHIEVEMENTS_PATH } from '@/lib/achievement.ts'
 import { RECORD_PATH } from '@/lib/myRecord.ts'
+import { VILLAIN_MANAGE_PATH } from '@/lib/villainManage.ts'
 
 export function UserMenu() {
   const { user } = useAuth()
@@ -80,6 +81,14 @@ export function UserMenu() {
             className="block px-3 py-2 text-sm text-neutral-800 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 no-underline"
           >
             기록
+          </Link>
+          <Link
+            to={VILLAIN_MANAGE_PATH}
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="block px-3 py-2 text-sm text-neutral-800 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 no-underline"
+          >
+            차단/신고 관리
           </Link>
           <Link
             to={MY_MEDIA_PATH}
