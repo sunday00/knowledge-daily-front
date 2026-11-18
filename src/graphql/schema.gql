@@ -1597,7 +1597,7 @@ input BlockInput {
   version: String!
 }
 
-input BlockListByQry {
+input BlockListBySearch {
   """커서"""
   after: String
 
@@ -1605,13 +1605,13 @@ input BlockListByQry {
   page: Int
 
   "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
-  search: OmitObjectTypeSearchInput
+  search: BlockSearchInput
 
   """페이지 당 갯수"""
   size: Int = 20
 
   """정렬: { fieldName: 1 | -1 }"""
-  sort: OmitObjectTypeSearchInputSortType
+  sort: BlockSearchInputSortType
 }
 
 type BlockListResponse {
@@ -1633,6 +1633,42 @@ type BlockListResponse {
 
   """총 data rows"""
   total: Int
+}
+
+input BlockSearchInput {
+  _id: RangeString
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"_id\": {\n            \"eq\": \"5cd9849c27c7b430b637aab9\"\n          }\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  createdAt: RangeDate
+  reasons: [String!]
+  status: RangeStandardStatus
+  targetEntity: RangeVBlockTargetEntity
+  targetId: RangeString
+  version: RangeString
+}
+
+input BlockSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  reasons: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  targetEntity: Int
+
+  """1: asc, -1: desc"""
+  targetId: Int
+
+  """1: asc, -1: desc"""
+  version: Int
 }
 
 """게시판. 게시글은 하위에 article.entity 또는 ask.entity"""
@@ -3176,42 +3212,6 @@ input NotifySettingUpdateInput {
   senseSetting: NotifySenseSettingInput
   status: StandardStatus
   version: String
-}
-
-input OmitObjectTypeSearchInput {
-  _id: RangeString
-
-  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"_id\": {\n            \"eq\": \"5cd9849c27c7b430b637aab9\"\n          }\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
-  complex: JsonType
-  createdAt: RangeDate
-  reasons: [String!]
-  status: RangeStandardStatus
-  targetEntity: RangeVBlockTargetEntity
-  targetId: RangeString
-  version: RangeString
-}
-
-input OmitObjectTypeSearchInputSortType {
-  """1: asc, -1: desc"""
-  _id: Int
-
-  """1: asc, -1: desc"""
-  createdAt: Int
-
-  """1: asc, -1: desc"""
-  reasons: Int
-
-  """1: asc, -1: desc"""
-  status: Int
-
-  """1: asc, -1: desc"""
-  targetEntity: Int
-
-  """1: asc, -1: desc"""
-  targetId: Int
-
-  """1: asc, -1: desc"""
-  version: Int
 }
 
 type Opinion implements IAttach & ICreatedAt & IReaction & IUser & IVillain & StandardEntity {
@@ -5262,6 +5262,31 @@ enum StandardStatus {
   RESULT
 }
 
+"""신고 대상자들"""
+type Suspect implements ComplaintEntity & IAttach & ICreatedAt & IUser {
+  _id: String!
+
+  """답변, 응답, 관리자 대답 등"""
+  answer: String
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItem!]!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  handledAt: DateTime
+
+  """요청, 신고, 질문 내용"""
+  quest: String!
+  result: ComplaintResult!
+  status: StandardStatus!
+  targetEntity: VBlockTargetEntity!
+  targetId: String!
+
+  """user"""
+  user: User
+  version: String!
+}
+
 input SuspectCreateInput {
   """첨부 미디어 목록"""
   attaches: [AttachItemInput!]!
@@ -5272,6 +5297,130 @@ input SuspectCreateInput {
   targetEntity: VBlockTargetEntity!
   targetId: String!
   version: String
+}
+
+input SuspectInput {
+  _id: String!
+
+  """답변, 응답, 관리자 대답 등"""
+  answer: String
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]!
+  createdAt: DateTime!
+  deletedAt: DateTime
+  handledAt: DateTime
+
+  """요청, 신고, 질문 내용"""
+  quest: String!
+  result: ComplaintResult!
+  status: StandardStatus!
+  targetEntity: VBlockTargetEntity!
+  targetId: String!
+
+  """user"""
+  user: UserInput
+  version: String!
+}
+
+input SuspectListBySearch {
+  """커서"""
+  after: String
+
+  """page. 0, undefined, null 이면 cursor paginate 로 동작"""
+  page: Int
+
+  "# 검색조건\n     ```graphql\n     {\n      \"input\": {\n        \"search\": {\n          \"username\": {\n            \"contains\": \"길동\"\n          }\n        }\n      }\n     }\n     ```\n    "
+  search: SuspectSearchInput
+
+  """페이지 당 갯수"""
+  size: Int = 20
+
+  """정렬: { fieldName: 1 | -1 }"""
+  sort: SuspectSearchInputSortType
+}
+
+type SuspectListResponse {
+  hasNext: Boolean
+  items: [Suspect!]!
+
+  """마지막 페이지"""
+  maxPage: Int
+
+  "\n- text comment used to describe more information to user or frontend developer. \n"
+  message: String
+  nextCursor: String
+
+  """현재 요청된 rows size"""
+  size: Int
+
+  "\n- 1: Ok, successfully mutated, no problem \n- 4: no content. this means NotFound or DeletedAlready.\n"
+  success: Int!
+
+  """총 data rows"""
+  total: Int
+}
+
+input SuspectSearchInput {
+  _id: RangeString
+
+  """답변, 응답, 관리자 대답 등"""
+  answer: RangeString
+
+  """첨부 미디어 목록"""
+  attaches: [AttachItemInput!]
+
+  "복잡한 쿼리 보조\n## available\n\n  \n    [\n  {\n    \"input\": {\n      \"search\": {\n        \"title\": {\n          \"contains\": \"이\"\n        },\n        \"description\": {\n          \"contains\": \"이\"\n        },\n        \"lv\": {\n          \"not\": 1\n        },\n        \"complex\": {\n          \"or\": [\n            \"title\",\n            \"description\"\n          ]\n        }\n      },\n      \"size\": 3\n    }\n  },\n  {\n    \"input\": {\n      \"search\": {\n        \"user\": {\n          \"_id\": {\n            \"eq\": \"5cd9849c27c7b430b637aab9\"\n          }\n        }\n      },\n      \"size\": 3\n    }\n  }\n]\n    \n    - \n    \n    http://localhost:4000/dev/graphql-example/common/standardSearch/input\n    \n"
+  complex: JsonType
+  createdAt: RangeDate
+  deletedAt: RangeDate
+  handledAt: RangeDate
+
+  """요청, 신고, 질문 내용"""
+  quest: RangeString
+  result: RangeComplaintResult
+  status: RangeStandardStatus
+  targetEntity: RangeVBlockTargetEntity
+  targetId: RangeString
+  version: RangeString
+}
+
+input SuspectSearchInputSortType {
+  """1: asc, -1: desc"""
+  _id: Int
+
+  """1: asc, -1: desc"""
+  answer: Int
+
+  """1: asc, -1: desc"""
+  attaches: Int
+
+  """1: asc, -1: desc"""
+  createdAt: Int
+
+  """1: asc, -1: desc"""
+  deletedAt: Int
+
+  """1: asc, -1: desc"""
+  handledAt: Int
+
+  """1: asc, -1: desc"""
+  quest: Int
+
+  """1: asc, -1: desc"""
+  result: Int
+
+  """1: asc, -1: desc"""
+  status: Int
+
+  """1: asc, -1: desc"""
+  targetEntity: Int
+
+  """1: asc, -1: desc"""
+  targetId: Int
+
+  """1: asc, -1: desc"""
+  version: Int
 }
 
 input SystemHealthQry {
@@ -5676,7 +5825,8 @@ type VillainMutNamespace {
 }
 
 type VillainQryNamespace {
-  villainStandardBlockList(input: BlockListByQry): BlockListResponse!
+  villainStandardBlockList(input: BlockListBySearch): BlockListResponse!
+  villainStandardSuspectList(input: SuspectListBySearch): SuspectListResponse!
 }
 
 """대상이 내가 이미 신고/차단 했는지, 신고했다면 지금 결과가 어떤지"""

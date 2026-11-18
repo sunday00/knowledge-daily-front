@@ -46,7 +46,7 @@ const byIds = (ids: string[]) => ({
 })
 
 /** 받은 순서대로 한 쪽(RECORD_PAGE_SIZE)씩 나눈다. 앞쪽 묶음은 다음 쪽을 받아도 그대로라, 쪽마다 붙는 조회가 다시 나가지 않는다 */
-const byPage = <T,>(list: readonly T[]): T[][] => {
+export const byPage = <T,>(list: readonly T[]): T[][] => {
   const pages: T[][] = []
   for (let i = 0; i < list.length; i += RECORD_PAGE_SIZE) {
     pages.push(list.slice(i, i + RECORD_PAGE_SIZE))
@@ -55,7 +55,7 @@ const byPage = <T,>(list: readonly T[]): T[][] => {
 }
 
 /** 목록 공통 틀: 불러오는 중 / 실패 / 비어 있음 / 끝까지 내리면 다음 쪽 */
-function ListFrame({
+export function ListFrame({
   loading,
   error,
   empty,

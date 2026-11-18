@@ -64,3 +64,14 @@ export function maskedNoticeOf(value: string | null | undefined, noun: string): 
   if (blocked) return `차단된 ${noun}입니다.`
   return null
 }
+
+/**
+ * 서버가 목록에서 가린 값을 벗긴다 (내 차단 관리처럼 원래 내용을 보여 줘야 할 때).
+ * deleted = 삭제된 것 (원래 내용이 없다)
+ */
+export function unmaskedOf(value: string): { deleted: boolean; text: string } {
+  const text = splitBlocked(value)
+    .map((p) => p.text)
+    .join('')
+  return { deleted: text === DELETED_MARK, text }
+}
